@@ -169,7 +169,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.processData = function() {
     var url = "";
     if ($scope.peptide.precursorCharge > 0) {
-      url = "support/php/processData.php";
+      url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
     } else {
       url = "support/php/NegativeModeProcessData.php";
     }
