@@ -1,13 +1,6 @@
 // Nyborg, DK, 2020-01-14 1800 Tobi, Leon, CP 
 // TODO: docu
-var rv = queryProtDBPOst()
-var a = 0
-rv.then(x => a=x)
-</script>
 
-</body>
-
-</html>
 function queryProtDBGet(peptideseq="SCTLFPQNPNLPPPSTRER", charge="3"){
   let url = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" + peptideseq + "&mods=Carbamidomethyl@C2&charge=" + charge
 
