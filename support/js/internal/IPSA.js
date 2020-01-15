@@ -410,6 +410,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       };
 
       /**
+	    * @description Retrieves all of the spectral intensity values in percent relative abundance format. Min = 0, Max = 1.
+	    * @example [0.01, 0.12, .063, ...]
+	    * @returns {Array} All experimental intensity values in percent relative abundance format.
+	    */
+      scope.getMirrorPercentBasePeak = function() {
+        return scope.mirrorplotdata.percentBasePeak;
+      };
+
+      /**
 	    * @description Retrieves the previously specified colors to draw the spectral data with. Each spectral peak will have a color associated with it depending on what fragment types were 
 	    * 		specified and the colors specified in the control form. Colors must be provided in hexadecimal format.
 	    * @example ["#a6a6a6", "#0d75bc", "#be202d", ...]
@@ -420,12 +429,31 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       };
 
       /**
+	    * @description Retrieves the previously specified colors to draw the spectral data with. Each spectral peak will have a color associated with it depending on what fragment types were 
+	    * 		specified and the colors specified in the control form. Colors must be provided in hexadecimal format.
+	    * @example ["#a6a6a6", "#0d75bc", "#be202d", ...]
+	    * @returns {Array} All colors in hexidecimal notation. 
+	    */
+      scope.getMirrorColors = function() {
+        return scope.mirrorplotdata.color;
+      };
+
+      /**
 	    * @description Retrieves all the best matching fragment labels as an array. Spectral peaks which don't have a matching fragment should be listed as an empty string.
 	    * @example ["", "b1", "y1", ...]
 	    * @returns {Array} An array containing all annotated labels. Non-annotated peaks will have an empty string as a placeholder.
 	    */
       scope.getLabels = function() {
         return scope.plotdata.label;
+      };
+
+      /**
+	    * @description Retrieves all the best matching fragment labels as an array. Spectral peaks which don't have a matching fragment should be listed as an empty string.
+	    * @example ["", "b1", "y1", ...]
+	    * @returns {Array} An array containing all annotated labels. Non-annotated peaks will have an empty string as a placeholder.
+	    */
+      scope.getMirrorLabels = function() {
+        return scope.mirrorplotdata.label;
       };
        
       /**
@@ -435,6 +463,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    */
       scope.getLabelCharges = function() {
         return scope.plotdata.labelCharge;
+      } 
+       
+      /**
+	    * @description Retrieves all the best matching fragment label charges as an array. Spectral peaks which don't have a matching fragment should be listed as 0.
+	    * @example ["0", "1", "2", ...]
+	    * @returns {Array} An array containing all annotated fragment charges. Non-annotated peaks will have 0 as a placeholder.
+	    */
+      scope.getMirrorLabelCharges = function() {
+        return scope.mirrorplotdata.labelCharge;
       } 
 
       /**
@@ -453,6 +490,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    */
       scope.getWidths = function() {
         return scope.plotdata.barwidth;
+      };
+
+      /**
+	    * @description Retrieves an array containing bar widths. These values are used to scale annotated peak widths differently.
+	    * @example ["1", "3", "3", ...]
+	    * @returns {Array} An array containing all bar widths. Non-annotated peaks default to width = 1. Annotated peaks have width = 3.
+	    */
+      scope.getMirrorWidths = function() {
+        return scope.mirrorplotdata.barwidth;
       };
 
       /**
@@ -1221,10 +1267,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 		options = scope.getOptions(), 
 		xValues = scope.getX(), yValues = scope.getIntensities(), 
 		percentBasePeak = scope.getPercentBasePeak(),
-		xValues2 = scope.getX(), yValues2 = scope.getIntensities(), 
-        percentBasePeak2 = scope.getPercentBasePeak(),
-		labels2 = scope.getLabels(), labelCharges2 = scope.getLabelCharges(),
-		colors2 = scope.getColors(),
+		xValues2 = scope.getMirrorX(), yValues2 = scope.getMirrorIntensities(), 
+        percentBasePeak2 = scope.getMirrorPercentBasePeak(),
+		labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
+		colors2 = scope.getMirrorColors(),
 		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
         neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
 		  
