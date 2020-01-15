@@ -1650,8 +1650,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             return y(0);
           }).attr('opacity', 0.0)
           .transition().delay(function(d, i) {return duration * i + 250}).duration(1000).ease("bounce")
-          .attr("y", function(d) {
-              return y(-100-d.percentBasePeak - 5);
+          .attr("y", function (d) {
+              //return y(d.percentBasePeak + yMax * .005);
+              //return y(-100 - d.percentBasePeak - 5);
+              return y(100 - d.percentBasePeak);
           }).attr('opacity', 1);
 
           // transition out unused labels
