@@ -166,6 +166,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $log.log($scope.set);
   };
 
+  $scope.plotMirrorData = function(returnedData) {
+	  //console.log(returnedData)
+    $scope.set.mirrorPlotData = returnedData;
+  }
+
   $scope.processData = function() {
     var url = "";
     if ($scope.peptide.precursorCharge > 0) {
@@ -240,6 +245,18 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           } else {
             $scope.annotatedResults = response.data;
             $scope.plotData($scope.annotatedResults);
+          }
+      });
+        
+      var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+	query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [30]}
+      $http.post(url2, query)
+        .then( function(response) {
+          // if errors exist, alert user
+          if (response.data.hasOwnProperty("error")) {
+            alert(response.data.error);
+          } else {
+            $scope.plotMirrorData(transform2scope(response.data[0]))
           }
       });
     }
