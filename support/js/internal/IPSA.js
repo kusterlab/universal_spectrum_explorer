@@ -1222,7 +1222,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 		xValues = scope.getX(), yValues = scope.getIntensities(), 
 		percentBasePeak = scope.getPercentBasePeak(),
 		xValues2 = scope.getX(), yValues2 = scope.getIntensities(), 
-        percentBasePeak2 = scope.getPercentBasePeak().map((x) => { return ((100 - x) * -1);}),
+        percentBasePeak2 = scope.getPercentBasePeak(),
 		labels2 = scope.getLabels(), labelCharges2 = scope.getLabelCharges(),
 		colors2 = scope.getColors(),
 		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
@@ -1401,7 +1401,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           }).attr("x", function(d) {
             return x(d.mz) - d.width / 2;
           }).attr("height", function(d) {
-            return options.annotation.height - y(-d.percentBasePeak);
+            return options.annotation.height - y(d.percentBasePeak);
           }).attr("y", function(d) {
             return y(0) -180;
           }).attr("fill", function(d) {
@@ -1457,9 +1457,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
                 return x(d.mz);
               });
               // using the new scale, update the mass error circles
-              circleDataset2.attr("cx", function(d) {
-                return x(d.mz);
-              });
+              //circleDataset2.attr("cx", function(d) {
+              //  return x(d.mz);
+              //});
 
               // using the new scale, redraw the lines connecting the spectral peaks to annotation labels.
               lineDataset.forEach(function(d) {
