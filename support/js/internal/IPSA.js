@@ -859,7 +859,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.plotContainer.attr("clip-path", "url(#clippy)");
 		
         // // position the container which will hold the marked peptide sequence
-        scope.container2.attr("transform", "translate(" + options.annotation.margin.left + ", " + (options.annotation.margin.top + 320) +  ")");
+        scope.container2.attr("transform", "translate(" + options.annotation.margin.left + ", " + (options.annotation.margin.top + 230) +  ")");
 
         // bind the clip path to the annotated mass spectrum
         scope.plotContainer2.attr("clip-path", "url(#clippy)");
