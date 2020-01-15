@@ -1291,10 +1291,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         if (xValues && yValues) {
         	// define x and y scales
           x = d3.scale.linear().domain([xMin - xScaleFudgeFactor, xMax + xScaleFudgeFactor]).range([ 0, options.annotation.width]);
-          y = d3.scale.linear().domain([yMin, yMax + yMax * options.annotation.padding]).range([ options.annotation.height, 0]);
+          y = d3.scale.linear().domain([yMin, yMax + yMax * 2 * options.annotation.padding]).range([ options.annotation.height, 0]);
 			
 			if (mirror) {
-				y2 = d3.scale.linear().domain([yMin2 + yMin2 * options.annotation.padding, yMax2 + yMax2 * options.annotation.padding]).range([ options.annotation.height, 0]);
+				y2 = d3.scale.linear().domain([yMin2 + yMin2 * 2 * options.annotation.padding, yMax2 + yMax2 * options.annotation.padding]).range([ options.annotation.height, 0]);
 			}
           // x-axis will be at the bottom with a suggested 10 axis ticks. That number may change depending on how D3 interprets the m/z range
           xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10);
@@ -1350,7 +1350,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             var charge = labelCharges2[i];
 
             // compile labels from the label text, neutral losses, charge, and ionization mode. {"y17", "-H2O", 2, "+"} => [y₁₇-H₂O]⁺²
-            var label = formatLabel(label, '', charge, ionizationMode);
+            var label = formatLabel(label, "", charge, ionizationMode);
 
             // sum up all intensities to calculate the total ion current
             TIC2 += yValues2[i];
