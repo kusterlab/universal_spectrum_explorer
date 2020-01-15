@@ -1222,19 +1222,20 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           percentBasePeak = scope.getPercentBasePeak(), massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
           neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
 		  
-		  if (iViewer === 1) {
-			  //xValues = scope.getMirrorX();
-			  //yValues = scope.getMirrorIntensities();
-			  
-			  xValues = scope.getX();
-			  yValues = scope.getIntensities();
-			  percentBasePeak = scope.getPercentBasePeak().map((x) => { return (x * -1);});
-		  }
+		  
         
         // since y axis is scaled to % relative abundance, yMax will always be 100%.
         let yMin = iViewer === 0 ? 0 : -100;
         let yMax = iViewer === 0 ? 100 : 0;
         let TIC = 0;
+        if (iViewer === 1) {
+            //xValues = scope.getMirrorX();
+            //yValues = scope.getMirrorIntensities();
+			  
+            xValues = scope.getX();
+            yValues = scope.getIntensities();
+            percentBasePeak = scope.getPercentBasePeak().map((x) => { return ((100 - x) * -1);});
+        }
 
         // create a variable to add a bit of a buffer between the edges of the svg so things don't get cut off.
         let xScaleFudgeFactor = (d3.max(xValues) - d3.min(xValues)) * .025;
@@ -1481,7 +1482,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           }).attr('opacity', 0.0)
           .transition().delay(function(d, i) {return duration * i + 250}).duration(1000).ease("bounce")
           .attr("y", function(d) {
-            return y(d.percentBasePeak + yMax * .005);
+              //return iViewer===0 ?  y(d.percentBasePeak + yMax * .005): -y(d.percentBasePeak);
+              return iViewer===0 ?  y(d.percentBasePeak + yMax * .005): y(-100-d.percentBasePeak - 5);
           }).attr('opacity', 1);
 
           // transition out unused labels
