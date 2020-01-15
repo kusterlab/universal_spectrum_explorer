@@ -1267,10 +1267,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 		options = scope.getOptions(), 
 		xValues = scope.getX(), yValues = scope.getIntensities(), 
 		percentBasePeak = scope.getPercentBasePeak(),
-		xValues2 = scope.getMirrorX(), yValues2 = scope.getMirrorIntensities(), 
-        percentBasePeak2 = scope.getMirrorPercentBasePeak(),
-		labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
-		colors2 = scope.getMirrorColors(),
+		xValues2 = scope.getX(), yValues2 = scope.getIntensities(), 
+        percentBasePeak2 = scope.getPercentBasePeak(),
+		labels2 = scope.getLabels(), labelCharges2 = scope.getLabelCharges(),
+		colors2 = scope.getColors(),
 		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
         neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
 		  
