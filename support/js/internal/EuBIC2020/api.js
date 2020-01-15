@@ -12,10 +12,11 @@ function queryProtDBGet(peptideseq="SCTLFPQNPNLPPPSTRER", charge="3"){
 }
 
 
-function queryProtDBPOst(){
-	url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs"
+function queryProteomicsDbPost(peptideSequence = ["LASVSVSR"], charge = [2], ce = [30]){
+	let url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
 
-		query = {"sequence": ["TDLHAFENLEIIR", "TDLHAFENLEIIR", "VTSGSTSTSR", "LASVSVSR", "YVYVADVAAK"], "charge": [2, 3, 2, 2, 2], "ce": [25, 30, 30, 30, 30]}
+	//query = {"sequence": ["TDLHAFENLEIIR", "TDLHAFENLEIIR", "VTSGSTSTSR", "LASVSVSR", "YVYVADVAAK"], "charge": [2, 3, 2, 2, 2], "ce": [25, 30, 30, 30, 30]}
+	query = {"sequence": peptideSequence, "charge": charge, "ce": ce}
 
 	return d3.json(url, {method: "POST", body: JSON.stringify(query)})
 }
@@ -36,12 +37,13 @@ x: a['ions'].map(x => x.mz),
    labels: a['ions'].map(x => x.ion + x.number),
    labelCharges: a['ions'].map(x => x.charge),
    neutralLosses: [],
-   widths: [],
+   widths: a['ions'].map(x => 1),
    sequence: a['sequence']
 			}
 
 		return scope;
 	} catch(err) {
+		console.log("ERROR: " + err)
 		scope = {
 x: [],
    intensities: [],
