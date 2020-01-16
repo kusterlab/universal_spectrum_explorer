@@ -244,6 +244,24 @@
                           </div>
                         </div>
                         <br/>
+                        
+                        <div class="row">
+                          <div class="col-md-6">
+                            <label>Mirror Spectrum Origin</label>
+                            <div class="btn-group">
+								<label class="btn btn-success" ng-model="checkModel.api" uib-btn-radio="'Prosit'" uncheckable>Prosit</label>
+								<label class="btn btn-success" ng-model="checkModel.api" uib-btn-radio="'ProteomeTools'" uncheckable>ProteomeTools</label>
+							</div>
+                          </div>
+                          <div class="col-md-6">
+                            <label>Collission Energy</label>
+                            <div class="input-group">
+                              <input type="number" class="form-control" ng-model="checkModel.ce" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapCE()">{{checkModel.ce}}</button> </span> 
+                            </div>
+                          </div>
+                        </div>
+                        <br/>
+                        <br/>
                         <div class="row">
                           <div class="col-md-12">
                             <button type="submit" class="btn btn-success" ng-click="processData()">Generate Chart</button>

@@ -1278,7 +1278,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 		labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
 		colors2 = scope.getMirrorColors(),
 		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
-        neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
+        neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(),widths2 = scope.getMirrorWidths(), sequence = scope.getSequence();
 		  
 		  
         
@@ -1370,7 +1370,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               percentBasePeak: percentBasePeak2[i],
               color: colors2[i],
               label: label,
-              width: widths[i] * options.annotation.width * .001,
+              width: widths2[i] * options.annotation.width * .001,
               massError: [], //massError[i],
               points: []
             });

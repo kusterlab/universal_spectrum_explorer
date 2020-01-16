@@ -271,6 +271,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           }
       });
 	  
+	  if ( $scope.checkModel.api === 'Prosit' || $scope.checkModel.api === 'ProteomeTools' ) {
 	  $http.post(url2, query)
 				.then( function(response2) {
 			  // if errors exist, alert user
@@ -280,6 +281,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 				$scope.plotMirrorData(transform2scope(response2.data[0]));
           }
       });
+	  
 	  
 	   $http.post(url, data)
         .then( function(response) {
@@ -308,6 +310,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 			});
           }
       });
+	  }
     }
   };
   
