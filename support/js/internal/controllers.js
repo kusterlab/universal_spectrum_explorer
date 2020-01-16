@@ -265,21 +265,21 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           });
       }
 	  
-	  var cm = {
+	  var ionColors = {
 		a: $scope.checkModel.a.color,
 		b: $scope.checkModel.b.color,
 		c: $scope.checkModel.c.color,
 		x: $scope.checkModel.x.color,
 		y: $scope.checkModel.y.color,
-		z: $scope.checkModel.z.color,
+		z: $scope.checkModel.z.color
 	};
       // httpRequest to submit data to processing script. 
 	  $http.post(url, data)
         .then( function(response) {
-          
+
             $scope.annotatedResults = response.data;
             $scope.plotData($scope.annotatedResults);
-			
+
             if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
                 var url2 = '';
                 if ($scope.mirrorModel.api === 'Prosit'){
@@ -290,38 +290,49 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 					    rv = response2.data[0]
 					    let maxFragmentIonCharge = $scope.peptide.charge
 					    rv['ions'] = rv['ions'].filter(x => x.charge <= maxFragmentIonCharge)
-					    $scope.plotMirrorData(transform2scope(rv, cm));
+					    $scope.plotMirrorData(transform2scope(rv, ionColors));
 					    var res2 = response2.data[0];
-						
+
 					    var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
 					    var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
-						
 					    var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
-					    var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-					    $scope.score(score);
+
+						//calculate similarity scores
+					    var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+					    var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+
+					    $scope.score(
+							{ 
+								sa : spectral_angle,
+								corr: pearson_correlation
+							}
+						);
 					}, function(response2) {
 					    // if errors exist, alert user
 					    alert("Prosit: " + response2.data.message);  
 					});
                 }
-            }
-            else if ($scope.mirrorModel.api === 'ProteomeTools'){
-                url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
-                $http.get(url2, "")
-                .then( function(response2) {
-                    $scope.plotMirrorData(transform2scope(response2.data[0], cm));
-                    var res2 = response2.data[0];
-						
-                    var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
-                    var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
-						
-                    var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
-                    var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-                    $scope.score(score);
-                }, function(response2) {
-                    // if errors exist, alert user
-                    alert("ProteomeTools: " + response2.data.message);  
-                });
+				else if ($scope.mirrorModel.api === 'ProteomeTools'){
+					url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
+					$http.get(url2, "")
+					.then( function(response2) {
+						var res2 = response2.data;
+						var spec = getClosestCESpectrum(res2, parseInt($scope.mirrorModel.ce, 10));
+						$scope.mirrorModel.ce = spec.collissionEnergy;
+						$scope.plotMirrorData(transform2scope(spec, ionColors));
+							
+						var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
+						var bottomSpectrumB = ipsa_helper["binning"](spec.ions);
+							
+						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+						var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+						$scope.score(Math.round(score * 100)/100);
+					}, function(response2) {
+						// if errors exist, alert user
+						alert("ProteomeTools: " + response2.data.message);  
+					});
+				}
+				
             }
         }, function (response) {
             // if errors exist, alert user          
