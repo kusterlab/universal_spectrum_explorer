@@ -3,12 +3,7 @@
 
 function queryProtDBGet(peptideseq="SCTLFPQNPNLPPPSTRER", charge="3"){
 	let url = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" + peptideseq + "&mods=Carbamidomethyl@C2&charge=" + charge
-
-
-		console.log("charge = " + charge)
-		console.log("peptide = " + peptideseq)
-
-		return d3.json(url, function(data) {console.log(data)})
+	return d3.json(url, function(data) {console.log(data)})
 }
 
 
@@ -73,9 +68,7 @@ function getClosestCESpectrum(spectra, ice) {
 										return p
 									}
 								}, {ce: -1000, dist: 1000});
-	console.log(closestCE);
 	var spectrum = spectra.filter(x => {return x.collissionEnergy === closestCE.ce});
-	console.log(spectrum);
 	return spectrum[0];
 }
 
