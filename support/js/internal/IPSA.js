@@ -2122,6 +2122,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * 		fragments, peptide sequence/charge, and settings/matching tolerances.
 	    */
       scope.$watch('plotdata', scope.redraw, true);
+      scope.$watch('mirrorplotdata', scope.redraw, true);
       scope.$watch('peptide', scope.redraw, true);
       scope.$watch('settings', scope.redraw, true);
       scope.$watch('score', scope.redraw, true);

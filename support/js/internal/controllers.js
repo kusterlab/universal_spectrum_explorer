@@ -183,7 +183,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   };
 
   $scope.plotMirrorData = function(returnedData) {
-	  //console.log(returnedData)
     $scope.set.mirrorPlotData = returnedData;
   }
   
@@ -266,9 +265,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           });
       }
 	  
-	  var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-	  var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [25], "mods" : [modString]};
-	var cm = {
+	  var cm = {
 		a: $scope.checkModel.a.color,
 		b: $scope.checkModel.b.color,
 		c: $scope.checkModel.c.color,
@@ -285,49 +282,57 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           } else {
             $scope.annotatedResults = response.data;
             $scope.plotData($scope.annotatedResults);
-          }
-      });
-	  
-	  if ( $scope.checkModel.api === 'Prosit' || $scope.checkModel.api === 'ProteomeTools' ) {
-		  $http.post(url2, query)
+			
+			if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
+				var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
+				var url2 = '';
+				if ($scope.mirrorModel.api === 'Prosit'){
+					url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+					$http.post(url2, query)
 					.then( function(response2) {
 				  // if errors exist, alert user
-				  if (response2.data.hasOwnProperty("error")) {
-					alert(response2.data.error);
-				  } else {
-					$scope.plotMirrorData(transform2scope(response2.data[0], cm));
-			  }
-		  });
-		  
-		  
-		  $http.post(url, data)
-			.then( function(response) {
-			  // if errors exist, alert user
-			  if (response.data.hasOwnProperty("error")) {
-				alert(response.data.error);
-			  } else {
-				var res1 = response.data;
-				
-				$http.post(url2, query)
-					.then( function(response2) {
-					  // if errors exist, alert user
 					  if (response2.data.hasOwnProperty("error")) {
 						alert(response2.data.error);
 					  } else {
+						$scope.plotMirrorData(transform2scope(response2.data[0], cm));
 						var res2 = response2.data[0];
-					
-						var topSpectrumB = ipsa_helper["binning"](res1.peaks);
+						
+						var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
 						var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
 						
 						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
 						var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-						console.log(score);
 						$scope.score(score);
-					}
-				});
-			  }
-		  });
-	  }
+					  }
+					});
+				}
+				else if ($scope.mirrorModel.api === 'ProteomeTools'){
+					url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+					$http.get(url2, query)
+					.then( function(response2) {
+				  // if errors exist, alert user
+					  if (response2.data.hasOwnProperty("error")) {
+						alert(response2.data.error);
+					  } else {
+						$scope.plotMirrorData(transform2scope(response2.data[0], cm));
+						var res2 = response2.data[0];
+						
+						var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
+						var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
+						
+						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+						var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+						$scope.score(score);
+					  }
+					});
+				}
+				
+	
+				
+				
+			}
+          }
+		});
     }
   };
   

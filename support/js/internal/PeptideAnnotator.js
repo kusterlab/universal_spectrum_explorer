@@ -419,6 +419,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       $scope.cutoffs.matchingCutoff = 0;
     }
   }
+  
+  $scope.swapCE = function() {
+      $scope.cutoffs.matchingType = "% Base Peak";
+  }
 
   // precursor charge
   $scope.validateCharge = function() {
