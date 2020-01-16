@@ -257,7 +257,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       $scope.submittedData = data;
 	  
 	  var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-	  var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [35]};
+	  var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [25]};
 
       // httpRequest to submit data to processing script. 
       $http.post(url, data)
