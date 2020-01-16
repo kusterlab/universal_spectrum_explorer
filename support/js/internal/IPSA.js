@@ -18,8 +18,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       restrict: 'AE',
       scope: {
         plotdata: '=?',
+        mirrorplotdata: '=?',
         peptide: '=?',
-        settings: '=?'
+        settings: '=?',
+		score: '=?'
       }
     };
 
@@ -373,6 +375,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       };
 
       /**
+	    * @description Retrieves all of the spectral mass to charge values
+    	* @example [100, 121.3154, 125.9435, ...]
+	    * @returns {Array} All experimental mass to charge values.
+	    */
+      scope.getMirrorX = function() {
+        return scope.mirrorplotdata.x;
+      };
+
+      /**
 	    * @description Retrieves all of the spectral intensity values
 	    * @example [10000, 648059, 393403, ...]
 	    * @returns {Array} All experimental intensities values.
@@ -382,12 +393,30 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       };
 
       /**
+	    * @description Retrieves all of the spectral intensity values
+	    * @example [10000, 648059, 393403, ...]
+	    * @returns {Array} All experimental intensities values.
+	    */
+      scope.getMirrorIntensities = function() {
+        return scope.mirrorplotdata.intensities;
+      };
+
+      /**
 	    * @description Retrieves all of the spectral intensity values in percent relative abundance format. Min = 0, Max = 1.
 	    * @example [0.01, 0.12, .063, ...]
 	    * @returns {Array} All experimental intensity values in percent relative abundance format.
 	    */
       scope.getPercentBasePeak = function() {
         return scope.plotdata.percentBasePeak;
+      };
+
+      /**
+	    * @description Retrieves all of the spectral intensity values in percent relative abundance format. Min = 0, Max = 1.
+	    * @example [0.01, 0.12, .063, ...]
+	    * @returns {Array} All experimental intensity values in percent relative abundance format.
+	    */
+      scope.getMirrorPercentBasePeak = function() {
+        return scope.mirrorplotdata.percentBasePeak;
       };
 
       /**
@@ -401,12 +430,31 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       };
 
       /**
+	    * @description Retrieves the previously specified colors to draw the spectral data with. Each spectral peak will have a color associated with it depending on what fragment types were 
+	    * 		specified and the colors specified in the control form. Colors must be provided in hexadecimal format.
+	    * @example ["#a6a6a6", "#0d75bc", "#be202d", ...]
+	    * @returns {Array} All colors in hexidecimal notation. 
+	    */
+      scope.getMirrorColors = function() {
+        return scope.mirrorplotdata.colors;
+      };
+
+      /**
 	    * @description Retrieves all the best matching fragment labels as an array. Spectral peaks which don't have a matching fragment should be listed as an empty string.
 	    * @example ["", "b1", "y1", ...]
 	    * @returns {Array} An array containing all annotated labels. Non-annotated peaks will have an empty string as a placeholder.
 	    */
       scope.getLabels = function() {
         return scope.plotdata.label;
+      };
+
+      /**
+	    * @description Retrieves all the best matching fragment labels as an array. Spectral peaks which don't have a matching fragment should be listed as an empty string.
+	    * @example ["", "b1", "y1", ...]
+	    * @returns {Array} An array containing all annotated labels. Non-annotated peaks will have an empty string as a placeholder.
+	    */
+      scope.getMirrorLabels = function() {
+        return scope.mirrorplotdata.labels;
       };
        
       /**
@@ -416,6 +464,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    */
       scope.getLabelCharges = function() {
         return scope.plotdata.labelCharge;
+      } 
+       
+      /**
+	    * @description Retrieves all the best matching fragment label charges as an array. Spectral peaks which don't have a matching fragment should be listed as 0.
+	    * @example ["0", "1", "2", ...]
+	    * @returns {Array} An array containing all annotated fragment charges. Non-annotated peaks will have 0 as a placeholder.
+	    */
+      scope.getMirrorLabelCharges = function() {
+        return scope.mirrorplotdata.labelCharges;
       } 
 
       /**
@@ -434,6 +491,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    */
       scope.getWidths = function() {
         return scope.plotdata.barwidth;
+      };
+
+      /**
+	    * @description Retrieves an array containing bar widths. These values are used to scale annotated peak widths differently.
+	    * @example ["1", "3", "3", ...]
+	    * @returns {Array} An array containing all bar widths. Non-annotated peaks default to width = 1. Annotated peaks have width = 3.
+	    */
+      scope.getMirrorWidths = function() {
+        return scope.mirrorplotdata.widths;
       };
 
       /**
@@ -490,7 +556,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           svg: 
           {
             width: 700,
-            height: 595,
+            height: 695,
             margin: 
             {
               top: 10,
@@ -526,11 +592,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               right: 15,
               bottom: 35,
               left: 60,
-              categoryPadding_2: 50,
-              categoryPadding_3: 235,
+              categoryPadding_2: 110,
+              categoryPadding_3: 320,
+              categoryPadding_4: 65,
+              categoryPadding_5: 35,
               dataPadding_1: -140,
-              dataPadding_2: 25,
+              dataPadding_2: -40,
               dataPadding_3: 185,
+              dataPadding_4: 40,
+              dataPadding_5: 40
             },
             padding: .05
           },
@@ -538,9 +608,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           {
             width: 700,
             zoomFactor: 1.1,
-            height: 380,
+            height: 180,
             margin: {
-              top: 90,
+              top: 110,
               right: 15,
               bottom: 37,
               left: 60,
@@ -553,9 +623,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           fragments:
           {
             width: 700,
-            height: 100,
+            height: 70,
             margin: {
-              top: 532,
+              top: 552,
               right: 15,
               bottom: 35,
               left: 60,
@@ -676,9 +746,13 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // svg element to show summary data about peptide
         scope.peptideContainer = scope.svg.append("g").attr("id", "peptideContainer");
+          // svg element to show correlation info about peptide
+        scope.statisticsContainer = scope.svg.append("g").attr("id", "statisticsContainer");
 
         // main svg container to hold spectrum annotations
         scope.container = scope.svg.append("g");
+        // main svg container to hold spectrum annotations
+        scope.container2 = scope.svg.append("g");
 
         // last svg container to hold matched fragment ppm error
         scope.fragmentContainer = scope.svg.append("g").attr("id", "fragmentContainer");
@@ -702,9 +776,32 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .attr("pointer-events", "all")
           .attr('width', options.annotation.width)
           .attr('height', options.annotation.margin.zoomXHeight);
+		  
+        // invisible rectangle on Y axis used to catch zoom events
+        scope.zoomY2 = scope.container2.append("rect")
+          .attr("id", "yZoom2")
+          .attr("fill", "none")
+          .attr("x", -options.annotation.margin.left)
+          .attr("y", "0")
+          .attr("pointer-events", "all")
+          .attr('width', options.annotation.margin.left)
+          .attr('height', options.annotation.height);
+
+        // invisible rectangle on X axis used to catch zoom events
+        scope.zoomX2 = scope.container2.append("rect")
+          .attr("id", "xZoom2")
+          .attr("fill", "none")
+          .attr("x", "0")
+          .attr("y", options.annotation.height)
+          .attr("pointer-events", "all")
+          .attr('width', options.annotation.width)
+          .attr('height', options.annotation.margin.zoomXHeight);
 
         // container to hold annotated spectrum
         scope.plotContainer = scope.container.append("g").attr("id", "annotationContainer");
+        // container to hold annotated spectrum
+        scope.plotContainer2 = scope.container2.append("g").attr("id", "annotationContainer2");
+		
         // container to hold mass error dot plot
         scope.massErrorContainer = scope.fragmentContainer.append("g").attr("id", "massErrorContainer");
 
@@ -713,7 +810,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .attr("class", "xAnnotation")
           .append("text")
           .attr("class", "xAnnotationLabel")
-          .attr("transform","translate(" + (options.annotation.width/2 - options.annotation.margin.xAxisLabelPadding) + " ," + (options.annotation.margin.bottom) + ")")
+          .attr("transform","translate(" + (options.annotation.width/2 - options.annotation.margin.xAxisLabelPadding) + " ," + (options.annotation.margin.bottom + 2) + ")")
           .text("m/z");
 
         // add y axis container and label
@@ -725,7 +822,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .attr("y", 0 - options.annotation.margin.left)
           .attr("x", 0 - (options.annotation.height / 2))
           .attr("dy", "1em")
-          .text("Relative Abundance (%)");
+          .text("Relative Abundance (%)")
+		  .style("font-size", '13px');
 
         // place a clip mask over the annotated spectrum container to prevent svg elements from displaying out of the SVG when zooming. 
         scope.plotContainer.append("clipPath")
@@ -735,9 +833,37 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .attr("y", "0")
           .attr('width', options.annotation.width)
           .attr('height', options.annotation.height);
+		  
+		 
+        // add x axis container and label
+        scope.container2.append("g")
+          .attr("class", "xAnnotation")
+          .append("text");
+
+        // add y axis container and label
+        scope.container2.append("g")
+          .attr("class", "yAnnotation")
+          .append("text")
+          .attr("class", "yAnnotationLabel")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 0 - options.annotation.margin.left)
+          .attr("x", 0 - (options.annotation.height / 2 ))
+          .attr("dy", "1em")
+          .text("Relative Abundance (%)")
+		  .style("font-size", '13px');
+
+		//TODO check later
+        // place a clip mask over the annotated spectrum container to prevent svg elements from displaying out of the SVG when zooming. 
+        scope.plotContainer2.append("clipPath")
+          .attr("id", "clippy2")
+          .append("rect")
+          .attr("x", "0")
+          .attr("y", "0")
+          .attr('width', options.annotation.width)
+          .attr('height', options.annotation.height); 
         
         // Define location of the mass error chart relative to the rest of the SVG
-        scope.fragmentContainer.attr("transform", "translate(" + options.fragments.margin.left + "," + options.fragments.margin.top + ")");
+        scope.fragmentContainer.attr("transform", "translate(" + options.fragments.margin.left + "," + (options.fragments.margin.top + 30) + ")");
 
         // Define mass error chart x-axis
         scope.fragmentContainer.append("g")
@@ -776,11 +902,18 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // bind the clip path to the annotated mass spectrum
         scope.plotContainer.attr("clip-path", "url(#clippy)");
+		
+        // // position the container which will hold the marked peptide sequence
+        scope.container2.attr("transform", "translate(" + options.annotation.margin.left + ", " + (options.annotation.margin.top + 250) +  ")");
+
+        // bind the clip path to the annotated mass spectrum
+        scope.plotContainer2.attr("clip-path", "url(#clippy)");
 
         // position the container which will hold the marked peptide sequence
         scope.titleContainer.attr("transform", "translate(" + options.interactiveTitle.margin.left + ", " + options.interactiveTitle.margin.top + ")");
 
         scope.peptideContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
+        scope.statisticsContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
 
         // bind the clip path to the mass error chart
         scope.massErrorContainer.attr("clip-path", "url(#clippy2)");
@@ -815,6 +948,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.drawInteractiveTitle();
         // draws the text elements which list precursor m/z, charge state, and # fragmented bonds.
         scope.drawPrecursorSummary();
+        scope.drawCorrelationSummary();
         // draws the elements contained in the annotated mass spectrum
         scope.drawAnnotation();
         // draws the elements contained in the mass error scatterplot. 
@@ -1040,32 +1174,96 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         dataset.exit().remove();
       }
 
+      scope.drawCorrelationSummary = function () {
+          var options = scope.getOptions(),
+              score = scope.score.sa,
+              correlation = scope.score.corr;
+
+          var statisticsData = [];
+          statisticsData.push({ title: "SA: ", data: score });
+          statisticsData.push({ title: "PC: ", data: correlation });
+
+          dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
+          dataset.enter().append("text").attr("class", "precursorstatscategory");
+          dataset.text(function (d) { return (d.title); })
+            .attr("opacity", 0)
+            .attr("transform", function (d, i) {
+                if (i == 0) {
+                    return "translate(-" + (options.statistics.width / 2 - 170) + ",25)";
+                } else if (i == 1) {
+                    return "translate(-" + (options.statistics.margin.categoryPadding_2 - 70)  + ",25)"
+                } else {
+                    return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",25)";
+                }
+            }).attr("text-anchor", "start").transition().delay(function (d, i) {
+                return i * 450;
+            }).duration(1500).attr("opacity", 1);
+           //.style("font-size", "13px");
+
+          dataset.exit().remove();
+
+          // From line 1067 to 1086 we write the actual numerical data
+          dataset = scope.statisticsContainer.selectAll(".precursorstatsdata").data(statisticsData);
+
+          dataset.enter().append("text").attr("class", "precursorstatsdata");
+          dataset.text(function (d) { return (d.data); })
+            .attr("opacity", 0)
+            .attr("transform", function (d, i) {
+                if (i == 0) {
+                    return "translate(-" + (options.statistics.width / 2 + options.statistics.margin.dataPadding_1 -70) + ",25)";
+                } else if (i == 1) {
+                    //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
+                    return "translate(" + (options.statistics.margin.dataPadding_2 +50) + ",25)";
+                } else {
+                    return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3 + options.statistics.margin.dataPadding_3) + ",25)";
+                }
+            }).attr("text-anchor", "start").transition().delay(function (d, i) {
+                return i * 450;
+            }).duration(1500).attr("opacity", 1);
+
+          dataset.exit().remove();
+      }
+
       /**
 	    * @description Draws the text and statistics below the peptide sequence. Retrieves precursor mz, charge, and # fragmented bonds and displays it.
 	    */
       scope.drawPrecursorSummary = function() {
-        var options = scope.getOptions(), sequence = scope.getSequence(), charge = scope.getPrecursorCharge(), precursorMz = scope.getPrecursorMz(), fragments = scope.getTickData();
+		  
+
+          var options = scope.getOptions(),
+              sequence = scope.getSequence(),
+              charge = scope.getPrecursorCharge(),
+              precursorMz = scope.getPrecursorMz(),
+              fragments = scope.getTickData();
+              
+
        	
        	// Retrieve and format mz, charge, and formatted fragment objects. Place them into the array summaryData to be later translated into svg elements.
         var summaryData = [];
         summaryData.push({title: "Precursor m/z: ", data: d3.format(",.4f")(precursorMz)});
         summaryData.push({title: "Charge: ", data: ionizationMode + Math.abs(charge)});
-        summaryData.push({title: "Fragmented Bonds: ", data: scope.getFragmentedBonds(fragments, sequence.length)});
+        summaryData.push({ title: "Fragmented Bonds: ", data: scope.getFragmentedBonds(fragments, sequence.length) });
+        
 
         // From line 1047 to 1065 we write the Title text from the summary data objects e.g. "Precursor m/z"
         dataset = scope.peptideContainer.selectAll(".precursorstatscategory").data(summaryData);
+        
 
         dataset.enter().append("text").attr("class", "precursorstatscategory");
         dataset.text(function(d) { return (d.title); })
           .attr("opacity", 0)
           .attr("transform", function(d, i) {
             if (i == 0) {
-              return "translate(-" + options.statistics.width / 2 + ",0)";
+              return "translate(-" + (options.statistics.width / 2)   + ",0)";
             } else if (i == 1) {
               return "translate(-" + options.statistics.margin.categoryPadding_2 + ",0)"
-            } else  {
+            } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",0)";
-            } 
+            } else if (i ==3) {
+              return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4) + ",0)";
+            } else {
+                return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5) + ",0)";
+            }
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
         }).duration(1500).attr("opacity", 1);;
@@ -1084,14 +1282,21 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             } else if (i == 1) {
               //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
               return "translate(" + (options.statistics.margin.dataPadding_2) + ",0)";
-            } else  {
+            } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3 + options.statistics.margin.dataPadding_3) + ",0)";
-            } 
+            } else if (i == 3)  {
+              return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4 + options.statistics.margin.dataPadding_4) + ",0)";
+            } else {
+                return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5 + options.statistics.margin.dataPadding_5) + ",0)";
+            }
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
         }).duration(1500).attr("opacity", 1);
 
-          dataset.exit().remove();
+        dataset.exit().remove();
+
+        
+
       }
 
       /**
@@ -1130,25 +1335,44 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * 		adds interactivity to most of the svg elements.
 	    */
       scope.drawAnnotation = function() {
-        let x, y, xAxis, fragxAxis, yAxis, barDataset, labelDataset, options = scope.getOptions(), xValues = scope.getX(), yValues = scope.getIntensities(), 
-          percentBasePeak = scope.getPercentBasePeak(), massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
-          neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
+        let x, y, x2,y2, xAxis,xTopAxis, fragxAxis, yAxis,yAxis2, barDataset,barDataset2, labelDataset,labelDataset2, 
+		options = scope.getOptions(), 
+		xValues = scope.getX(), yValues = scope.getIntensities(), 
+		percentBasePeak = scope.getPercentBasePeak(),
+		xValues2 = scope.getMirrorX(), yValues2 = scope.getMirrorIntensities(), 
+        percentBasePeak2 = scope.getMirrorPercentBasePeak(),
+		labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
+		colors2 = scope.getMirrorColors(),
+		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
+        neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(),widths2 = scope.getMirrorWidths(), sequence = scope.getSequence();
+		  
+		  
         
         // since y axis is scaled to % relative abundance, yMax will always be 100%.
-        let yMax = 100;
-        let TIC = 0;
+        let yMin  = 0, yMin2 = -100;
+        let yMax = 100, yMax2 = 0;
+		let xMin = d3.min([d3.min(xValues), d3.min(xValues2)]);
+		let xMax = d3.max([d3.max(xValues), d3.max(xValues2)]);
+        let TIC = 0, TIC2 = 0;
+		let mirror = xValues2 ? true : false;
 
         // create a variable to add a bit of a buffer between the edges of the svg so things don't get cut off.
-        let xScaleFudgeFactor = (d3.max(xValues) - d3.min(xValues)) * .025;
+        let xScaleFudgeFactor = (xMax - xMin) * .025;
 
         // Do stuff if there is data to visualize.
         if (xValues && yValues) {
         	// define x and y scales
-          x = d3.scale.linear().domain([d3.min(xValues) - xScaleFudgeFactor, d3.max(xValues) + xScaleFudgeFactor]).range([ 0, options.annotation.width]);
-          y = d3.scale.linear().domain([0, yMax + yMax * options.annotation.padding]).range([ options.annotation.height, 0]);
-
+          x = d3.scale.linear().domain([xMin - xScaleFudgeFactor, xMax + xScaleFudgeFactor]).range([ 0, options.annotation.width]);
+          y = d3.scale.linear().domain([yMin, yMax + yMax * 2 * options.annotation.padding]).range([ options.annotation.height, 0]);
+			
+			if (mirror) {
+				y2 = d3.scale.linear().domain([yMin2 + yMin2 * 2 * options.annotation.padding, yMax2 + yMax2 * options.annotation.padding]).range([ options.annotation.height, 0]);
+			}
           // x-axis will be at the bottom with a suggested 10 axis ticks. That number may change depending on how D3 interprets the m/z range
           xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(10);
+		  if (mirror) { 
+			xTopAxis = d3.svg.axis().scale(x).orient("top").ticks(10); 
+		}
           // fragxAxis is actually the x axis from the fragment mass error chart. It's defined here so it can be updated on zoom.
           fragxAxis = d3.svg.axis().scale(x).orient("top").ticks(10);
 
@@ -1156,8 +1380,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(function(d) { 
             return d3.format("0.2r")(d);
           });
-        
+		  
+		  if(mirror){
+			  yAxis2 = d3.svg.axis().scale(y2).orient("left").tickFormat(function(d) { 
+				return d3.format("0.2r")(d===0 ? d: -d);
+				});
+		  }
+		  
           let plotData = [];
+          let mirrorPlotData = [];
 
           // format all the data recieved from the php script in a way that's easier to plot using D3
           for (let i = 0; i < xValues.length; i++) {
@@ -1185,32 +1416,78 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               points: []
             });
           }
+          // format all the data recieved from the php script in a way that's easier to plot using D3
+          for (let i = 0; i < xValues2.length; i++) {
+            var label = labels2[i]; 
+            var charge = labelCharges2[i];
 
-          // actually render the x- and y-axes
-          scope.container.selectAll("g.xAnnotation").attr("transform", "translate(0, " + options.annotation.height + ")").call(xAxis);
-          scope.container.selectAll("g.yAnnotation").call(yAxis);
+            // compile labels from the label text, neutral losses, charge, and ionization mode. {"y17", "-H2O", 2, "+"} => [y₁₇-H₂O]⁺²
+            var label = formatLabel(label, "", charge, ionizationMode);
 
-          // set transition duration depending on the number of spectral features to visualize
+            // sum up all intensities to calculate the total ion current
+            TIC2 += yValues2[i];
+
+            // format our processed data in a format which makes it easier to process using D3.
+            mirrorPlotData.push({
+              mz: xValues2[i],
+              intensity: yValues2[i],
+              x: xValues2[i],
+              y: percentBasePeak2[i],
+              percentBasePeak: percentBasePeak2[i],
+              color: colors2[i],
+              label: label,
+              width: widths2[i] * options.annotation.width * .001,
+              massError: [], //massError[i],
+              points: []
+            });
+          }
+		  
+		  // set transition duration depending on the number of spectral features to visualize
           var duration = 1500 / plotData.length;
+		  var duration2 = 1500 / mirrorPlotData.length;
+		  
+		  // actually render the x- and y-axes
+		  scope.container.selectAll("g.xAnnotation").attr("transform", "translate(0, " + options.annotation.height + ")").call(xAxis);
+		  scope.container.selectAll("g.yAnnotation").call(yAxis);
+		  scope.container2.selectAll("g.xAnnotation").call(xTopAxis);
+		  scope.container2.selectAll("g.yAnnotation").call(yAxis2);
+		  
+		  // bind the plotData variable to potential svg rectangle elements.
+		  barDataset = scope.plotContainer.selectAll(".bar").data(plotData);
+		  // bind the plotData variable to potential svg text elements.
+		  labelDataset = scope.plotContainer.selectAll(".barlabel").data(plotData);
+		  // bind the plotData variable to potential svg path elements.
+		  lineDataset = scope.plotContainer.selectAll(".line").data(plotData);
 
-          // bind the plotData variable to potential svg rectangle elements.
-          barDataset = scope.plotContainer.selectAll(".bar").data(plotData);
-          // bind the plotData variable to potential svg text elements.
-          labelDataset = scope.plotContainer.selectAll(".barlabel").data(plotData);
-          // bind the plotData variable to potential svg path elements.
-          lineDataset = scope.plotContainer.selectAll(".line").data(plotData);
+		  // bind the plotData variable to potential svg rectangle elements.
+		  barDataset2 = scope.plotContainer2.selectAll(".bar").data(mirrorPlotData);
+		  // bind the plotData variable to potential svg text elements.
+		  labelDataset2 = scope.plotContainer2.selectAll(".barlabel").data(mirrorPlotData);
+		  // bind the plotData variable to potential svg path elements.
+		  lineDataset2 = scope.plotContainer2.selectAll(".line").data(mirrorPlotData);
 
           // bind the popup tooltip to the annotated mass spectrum.
           scope.plotContainer.call(tip);
 
-          // create potential bars
+          // bind the popup tooltip to the annotated mass spectrum.
+          scope.plotContainer2.call(tip);
+
+		  // create potential bars
           barDataset.enter().append("rect").attr("class", "bar");
+		  // create potential bars
+          barDataset2.enter().append("rect").attr("class", "bar");
 
           // remove unneeded bars
           barDataset.exit().attr("y", function(d) {
             return y(-10);
           }).attr("x", function(d) {
             return x(d3.min(xValues)) - d.width / 2;
+          }).remove();
+          // remove unneeded bars
+          barDataset2.exit().attr("y", function(d) {
+            return y(-10);
+          }).attr("x", function(d) {
+            return x(d3.min(xValues2)) - d.width / 2;
           }).remove();
 
           // draw spectral features and transition them from the origin. x coordinate is the spectral feature m/z, and y coordinate is the % relative abundance
@@ -1227,6 +1504,24 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             return options.annotation.height - y(d.percentBasePeak);
           }).attr("y", function(d) {
             return y(d.percentBasePeak);
+          }).attr("fill", function(d) {
+            return d.color;
+          }).attr('opacity', 1).attr("align","right");
+		  
+		  // draw spectral features and transition them from the origin. x coordinate is the spectral feature m/z, and y coordinate is the % relative abundance
+          barDataset2.attr("x", function(d) {
+            return x(0);
+          }).attr("y", function(d) {
+            return y(0);
+          }).transition().delay(function(d, i) {return duration2 / 2 * i}).duration(1000)
+          .attr("width", function(d) {
+            return d.width;
+          }).attr("x", function(d) {
+            return x(d.mz) - d.width / 2;
+          }).attr("height", function(d) {
+            return options.annotation.height - y(d.percentBasePeak);
+          }).attr("y", function(d) {
+            return y(0) -180;
           }).attr("fill", function(d) {
             return d.color;
           }).attr('opacity', 1).attr("align","right");
@@ -1249,10 +1544,17 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
               // calling the x axes here seems to be necessary to get them to scale correctly. 
               scope.container.selectAll("g.xAnnotation").call(xAxis);
+              scope.container2.selectAll("g.xAnnotation").call(xTopAxis);
               scope.fragmentContainer.selectAll("g.xAnnotation").call(fragxAxis);
 
               // using the new scale, update the spectral peak positions
               barDataset.attr("x", function(d) {
+                return x(d.mz) - d.width / 2;
+              }).attr("width", function(d) {
+                return d.width + options.annotation.zoomFactor * Math.log10(zoomX.scale()) * d.width;
+              });
+              // using the new scale, update the spectral peak positions
+              barDataset2.attr("x", function(d) {
                 return x(d.mz) - d.width / 2;
               }).attr("width", function(d) {
                 return d.width + options.annotation.zoomFactor * Math.log10(zoomX.scale()) * d.width;
@@ -1263,13 +1565,26 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
                 return x(d.x);
               });
               
+              // using the new scale, update the annotation label positions
+              labelDataset2.attr("x", function(d) { 
+                return x(d.x);
+              });
+              
               // using the new scale, update the mass error circles
               circleDataset.attr("cx", function(d) {
                 return x(d.mz);
               });
+              // using the new scale, update the mass error circles
+              //circleDataset2.attr("cx", function(d) {
+              //  return x(d.mz);
+              //});
 
               // using the new scale, redraw the lines connecting the spectral peaks to annotation labels.
               lineDataset.forEach(function(d) {
+              	scope.drawLine(x, y, d);
+              });
+              // using the new scale, redraw the lines connecting the spectral peaks to annotation labels.
+              lineDataset2.forEach(function(d) {
               	scope.drawLine(x, y, d);
               });
           });
@@ -1293,6 +1608,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
               // calling the y axis here seems to be necessary to get them to scale correctly. 
               scope.container.selectAll("g.yAnnotation").call(yAxis);
+              //scope.container2.selectAll("g.yAnnotation").call(yAxis2);
 
               // using the new scale, update the spectral peak rectangle heights
               barDataset.attr("y", function(d) {
@@ -1315,9 +1631,35 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               	scope.drawLine(x, y, d);
               });
           });
-
+          
           // bind a mouseenter event to the rendered spectral peak to highlight the spectral feature and show a tooltip. 
           barDataset.on("mouseenter", function(d) {
+
+          	// highlight the peak that is being hovered over using a black stroke
+            d3.select(this).style("stroke", function (d, i) {
+              return "black";
+            });
+
+            // define the inner HTML of the tooltip
+            tip.html(function () {
+            	let tipText = "";
+
+            	if (d.label) {
+            		tipText += "<strong>Fragment:</strong> <span style='color:red'>" + d.label + " </span><br><br>";
+            	}
+
+            	tipText += "<strong style='font-style:italic;'>m/z:</strong> <span style='color:red'>" + d3.format(",.4f")(d.mz) + " </span><br><br>"
+                    + "<strong>Relative Abundance:</strong> <span style='color:red'>" + d3.format("0.2f")(d.percentBasePeak) + "%</span><br><br>"
+                    + "<strong>% TIC:</strong> <span style='color:red'>" + d3.format("0.2%")(d.intensity / TIC) + "</span>";
+                return tipText;
+            });
+
+            // show the tooltip
+            tip.show();
+          });
+		  
+          // bind a mouseenter event to the rendered spectral peak to highlight the spectral feature and show a tooltip. 
+          barDataset2.on("mouseenter", function(d) {
 
           	// highlight the peak that is being hovered over using a black stroke
             d3.select(this).style("stroke", function (d, i) {
@@ -1347,9 +1689,17 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             d3.select(this).style("stroke", "none");
             tip.hide();
           });
+          // remove the stroke added on mouse-in and hide the tooltip
+          barDataset2.on("mouseleave", function() {
+            d3.select(this).style("stroke", "none");
+            tip.hide();
+          });
 
           // annotation label placement is done here. Get ready to render text elements
           labelDataset.enter().append("text").attr("class", "barlabel");
+
+          // annotation label placement is done here. Get ready to render text elements
+          labelDataset2.enter().append("text").attr("class", "barlabel");
 
           // add the annotation labels and center them over annotated spectral peaks
           labelDataset.attr("x", function(d) {
@@ -1361,16 +1711,45 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           }).attr('opacity', 0.0)
           .transition().delay(function(d, i) {return duration * i + 250}).duration(1000).ease("bounce")
           .attr("y", function(d) {
-            return y(d.percentBasePeak + yMax * .005);
+              return y(d.percentBasePeak + yMax * .005);
+          }).attr('opacity', 1);
+          // add the annotation labels and center them over annotated spectral peaks
+          labelDataset2.attr("x", function(d) {
+            return x(d.x) - d.width / 2;
+          }).text(function(d) {
+            return (d.label);
+          }).attr("y", function(d) {
+            return y(0);
+          }).attr('opacity', 0.0)
+          .transition().delay(function(d, i) {return duration * i + 250}).duration(1000).ease("bounce")
+          .attr("y", function (d) {
+              //return y(d.percentBasePeak + yMax * .005);
+              //return y(-100 - d.percentBasePeak - 5);
+              return y(100 - d.percentBasePeak);
           }).attr('opacity', 1);
 
           // transition out unused labels
           labelDataset.exit().attr("y", function(d) {
             return y(d3.min(yValues));
           }).remove();
+          // transition out unused labels
+          labelDataset2.exit().attr("y", function(d) {
+            return y(d3.min(yValues2));
+          }).remove();
 
           // return dragged label back to it's original location
           labelDataset.on("dblclick", function(d, i) {
+            d.x = d.mz;
+            d.y = d.percentBasePeak;
+
+            d3.select(this).attr('x', x(d.x));
+            d3.select(this).attr('y', y(d.y + yMax * .005));
+
+            scope.drawLine(x, y, d);
+          });
+
+          // return dragged label back to it's original location
+          labelDataset2.on("dblclick", function(d, i) {
             d.x = d.mz;
             d.y = d.percentBasePeak;
 
@@ -1463,6 +1842,55 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
             massErrorCircles.style("r", 4).style("stroke", "none");
           });
+		  
+		  /////////////////////
+		  labelDataset2.on("mouseenter", function(d, i) {
+          	// define the tooltip inner html.
+            tip.html(function () {
+                return "<strong>Fragment:</strong> <span style='color:red'>" + d.label + " </span><br><br>"
+                    + "<strong style='font-style:italic;'>m/z:</strong> <span style='color:red'>" + d3.format(",.4f")(d.mz) + " </span><br><br>"
+                    + "<strong>Relative Abundance:</strong> <span style='color:red'>" + d3.format("0.2f")(d.percentBasePeak) + "%</span><br><br>"
+                    + "<strong>% TIC:</strong> <span style='color:red'>" + d3.format("0.2%")(d.intensity / TIC) + "</span>";
+            });
+            // show tooltip
+            tip.show();
+
+	          // slightly enlarge the selected label
+	          var labelFontSize = d3.select(this).style("font-size", 18).style("font-weight", "bold");
+
+	          // get saved color and text from label. Parse label to get the location of the bond. change color amino acids on the peptide sequence at the top.
+	          var label = labels2[i];
+	          var fragmentType = label.charAt(0);
+	          var fragmentNumber = label.slice(1)
+	          var color = colors2[i];
+
+	          // use the selected label index and highlight the mass error circle
+	          //var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
+
+	          // make it a little bigger
+	          // massErrorCircles.style("r", function(e, j) {
+	          //  if (i === j) {
+	          //    return 7;
+	          //  }
+	          //  // give it a stroke
+	          //}).style("stroke", function(e, j) {
+	          //  if (i === j) {
+	          //    return "black";
+	          // }
+	          //});
+          }).on("mouseleave", function(d, i) {
+          	// hide tooltip
+            tip.hide();
+            // reset annotated peptide sequence back to normal
+            //scope.titleContainer.selectAll("text").data(sequence).style("fill", "black").style("stroke", "none");
+            d3.select(this).style("font-size", 16).style("font-weight", "normal");
+
+            // set all mass error circles back to normal
+            //var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
+            //massErrorCircles.style("r", 4).style("stroke", "none");
+          });
+
+		  /////////////////////
 
           // create a drag variable which handles the click and drag event when labels need to be moved.
           var drag = d3.behavior.drag()
@@ -1510,15 +1938,18 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           // give zooming behavior to your invisible zoom rectangles
           scope.zoomX.call(zoomX);
           scope.zoomY.call(zoomY);
+          scope.zoomX2.call(zoomX);
 
           // also pass zooming behavior onto the actual axis elements (ticks, axis labels ect.). Prevents unexpected page scrolling. 
           scope.container.selectAll("g.xAnnotation").call(zoomX);
+          scope.container2.selectAll("g.xAnnotation").call(zoomX);
           scope.fragmentContainer.selectAll("g.xAnnotation").call(zoomX);
           scope.container.selectAll("g.yAnnotation").call(zoomY);
           
           // append line objects to everything in plot data. these will later be generated when labels are dragged.
           // logic to draw annotation lines if elements are dragged
           lineDataset.enter().append("path").attr("class", "line");
+          lineDataset2.enter().append("path").attr("class", "line");
         }
       };
 
@@ -1586,7 +2017,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           }
 
           // give the y-axis a label based on the mass error unit
-          var massErrorLabel = scope.fragmentContainer.selectAll(".yAnnotationLabel").text("Error (" + massErrorLabel + ")");
+          var massErrorLabel = scope.fragmentContainer.selectAll(".yAnnotationLabel").text("Error (" + massErrorLabel + ")").style('font-size', '13px');
 
           // base transition delay on the number of elements visualized
           var delay = 1250/ plotData.length;
@@ -1757,8 +2188,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * 		fragments, peptide sequence/charge, and settings/matching tolerances.
 	    */
       scope.$watch('plotdata', scope.redraw, true);
+      scope.$watch('mirrorplotdata', scope.redraw, true);
       scope.$watch('peptide', scope.redraw, true);
       scope.$watch('settings', scope.redraw, true);
+      scope.$watch('score', scope.redraw, true);
        
       // once all our drawing and rendering methods are defined, initialize the chart and let it sit. It will automatically populate with new data when the plothandler detects that the annotated 
       // changes

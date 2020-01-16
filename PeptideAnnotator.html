@@ -21,6 +21,10 @@
     <script src="support/js/internal/controllers.js"></script>
     <script src="support/js/internal/IPSA.js"></script>
     <script src="support/js/external/d3-tip.js"></script>
+	
+    <script src="support/js/internal/EuBIC2020/api.js"></script>
+    <script src="support/js/internal/EuBIC2020/measures.js"></script>
+	
     <link href="support/css/external/bootstrap.min.css" rel="stylesheet">
     <link href="support/css/external/select.min.css" rel="stylesheet">
     <link href="support/css/external/handsontable.full.min.css" rel="stylesheet">
@@ -194,16 +198,16 @@
                         <div ng-controller="ColorCtrl">
                           <div class="row">
                             <div class="col-md-3" ng-hide="!checkModel.a.selected">
-                              <label for="wheel-demo">{{checkModel.a.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.a.color"> 
+                              <label for="wheel-demo1">{{checkModel.a.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo1" class="form-control" type="text" ng-model="checkModel.a.color"> 
                             </div>
                             <div class="col-md-3" ng-hide="!checkModel.b.selected">
-                              <label for="wheel-demo">{{checkModel.b.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.b.color"> 
+                              <label for="wheel-demo2">{{checkModel.b.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo2" class="form-control" type="text" ng-model="checkModel.b.color"> 
                             </div>
                             <div class="col-md-3" ng-hide="!checkModel.c.selected">
-                              <label for="wheel-demo">{{checkModel.c.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.c.color"> 
+                              <label for="wheel-demo3">{{checkModel.c.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo3" class="form-control" type="text" ng-model="checkModel.c.color"> 
                             </div>
                             <!--
                             <div class="col-md-3" ng-hide="!checkModel.C.selected">
@@ -212,16 +216,16 @@
                             </div>
                             -->
                             <div class="col-md-3" ng-hide="!checkModel.x.selected">
-                              <label for="wheel-demo">{{checkModel.x.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.x.color"> 
+                              <label for="wheel-demo4">{{checkModel.x.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo4" class="form-control" type="text" ng-model="checkModel.x.color"> 
                             </div>
                             <div class="col-md-3" ng-hide="!checkModel.y.selected">
-                              <label for="wheel-demo">{{checkModel.y.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.y.color"> 
+                              <label for="wheel-demo5">{{checkModel.y.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo5" class="form-control" type="text" ng-model="checkModel.y.color"> 
                             </div>
                             <div class="col-md-3" ng-hide="!checkModel.z.selected">
-                              <label for="wheel-demo">{{checkModel.z.label}}</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.z.color"> 
+                              <label for="wheel-demo6">{{checkModel.z.label}}</label>
+                              <input minicolors="wheelsettings" id="wheel-demo6" class="form-control" type="text" ng-model="checkModel.z.color"> 
                             </div>
                             <!--
                             <div class="col-md-3" ng-hide="!checkModel.Z.selected">
@@ -230,15 +234,33 @@
                             </div>
                             -->
                             <div class="col-md-3">
-                              <label for="wheel-demo">Precursor</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.precursor.color"> 
+                              <label for="wheel-demo7">Precursor</label>
+                              <input minicolors="wheelsettings" id="wheel-demo7" class="form-control" type="text" ng-model="checkModel.precursor.color"> 
                             </div>
                             <div class="col-md-3">
-                              <label for="wheel-demo">Unassigned</label>
-                              <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.unassigned.color"> 
+                              <label for="wheel-demo8">Unassigned</label>
+                              <input minicolors="wheelsettings" id="wheel-demo8" class="form-control" type="text" ng-model="checkModel.unassigned.color"> 
                             </div>
                           </div>
                         </div>
+                        <br/>
+                        
+                        <div class="row">
+                          <div class="col-md-6">
+                            <label>Mirror Spectrum Origin</label>
+                            <div class="input-group">
+								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'Prosit'" uncheckable>Prosit</label>
+								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'ProteomeTools'" uncheckable>ProteomeTools</label>
+							</div>
+                          </div>
+                          <div class="col-md-6">
+                            <label>Collission Energy</label>
+                            <div class="input-group">
+                              <input type="number" class="form-control" ng-model="mirrorModel.ce" min="0" />
+                            </div>
+                          </div>
+                        </div>
+                        <br/>
                         <br/>
                         <div class="row">
                           <div class="col-md-12">
@@ -253,7 +275,7 @@
                 </div>
               </div>
               <div class="col-md-7">
-	                <div annotated-spectrum plotdata="set.plotData" peptide="set.peptide" settings="set.settings" class="content"></div>
+	                <div annotated-spectrum plotdata="set.plotData" mirrorplotdata="set.mirrorPlotData" peptide="set.peptide" settings="set.settings" score="set.score" class="content"></div>
 	                <form role="form" ng-init="randomize()"></form>
               </div>
             </div>

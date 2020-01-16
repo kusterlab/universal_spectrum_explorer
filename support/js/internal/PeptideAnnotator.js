@@ -37,6 +37,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     precursor: { selected: true, color: "#666666"},
     unassigned: { selected: true, color: "#A6A6A6"}
   };
+  $scope.mirrorModel = {
+	ce: 25,
+	api: ''
+  };
 
   $scope.checkResults = { 
     string: "unmatched", 
@@ -414,6 +418,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       $scope.cutoffs.matchingType = "Intensity";
       $scope.cutoffs.matchingCutoff = 0;
     }
+  }
+  
+  $scope.swapCE = function() {
+      $scope.cutoffs.matchingType = "% Base Peak";
   }
 
   // precursor charge
