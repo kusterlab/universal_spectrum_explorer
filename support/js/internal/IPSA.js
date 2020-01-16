@@ -556,7 +556,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           svg: 
           {
             width: 700,
-            height: 595,
+            height: 695,
             margin: 
             {
               top: 10,
@@ -595,10 +595,12 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               categoryPadding_2: 110,
               categoryPadding_3: 320,
               categoryPadding_4: 65,
+              categoryPadding_5: 35,
               dataPadding_1: -140,
               dataPadding_2: -40,
               dataPadding_3: 185,
-              dataPadding_4: 40
+              dataPadding_4: 40,
+              dataPadding_5: 40
             },
             padding: .05
           },
@@ -608,7 +610,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             zoomFactor: 1.1,
             height: 180,
             margin: {
-              top: 90,
+              top: 110,
               right: 15,
               bottom: 37,
               left: 60,
@@ -623,7 +625,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             width: 700,
             height: 70,
             margin: {
-              top: 532,
+              top: 552,
               right: 15,
               bottom: 35,
               left: 60,
@@ -744,6 +746,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // svg element to show summary data about peptide
         scope.peptideContainer = scope.svg.append("g").attr("id", "peptideContainer");
+          // svg element to show correlation info about peptide
+        scope.statisticsContainer = scope.svg.append("g").attr("id", "statisticsContainer");
 
         // main svg container to hold spectrum annotations
         scope.container = scope.svg.append("g");
@@ -909,6 +913,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.titleContainer.attr("transform", "translate(" + options.interactiveTitle.margin.left + ", " + options.interactiveTitle.margin.top + ")");
 
         scope.peptideContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
+        scope.statisticsContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
 
         // bind the clip path to the mass error chart
         scope.massErrorContainer.attr("clip-path", "url(#clippy2)");
@@ -943,6 +948,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.drawInteractiveTitle();
         // draws the text elements which list precursor m/z, charge state, and # fragmented bonds.
         scope.drawPrecursorSummary();
+        scope.drawCorrelationSummary();
         // draws the elements contained in the annotated mass spectrum
         scope.drawAnnotation();
         // draws the elements contained in the mass error scatterplot. 
@@ -1168,41 +1174,94 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         dataset.exit().remove();
       }
 
+      scope.drawCorrelationSummary = function () {
+          var options = scope.getOptions(),
+              score = 2,//scope.score.sa,
+              correlation = 4;//scope.corr;
+
+          var statisticsData = [];
+          statisticsData.push({ title: "SA: ", data: score });
+          statisticsData.push({ title: "SC: ", data: correlation });
+
+          dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
+          dataset.enter().append("text").attr("class", "precursorstatscategory");
+          dataset.text(function (d) { return (d.title); })
+            .attr("opacity", 0)
+            .attr("transform", function (d, i) {
+                if (i == 0) {
+                    return "translate(-" + (options.statistics.width / 2 - 170) + ",25)";
+                } else if (i == 1) {
+                    return "translate(-" + (options.statistics.margin.categoryPadding_2 - 70)  + ",25)"
+                } else {
+                    return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",25)";
+                }
+            }).attr("text-anchor", "start").transition().delay(function (d, i) {
+                return i * 450;
+            }).duration(1500).attr("opacity", 1);
+           //.style("font-size", "13px");
+
+          dataset.exit().remove();
+
+          // From line 1067 to 1086 we write the actual numerical data
+          dataset = scope.statisticsContainer.selectAll(".precursorstatsdata").data(statisticsData);
+
+          dataset.enter().append("text").attr("class", "precursorstatsdata");
+          dataset.text(function (d) { return (d.data); })
+            .attr("opacity", 0)
+            .attr("transform", function (d, i) {
+                if (i == 0) {
+                    return "translate(-" + (options.statistics.width / 2 + options.statistics.margin.dataPadding_1 -70) + ",25)";
+                } else if (i == 1) {
+                    //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
+                    return "translate(" + (options.statistics.margin.dataPadding_2 +50) + ",25)";
+                } else {
+                    return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3 + options.statistics.margin.dataPadding_3) + ",25)";
+                }
+            }).attr("text-anchor", "start").transition().delay(function (d, i) {
+                return i * 450;
+            }).duration(1500).attr("opacity", 1);
+
+          dataset.exit().remove();
+      }
+
       /**
 	    * @description Draws the text and statistics below the peptide sequence. Retrieves precursor mz, charge, and # fragmented bonds and displays it.
 	    */
       scope.drawPrecursorSummary = function() {
 		  
-        var options = scope.getOptions(), 
-			sequence = scope.getSequence(), 
-			charge = scope.getPrecursorCharge(), 
-			precursorMz = scope.getPrecursorMz(), 
-			fragments = scope.getTickData(),
-			score = scope.score;
+          var options = scope.getOptions(),
+              sequence = scope.getSequence(),
+              charge = scope.getPrecursorCharge(),
+              precursorMz = scope.getPrecursorMz(),
+              fragments = scope.getTickData();
+              
        	
        	// Retrieve and format mz, charge, and formatted fragment objects. Place them into the array summaryData to be later translated into svg elements.
         var summaryData = [];
         summaryData.push({title: "Precursor m/z: ", data: d3.format(",.4f")(precursorMz)});
         summaryData.push({title: "Charge: ", data: ionizationMode + Math.abs(charge)});
-        summaryData.push({title: "Fragmented Bonds: ", data: scope.getFragmentedBonds(fragments, sequence.length)});
-        summaryData.push({title: "SA: ", data: score});
+        summaryData.push({ title: "Fragmented Bonds: ", data: scope.getFragmentedBonds(fragments, sequence.length) });
+        
 
         // From line 1047 to 1065 we write the Title text from the summary data objects e.g. "Precursor m/z"
         dataset = scope.peptideContainer.selectAll(".precursorstatscategory").data(summaryData);
+        
 
         dataset.enter().append("text").attr("class", "precursorstatscategory");
         dataset.text(function(d) { return (d.title); })
           .attr("opacity", 0)
           .attr("transform", function(d, i) {
             if (i == 0) {
-              return "translate(-" + options.statistics.width / 2 + ",0)";
+              return "translate(-" + (options.statistics.width / 2)   + ",0)";
             } else if (i == 1) {
               return "translate(-" + options.statistics.margin.categoryPadding_2 + ",0)"
             } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",0)";
-            } else {
+            } else if (i ==3) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4) + ",0)";
-            } 
+            } else {
+                return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5) + ",0)";
+            }
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
         }).duration(1500).attr("opacity", 1);;
@@ -1223,14 +1282,19 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               return "translate(" + (options.statistics.margin.dataPadding_2) + ",0)";
             } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3 + options.statistics.margin.dataPadding_3) + ",0)";
-            } else  {
+            } else if (i == 3)  {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4 + options.statistics.margin.dataPadding_4) + ",0)";
-            } 
+            } else {
+                return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5 + options.statistics.margin.dataPadding_5) + ",0)";
+            }
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
         }).duration(1500).attr("opacity", 1);
 
-          dataset.exit().remove();
+        dataset.exit().remove();
+
+        
+
       }
 
       /**
