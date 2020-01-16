@@ -284,9 +284,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             $scope.plotData($scope.annotatedResults);
 			
 			if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
-				var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
 				var url2 = '';
 				if ($scope.mirrorModel.api === 'Prosit'){
+					var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
 					url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
 					$http.post(url2, query)
 					.then( function(response2) {
@@ -294,7 +294,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 					  if (response2.data.hasOwnProperty("error")) {
 						alert(response2.data.error);
 					  } else {
-						$scope.plotMirrorData(transform2scope(response2.data[0], cm));
+						rv = response2.data[0]
+						let maxFragmentIonCharge = $scope.peptide.charge
+						rv['ions'] = rv['ions'].filter(x => x.charge <= maxFragmentIonCharge)
+						$scope.plotMirrorData(transform2scope(rv, cm));
 						var res2 = response2.data[0];
 						
 						var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
@@ -307,8 +310,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 					});
 				}
 				else if ($scope.mirrorModel.api === 'ProteomeTools'){
-					url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-					$http.get(url2, query)
+					url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
+					$http.get(url2, "")
 					.then( function(response2) {
 				  // if errors exist, alert user
 					  if (response2.data.hasOwnProperty("error")) {
