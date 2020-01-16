@@ -48,6 +48,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     peptide: 
     {
       sequence: "TESTPEPTIDE", 
+	  usi: 'mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2',
       precursorMz: 609.77229, 
       precursorCharge: $scope.peptide.precursorCharge,
       mods: populateMods()
@@ -182,7 +183,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       }
     });
 
-    $log.log($scope.set);
+    //$log.log($scope.set);
   };
 
   $scope.plotMirrorData = function(returnedData) {
@@ -191,6 +192,27 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   
   $scope.score = function(returnedData) {
     $scope.set.score = returnedData;
+  }
+  
+  $scope.processUSI = function() {
+	  //var usi = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2";
+	  var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usi;
+	  $http.get(url)
+		.then( function(response) {
+			var mzs = response.data.mzs;
+			var ints = response.data.intensities;
+			var seq = response.data.peptideSequence;
+			var charge = response.data.charge;
+			$scope.peptide.sequence = seq;
+			$scope.peptide.precursorCharge = charge;
+			$scope.peptide.charge = charge - 1;
+			$scope.db.items = mzs.map(
+				(x,i) => {
+					return {mZ: x, intensity: ints[i]};
+				}
+			);
+		});
+	  
   }
 
   $scope.processData = function() {
@@ -215,7 +237,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         submitData = $scope.db.items.map(({ mZ, intensity }) => ({ mZ, intensity }));
       }
 
-      $log.log(submitData);
+      //$log.log(submitData);
       // filter out invalid entries from handsontable
       var newArray = [];
 
@@ -232,7 +254,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         }
       }
       submitData = newArray;
-      $log.log(newArray);
+      //$log.log(newArray);
 
       // make charge compatible with processing scripts
       var charge = 0;
@@ -591,4 +613,18 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     return returnArray;
   };
+
+
+	if ( typeof $scope.peptide.usi !== 'undefined' && $scope.peptide.usi.length !== 0){
+		setTimeout(function(){$scope.processUSI()}, 1000);
+  
+		setTimeout(function(){
+	    $scope.checkModel.b.selected = true;
+	    $scope.checkModel.y.selected = true;
+	    $scope.mirrorModel.api = 'Prosit';
+	  
+	    $scope.processData();
+	  }, 
+	  2000);
+	}
 }]);

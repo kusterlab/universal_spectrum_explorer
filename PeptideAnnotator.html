@@ -67,6 +67,15 @@
                   </div>
                   <div class="panel-body">
                     <div class="col-md-12">
+					  <div class="row">
+					  <div class="col-md-12">
+                          <label>Search with USI</label>
+                            <div class="input-group">
+                              <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptide.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI()">Search USI</button> </span> 
+                            </div>
+                        </div>
+					  </div>
+                      <br/>
                       <div class="row">
                         <div class="col-md-9">
                           <label>Peptide Sequence</label>
