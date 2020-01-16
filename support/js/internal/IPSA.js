@@ -1178,7 +1178,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 			charge = scope.getPrecursorCharge(), 
 			precursorMz = scope.getPrecursorMz(), 
 			fragments = scope.getTickData(),
-			score = scope.score;
+			score = scope.score.sa;
        	
        	// Retrieve and format mz, charge, and formatted fragment objects. Place them into the array summaryData to be later translated into svg elements.
         var summaryData = [];

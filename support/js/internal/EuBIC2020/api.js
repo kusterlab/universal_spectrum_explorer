@@ -64,6 +64,20 @@ x: [],
 
 }
 
+function getClosestCESpectrum(spectra, ice) {
+	var closestCE = spectra
+				.map(x => {return {ce: x.collissionEnergy, dist: Math.abs(x.collissionEnergy - ice)}})
+				.reduce( (p,n) => { if (p.dist > n.dist) {
+										return n
+									} else {
+										return p
+									}
+								}, {ce: -1000, dist: 1000});
+	console.log(closestCE);
+	var spectrum = spectra.filter(x => {return x.collissionEnergy === closestCE.ce});
+	console.log(spectrum);
+	return spectrum[0];
+}
 
 
 
