@@ -1181,7 +1181,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           var statisticsData = [];
           statisticsData.push({ title: "SA: ", data: score });
-          statisticsData.push({ title: "SC: ", data: correlation });
+          statisticsData.push({ title: "PC: ", data: correlation });
 
           dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
           dataset.enter().append("text").attr("class", "precursorstatscategory");

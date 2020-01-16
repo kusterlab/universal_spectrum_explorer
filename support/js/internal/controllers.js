@@ -27,7 +27,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       percentBasePeak: [ ],
       TIC: 0
     },
-    score: 0.0,
+    score: {
+		sa: 0.0,
+		corr: 0.0
+	},
     mirrorPlotData: 
     {
       x: [ ],
@@ -303,8 +306,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
 					    $scope.score(
 							{ 
-								sa : spectral_angle,
-								corr: pearson_correlation
+								sa : Math.round(spectral_angle * 100)/100,
+								corr: Math.round(pearson_correlation * 100)/100
 							}
 						);
 					}, function(response2) {
@@ -325,8 +328,16 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 						var bottomSpectrumB = ipsa_helper["binning"](spec.ions);
 							
 						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
-						var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-						$scope.score(Math.round(score * 100)/100);
+						//calculate similarity scores
+					    var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+					    var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+
+					    $scope.score(
+							{ 
+								sa : Math.round(spectral_angle * 100)/100,
+								corr: Math.round(pearson_correlation * 100)/100
+							}
+						);
 					}, function(response2) {
 						// if errors exist, alert user
 						alert("ProteomeTools: " + response2.data.message);  
