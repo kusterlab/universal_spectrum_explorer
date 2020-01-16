@@ -295,7 +295,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 				  if (response2.data.hasOwnProperty("error")) {
 					alert(response2.data.error);
 				  } else {
-					$scope.plotMirrorData(transform2scope(response2.data[0], cm));
+					  //TODO(Patroklos): make the code look nice
+					rv = response2.data[0]
+					let maxFragmentIonCharge = $scope.peptide.charge
+					rv['ions'] = rv['ions'].filter(x => x.charge <= maxFragmentIonCharge)
+					$scope.plotMirrorData(transform2scope(rv, cm));
 			  }
 		  });
 		  
