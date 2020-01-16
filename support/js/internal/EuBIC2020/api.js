@@ -25,11 +25,6 @@ function queryProteomicsDbPost(peptideSequence = ["LASVSVSR"], charge = [2], ce 
 /// 2020-01-15 CP/TK
 function transform2scope(a){
 
-   console.log("XXXXXXXXXXXXXXXXX BEGIN DEBUG")
-   console.log(a)
-   console.log("XXXXXXXXXXXXXXXXX BEGIN END")
-   console.log("XXXXXXXXXXXXXXXXX Hello world")
-   alert("XXXXXXXXXXXXXXXXX Hello world")
 	try {
 		let intensitiesmax = Math.max(...a['ions'].map(x => x.intensity))
 
@@ -42,7 +37,7 @@ x: a['ions'].map(x => x.mz),
    labels: a['ions'].map(x => x.ion + x.number),
    labelCharges: a['ions'].map(x => x.charge),
    neutralLosses: [],
-   widths: a['ions'].map(x => 1),
+   widths: a['ions'].map(x => 2),
    sequence: a['sequence']
 			}
 
@@ -64,5 +59,7 @@ x: [],
 	}
 
 }
+
+
 
 

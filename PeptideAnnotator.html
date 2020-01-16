@@ -21,6 +21,10 @@
     <script src="support/js/internal/controllers.js"></script>
     <script src="support/js/internal/IPSA.js"></script>
     <script src="support/js/external/d3-tip.js"></script>
+	
+    <script src="support/js/internal/EuBIC2020/api.js"></script>
+    <script src="support/js/internal/EuBIC2020/measures.js"></script>
+	
     <link href="support/css/external/bootstrap.min.css" rel="stylesheet">
     <link href="support/css/external/select.min.css" rel="stylesheet">
     <link href="support/css/external/handsontable.full.min.css" rel="stylesheet">
@@ -29,7 +33,6 @@
     <link href="support/css/external/Open+Sans.css" rel="stylesheet">
     <link href="support/css/external/Inconsolata.css" rel="stylesheet">
     <link href="support/css/internal/PeptideAnnotator.css" rel="stylesheet">
-    <script src="support/js/internal/EuBIC2020/api.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-default navbar-static-top" role="navigation">
@@ -254,7 +257,7 @@
                 </div>
               </div>
               <div class="col-md-7">
-	                <div annotated-spectrum plotdata="set.plotData" peptide="set.peptide" settings="set.settings" class="content"></div>
+	                <div annotated-spectrum plotdata="set.plotData" mirrorplotdata="set.mirrorPlotData" peptide="set.peptide" settings="set.settings" score="set.score" class="content"></div>
 	                <form role="form" ng-init="randomize()"></form>
               </div>
             </div>

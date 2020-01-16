@@ -20,7 +20,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         plotdata: '=?',
         mirrorplotdata: '=?',
         peptide: '=?',
-        settings: '=?'
+        settings: '=?',
+		score: '=?'
       }
     };
 
@@ -397,7 +398,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @returns {Array} All experimental intensities values.
 	    */
       scope.getMirrorIntensities = function() {
-        return scope.mirrorplotdata.y;
+        return scope.mirrorplotdata.intensities;
       };
 
       /**
@@ -435,7 +436,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @returns {Array} All colors in hexidecimal notation. 
 	    */
       scope.getMirrorColors = function() {
-        return scope.mirrorplotdata.color;
+        return scope.mirrorplotdata.colors;
       };
 
       /**
@@ -453,7 +454,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @returns {Array} An array containing all annotated labels. Non-annotated peaks will have an empty string as a placeholder.
 	    */
       scope.getMirrorLabels = function() {
-        return scope.mirrorplotdata.label;
+        return scope.mirrorplotdata.labels;
       };
        
       /**
@@ -471,7 +472,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @returns {Array} An array containing all annotated fragment charges. Non-annotated peaks will have 0 as a placeholder.
 	    */
       scope.getMirrorLabelCharges = function() {
-        return scope.mirrorplotdata.labelCharge;
+        return scope.mirrorplotdata.labelCharges;
       } 
 
       /**
@@ -498,7 +499,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @returns {Array} An array containing all bar widths. Non-annotated peaks default to width = 1. Annotated peaks have width = 3.
 	    */
       scope.getMirrorWidths = function() {
-        return scope.mirrorplotdata.barwidth;
+        return scope.mirrorplotdata.widths;
       };
 
       /**
@@ -591,11 +592,13 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               right: 15,
               bottom: 35,
               left: 60,
-              categoryPadding_2: 50,
-              categoryPadding_3: 235,
+              categoryPadding_2: 110,
+              categoryPadding_3: 320,
+              categoryPadding_4: 65,
               dataPadding_1: -140,
-              dataPadding_2: 25,
+              dataPadding_2: -40,
               dataPadding_3: 185,
+              dataPadding_4: 40
             },
             padding: .05
           },
@@ -854,13 +857,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .attr("y", "0")
           .attr('width', options.annotation.width)
           .attr('height', options.annotation.height); 
-		  
-		  
-		//////////////////
-		
-
-		
-		/////////////////
         
         // Define location of the mass error chart relative to the rest of the SVG
         scope.fragmentContainer.attr("transform", "translate(" + options.fragments.margin.left + "," + (options.fragments.margin.top + 30) + ")");
@@ -948,8 +944,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         // draws the text elements which list precursor m/z, charge state, and # fragmented bonds.
         scope.drawPrecursorSummary();
         // draws the elements contained in the annotated mass spectrum
-        scope.drawAnnotation(0);
-        scope.drawAnnotation(1);
+        scope.drawAnnotation();
         // draws the elements contained in the mass error scatterplot. 
         scope.drawMassError();
       };
@@ -1177,13 +1172,20 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 	    * @description Draws the text and statistics below the peptide sequence. Retrieves precursor mz, charge, and # fragmented bonds and displays it.
 	    */
       scope.drawPrecursorSummary = function() {
-        var options = scope.getOptions(), sequence = scope.getSequence(), charge = scope.getPrecursorCharge(), precursorMz = scope.getPrecursorMz(), fragments = scope.getTickData();
+		  
+        var options = scope.getOptions(), 
+			sequence = scope.getSequence(), 
+			charge = scope.getPrecursorCharge(), 
+			precursorMz = scope.getPrecursorMz(), 
+			fragments = scope.getTickData(),
+			score = scope.score;
        	
        	// Retrieve and format mz, charge, and formatted fragment objects. Place them into the array summaryData to be later translated into svg elements.
         var summaryData = [];
         summaryData.push({title: "Precursor m/z: ", data: d3.format(",.4f")(precursorMz)});
         summaryData.push({title: "Charge: ", data: ionizationMode + Math.abs(charge)});
         summaryData.push({title: "Fragmented Bonds: ", data: scope.getFragmentedBonds(fragments, sequence.length)});
+        summaryData.push({title: "SA: ", data: score});
 
         // From line 1047 to 1065 we write the Title text from the summary data objects e.g. "Precursor m/z"
         dataset = scope.peptideContainer.selectAll(".precursorstatscategory").data(summaryData);
@@ -1196,8 +1198,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               return "translate(-" + options.statistics.width / 2 + ",0)";
             } else if (i == 1) {
               return "translate(-" + options.statistics.margin.categoryPadding_2 + ",0)"
-            } else  {
+            } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",0)";
+            } else {
+              return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4) + ",0)";
             } 
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
@@ -1217,8 +1221,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             } else if (i == 1) {
               //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
               return "translate(" + (options.statistics.margin.dataPadding_2) + ",0)";
-            } else  {
+            } else if (i == 2) {
               return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3 + options.statistics.margin.dataPadding_3) + ",0)";
+            } else  {
+              return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4 + options.statistics.margin.dataPadding_4) + ",0)";
             } 
           }).attr("text-anchor", "start").transition().delay(function(d, i) {
             return i * 450;
@@ -1267,10 +1273,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 		options = scope.getOptions(), 
 		xValues = scope.getX(), yValues = scope.getIntensities(), 
 		percentBasePeak = scope.getPercentBasePeak(),
-		xValues2 = scope.getX(), yValues2 = scope.getIntensities(), 
-        percentBasePeak2 = scope.getPercentBasePeak(),
-		labels2 = scope.getLabels(), labelCharges2 = scope.getLabelCharges(),
-		colors2 = scope.getColors(),
+		xValues2 = scope.getMirrorX(), yValues2 = scope.getMirrorIntensities(), 
+        percentBasePeak2 = scope.getMirrorPercentBasePeak(),
+		labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
+		colors2 = scope.getMirrorColors(),
 		massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
         neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(), sequence = scope.getSequence();
 		  
@@ -2118,6 +2124,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       scope.$watch('plotdata', scope.redraw, true);
       scope.$watch('peptide', scope.redraw, true);
       scope.$watch('settings', scope.redraw, true);
+      scope.$watch('score', scope.redraw, true);
        
       // once all our drawing and rendering methods are defined, initialize the chart and let it sit. It will automatically populate with new data when the plothandler detects that the annotated 
       // changes

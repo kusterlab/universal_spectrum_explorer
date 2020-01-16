@@ -27,6 +27,21 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       percentBasePeak: [ ],
       TIC: 0
     },
+    score: 0.0,
+    mirrorPlotData: 
+    {
+      x: [ ],
+      y: [ ],
+      color: [ ],
+      label: [ ],
+      labelCharge: [ ],
+      neutralLosses: [ ],
+      barwidth: [ ],
+      massError: [ ],
+      theoMz: [ ],
+      percentBasePeak: [ ],
+      TIC: 0
+    },
     peptide: 
     {
       sequence: "TESTPEPTIDE", 
@@ -43,6 +58,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   };
   
   $scope.n = 150;
+  
   
   $scope.min = 0;
   
@@ -170,6 +186,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 	  //console.log(returnedData)
     $scope.set.mirrorPlotData = returnedData;
   }
+  
+  $scope.score = function(returnedData) {
+    $scope.set.score = returnedData;
+  }
 
   $scope.processData = function() {
     var url = "";
@@ -235,6 +255,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       };
 
       $scope.submittedData = data;
+	  
+	  var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+	  var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [35]};
 
       // httpRequest to submit data to processing script. 
       $http.post(url, data)
@@ -247,21 +270,47 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             $scope.plotData($scope.annotatedResults);
           }
       });
-        
-      var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-	query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [30]}
-      $http.post(url2, query)
+	  
+	  $http.post(url2, query)
+				.then( function(response2) {
+			  // if errors exist, alert user
+			  if (response2.data.hasOwnProperty("error")) {
+				alert(response2.data.error);
+			  } else {
+				$scope.plotMirrorData(transform2scope(response2.data[0]));
+          }
+      });
+	  
+	   $http.post(url, data)
         .then( function(response) {
           // if errors exist, alert user
           if (response.data.hasOwnProperty("error")) {
             alert(response.data.error);
           } else {
-            $scope.plotMirrorData(transform2scope(response.data[0]))
+            var res1 = response.data;
+			
+			$http.post(url2, query)
+				.then( function(response2) {
+				  // if errors exist, alert user
+				  if (response2.data.hasOwnProperty("error")) {
+					alert(response2.data.error);
+				  } else {
+					var res2 = response2.data[0];
+				
+					var topSpectrumB = ipsa_helper["binning"](res1.peaks);
+					var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
+					
+					var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+					var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+					console.log(score);
+					$scope.score(score);
+				}
+			});
           }
       });
     }
   };
-
+  
   $scope.invalidColors = function() {
     $scope.colorArray = [];
 
