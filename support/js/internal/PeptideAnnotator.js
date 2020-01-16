@@ -35,7 +35,9 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     HPO3: { selected: false },
     CO2: { selected: false },
     precursor: { selected: true, color: "#666666"},
-    unassigned: { selected: true, color: "#A6A6A6"},
+    unassigned: { selected: true, color: "#A6A6A6"}
+  };
+  $scope.mirrorModel = {
 	ce: 25,
 	api: ''
   };

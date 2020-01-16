@@ -268,7 +268,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 	  
 	  var url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
 	  var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [25], "mods" : [modString]};
-
+	var cm = {
+		a: $scope.checkModel.a.color,
+		b: $scope.checkModel.b.color,
+		c: $scope.checkModel.c.color,
+		x: $scope.checkModel.x.color,
+		y: $scope.checkModel.y.color,
+		z: $scope.checkModel.z.color,
+	};
       // httpRequest to submit data to processing script. 
       $http.post(url, data)
         .then( function(response) {
@@ -282,44 +289,44 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       });
 	  
 	  if ( $scope.checkModel.api === 'Prosit' || $scope.checkModel.api === 'ProteomeTools' ) {
-	  $http.post(url2, query)
-				.then( function(response2) {
-			  // if errors exist, alert user
-			  if (response2.data.hasOwnProperty("error")) {
-				alert(response2.data.error);
-			  } else {
-				$scope.plotMirrorData(transform2scope(response2.data[0]));
-          }
-      });
-	  
-	  
-	   $http.post(url, data)
-        .then( function(response) {
-          // if errors exist, alert user
-          if (response.data.hasOwnProperty("error")) {
-            alert(response.data.error);
-          } else {
-            var res1 = response.data;
-			
-			$http.post(url2, query)
-				.then( function(response2) {
+		  $http.post(url2, query)
+					.then( function(response2) {
 				  // if errors exist, alert user
 				  if (response2.data.hasOwnProperty("error")) {
 					alert(response2.data.error);
 				  } else {
-					var res2 = response2.data[0];
+					$scope.plotMirrorData(transform2scope(response2.data[0], cm));
+			  }
+		  });
+		  
+		  
+		  $http.post(url, data)
+			.then( function(response) {
+			  // if errors exist, alert user
+			  if (response.data.hasOwnProperty("error")) {
+				alert(response.data.error);
+			  } else {
+				var res1 = response.data;
 				
-					var topSpectrumB = ipsa_helper["binning"](res1.peaks);
-					var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
+				$http.post(url2, query)
+					.then( function(response2) {
+					  // if errors exist, alert user
+					  if (response2.data.hasOwnProperty("error")) {
+						alert(response2.data.error);
+					  } else {
+						var res2 = response2.data[0];
 					
-					var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
-					var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-					console.log(score);
-					$scope.score(score);
-				}
-			});
-          }
-      });
+						var topSpectrumB = ipsa_helper["binning"](res1.peaks);
+						var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
+						
+						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+						var score = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+						console.log(score);
+						$scope.score(score);
+					}
+				});
+			  }
+		  });
 	  }
     }
   };
