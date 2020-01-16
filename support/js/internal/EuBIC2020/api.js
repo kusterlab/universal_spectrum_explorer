@@ -22,8 +22,11 @@ function queryProteomicsDbPost(peptideSequence = ["LASVSVSR"], charge = [2], ce 
 }
 
 
-/// 2020-01-15 CP/TK
-function transform2scope(a){
+/// input: output from proteomicsDB a  and a colormap cm
+/// returns a peaklist readable by IPSA from a proteomicsDB given input
+/// history: 2020-01-15, 2020-01-16 CP/TK/P
+function transform2scope(a, cm = { 'b': "#0d75bc", 'c': '#07a14a', 'y': '#be202d', 'z': '#000000'}){
+
 
 	try {
 		let intensitiesmax = Math.max(...a['ions'].map(x => x.intensity))
@@ -33,7 +36,8 @@ x: a['ions'].map(x => x.mz),
    intensities: a['ions'].map(x => x.intensity),
    percentBasePeak : a['ions'].map(x => (100 * (x.intensity / intensitiesmax))),
    massError: a['ions'].map(x => 'NA'),
-   colors: a['ions'].map(x => '#000000'),
+   colors: a['ions'].map(x => "#000000"),
+   //colors: a['ions'].map(x => cm[x.ion]),
    labels: a['ions'].map(x => x.ion + x.number),
    labelCharges: a['ions'].map(x => x.charge),
    neutralLosses: [],
@@ -41,6 +45,7 @@ x: a['ions'].map(x => x.mz),
    sequence: a['sequence']
 			}
 
+console.log(scope)
 		return scope;
 	} catch(err) {
 		console.log("ERROR: " + err)
