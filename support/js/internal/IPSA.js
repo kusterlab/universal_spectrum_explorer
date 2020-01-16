@@ -1176,8 +1176,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
       scope.drawCorrelationSummary = function () {
           var options = scope.getOptions(),
-              score = 2,//scope.score.sa,
-              correlation = 4;//scope.corr;
+              score = scope.score.sa,
+              correlation = scope.score.corr;
 
           var statisticsData = [];
           statisticsData.push({ title: "SA: ", data: score });
