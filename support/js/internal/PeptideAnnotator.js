@@ -10,15 +10,25 @@ myApp.config(function(uiSelectConfig) {
 
 /* master controller to carry similar functionality to $rootScope */
 myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, $http, $element, $attrs, $transclude) {
-  
+	
+   $scope.getUrlVars = function() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+	};
+	
   // stores peptide information
   $scope.peptide = {
     sequence: "TESTPEPTIDE",
     precursorCharge: 2,
     charge: 1,
     fragmentMin: 1,
-    fragmentMax: 1
+    fragmentMax: 1,
+	usi: $scope.getUrlVars().usi
   };
+  
 
   // stores the values for selected fragments and colors
   $scope.checkModel = {
@@ -381,6 +391,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     toleranceType: "ppm",
     tolerance: 10
   };
+  
+  $scope.searchUSI = function() {
+	  $scope.processUSI();
+  }
 
   $scope.validateSequence = function() {
     var regex = new RegExp("[AC-IK-NP-TVWY]", "i");
@@ -521,7 +535,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       "C-terminus"
     ]
   };
-
 });
 
 myApp.controller('PeptideCtrl', function ($scope) {
@@ -533,7 +546,7 @@ myApp.controller('PeptideCtrl', function ($scope) {
   $scope.incrementCharge = function() {
     $scope.peptide.charge++;
   }
-
+  
 });
 
 //controller for generating data paste dropdown and handsonTable

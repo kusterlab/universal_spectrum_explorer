@@ -38,8 +38,6 @@ x: a['ions'].map(x => x.mz),
    widths: a['ions'].map(x => 2),
    sequence: a['sequence']
 			}
-
-console.log(scope)
 		return scope;
 	} catch(err) {
 		console.log("ERROR: " + err)
