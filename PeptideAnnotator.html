@@ -258,11 +258,12 @@
                           <div class="col-md-6">
                             <label>Mirror Spectrum Origin</label>
                             <div class="input-group">
-								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'Prosit'" uncheckable>Prosit</label>
-								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'ProteomeTools'" uncheckable>ProteomeTools</label>
+								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processMirror()">Prosit</label>
+								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processMirror()">ProteomeTools</label>
+								<label class="btn btn-success" ng-model="mirrorModel.api" uib-btn-radio="'USI'" uncheckable ng-click="processMirror()">USI</label>
 							</div>
                           </div>
-                          <div class="col-md-6">
+                          <div class="col-md-6" ng-hide="mirrorModel.hideCE">
                             <label>Collission Energy</label>
                             <div class="input-group">
                               <input type="number" class="form-control" ng-model="mirrorModel.ce" min="0" />
@@ -270,6 +271,12 @@
                           </div>
                         </div>
                         <br/>
+                        <div class="row" ng-hide="mirrorModel.hideUSI" >
+                          <div class="col-md-12">
+                              <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptide.usiMirror"/>
+                          </div>
+                          <br/>
+                        </div>
                         <br/>
                         <div class="row">
                           <div class="col-md-12">

@@ -1,630 +1,715 @@
 angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$log", "$http", function($scope, $log, $http) {
 
-  var populateMods = function() {
-    var returnArray = [];
-    for (var i = 0; i < 13; i++) {
-      returnArray.push({
-        site: i - 1,
-        deltaElement: 0,
-        deltaMass: 0
-      });
-    }
-    return returnArray;
-  }
+	var populateMods = function() {
+		var returnArray = [];
+		for (var i = 0; i < 13; i++) {
+			returnArray.push({
+				site: i - 1,
+				deltaElement: 0,
+				deltaMass: 0
+			});
+		}
+		return returnArray;
+	}
 
-  $scope.set = {
-    plotData: 
-    {
-      x: [ ],
-      y: [ ],
-      color: [ ],
-      label: [ ],
-      labelCharge: [ ],
-      neutralLosses: [ ],
-      barwidth: [ ],
-      massError: [ ],
-      theoMz: [ ],
-      percentBasePeak: [ ],
-      TIC: 0
-    },
-    score: {
-		sa: 0.0,
-		corr: 0.0
-	},
-    mirrorPlotData: 
-    {
-      x: [ ],
-      y: [ ],
-      color: [ ],
-      label: [ ],
-      labelCharge: [ ],
-      neutralLosses: [ ],
-      barwidth: [ ],
-      massError: [ ],
-      theoMz: [ ],
-      percentBasePeak: [ ],
-      TIC: 0
-    },
-    peptide: 
-    {
-      sequence: "TESTPEPTIDE", 
-	  usi: 'mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2',
-      precursorMz: 609.77229, 
-      precursorCharge: $scope.peptide.precursorCharge,
-      mods: populateMods()
-    },
-    settings: 
-    {
-      toleranceThreshold: 0,
-      toleranceType: "",
-      ionizationMode: ""
-    }
-  };
-  
-  $scope.n = 150;
-  
-  
-  $scope.min = 0;
-  
-  $scope.max = 100;
-
-  $scope.randomize = function() {
-    _.times(150, function(n) {
-      var x = _.random(0, 2000);
-      var y = _.random(0, 100);
-      if (y < 1) {
-        y = 1;
-      }
-      $scope.set.plotData.TIC += y;
-      $scope.set.plotData.y.push(y);
-      $scope.set.plotData.x.push(x);
-      $scope.set.plotData.color.push("#A6A6A6");
-      $scope.set.plotData.label.push("");
-      $scope.set.plotData.labelCharge.push(0);
-      $scope.set.plotData.neutralLosses.push("");
-      $scope.set.plotData.barwidth.push(1);
-      $scope.set.plotData.massError.push("");
-      $scope.set.plotData.theoMz.push(0);
-      $scope.set.plotData.percentBasePeak.push(100 * y/d3.max($scope.set.plotData.y));
-    });
-    $scope.set.plotData.x.sort(function(a, b){return a - b});
-    $scope.set.settings.toleranceType = "ppm";
-    $scope.set.settings.toleranceThreshold = 10;
-    $scope.set.settings.ionizationMode = "+";
-  };
-
-  $scope.plotData = function(returnedData) {
-    $scope.set.peptide = 
-    {
-      sequence: returnedData.sequence, 
-      precursorMz: returnedData.precursorMz, 
-      precursorCharge: $scope.peptide.precursorCharge,
-      mods: returnedData.modifications
-    };
-
-    $scope.set.settings = 
-    {
-      toleranceThreshold: $scope.cutoffs.tolerance,
-      toleranceType: $scope.cutoffs.toleranceType,
-      ionizationMode: ""
-    };
-
-    if ($scope.peptide.precursorCharge > 0) {
-      $scope.set.settings.ionizationMode = "+";
-    } else {
-      $scope.set.settings.ionizationMode = "-";
-    }
-
-    $scope.set.plotData.x = [ ];
-    $scope.set.plotData.y = [ ];
-    $scope.set.plotData.color = [ ];
-    $scope.set.plotData.label = [ ];
-    $scope.set.plotData.labelCharge = [ ];
-    $scope.set.plotData.neutralLosses = [ ];
-    $scope.set.plotData.barwidth = [ ];
-    $scope.set.plotData.massError = [ ];
-    $scope.set.plotData.theoMz = [ ];
-    $scope.set.plotData.percentBasePeak = [ ];
-    $scope.set.plotData.TIC = 0;
-    
-    returnedData.peaks.forEach(function(data) {
-      $scope.set.plotData.x.push(data.mz);
-      $scope.set.plotData.y.push(data.intensity);
-      $scope.set.plotData.TIC += data.intensity;
-      $scope.set.plotData.percentBasePeak.push(data.percentBasePeak);
-      if (data.matchedFeatures.length == 0) {
-        $scope.set.plotData.color.push($scope.colorArray[9]);
-        $scope.set.plotData.label.push("");
-        $scope.set.plotData.labelCharge.push(0);
-        $scope.set.plotData.neutralLosses.push("");
-        $scope.set.plotData.barwidth.push(1);
-        $scope.set.plotData.massError.push("");
-        $scope.set.plotData.theoMz.push(0);
-      } else {
-        var peakData = data.matchedFeatures[0];
-        var fragment = peakData.feature;
-        if (fragment.type == "a") {
-          $scope.set.plotData.color.push($scope.colorArray[0]);
-        } else if (fragment.type == "b") {
-          $scope.set.plotData.color.push($scope.colorArray[1]);
-        } else if (fragment.type == "c") {
-          $scope.set.plotData.color.push($scope.colorArray[2]);
-        } else if (fragment.type == "C") {
-          $scope.set.plotData.color.push($scope.colorArray[3]);
-        } else if (fragment.type == "x") {
-          $scope.set.plotData.color.push($scope.colorArray[4]);
-        } else if (fragment.type == "y") {
-          $scope.set.plotData.color.push($scope.colorArray[5]);
-        } else if (fragment.type == "z") {
-          $scope.set.plotData.color.push($scope.colorArray[6]);
-        } else if (fragment.type == "Z") {
-          $scope.set.plotData.color.push($scope.colorArray[7]);
-        } else if (fragment.type == "M") {
-          $scope.set.plotData.color.push($scope.colorArray[8]);
-        }
-
-        if (fragment.neutralLoss == null) {
-          $scope.set.plotData.neutralLosses.push("");
-        } else {
-          $scope.set.plotData.neutralLosses.push(fragment.neutralLoss);
-        }
-        
-        $scope.set.plotData.labelCharge.push(fragment.charge);
-        // two label types, precursor, or regular label w/wo neutral losses
-        if (fragment.hasOwnProperty("isPrecursor")) {
-          $scope.set.plotData.label.push("[" + fragment.type + fragment.number + "]");
-        } else {
-          $scope.set.plotData.label.push(fragment.type + fragment.number);
-        }
-
-        $scope.set.plotData.barwidth.push(3);
-        $scope.set.plotData.massError.push(peakData.massError);
-        $scope.set.plotData.theoMz.push(fragment.mz);
-      }
-    });
-
-    //$log.log($scope.set);
-  };
-
-  $scope.plotMirrorData = function(returnedData) {
-    $scope.set.mirrorPlotData = returnedData;
-  }
-  
-  $scope.score = function(returnedData) {
-    $scope.set.score = returnedData;
-  }
-  
-  $scope.processUSI = function() {
-	  //var usi = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2";
-	  var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usi;
-	  $http.get(url)
-		.then( function(response) {
-			var mzs = response.data.mzs;
-			var ints = response.data.intensities;
-			var seq = response.data.peptideSequence;
-			var charge = response.data.charge;
-			$scope.peptide.sequence = seq;
-			$scope.peptide.precursorCharge = charge;
-			$scope.peptide.charge = charge - 1;
-			$scope.db.items = mzs.map(
-				(x,i) => {
-					return {mZ: x, intensity: ints[i]};
-				}
-			);
-		});
-	  
-  }
-
-  $scope.processData = function() {
-    var url = "";
-    if ($scope.peptide.precursorCharge > 0) {
-      url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
-    } else {
-      url = "support/php/NegativeModeProcessData.php";
-    }
-    
-    let submitData;
-
-    if ($scope.invalidColors()) {
-
-    } else {
-      // format data before sending it out for processing
-
-      // map data from handsontable to new object for submitData
-      if ($scope.db.items[0].hasOwnProperty('sN')){
-        submitData = $scope.db.items.map(({ mZ, intensity, sN }) => ({ mZ, intensity, sN }));
-      } else {
-        submitData = $scope.db.items.map(({ mZ, intensity }) => ({ mZ, intensity }));
-      }
-
-      //$log.log(submitData);
-      // filter out invalid entries from handsontable
-      var newArray = [];
-
-      for (var i = 0; i < submitData.length; i++) {
-        let value = submitData[i];
-        if (value.hasOwnProperty("sN")) {loc
-          if (!isNaN(value.mZ) && !isNaN(value.intensity) && !isNaN(value.sN)) {
-            newArray.push(value);
-          }
-        } else {
-          if (!isNaN(value.mZ) && !isNaN(value.intensity)) {
-            newArray.push(value);
-          }
-        }
-      }
-      submitData = newArray;
-      //$log.log(newArray);
-
-      // make charge compatible with processing scripts
-      var charge = 0;
-      if ($scope.peptide.precursorCharge > 0) {
-        charge = $scope.peptide.charge + 1;
-      } else {
-        charge = $scope.peptide.charge;
-      }
-
-      // bind all data in froms to data
-      var data = {
-        "sequence" : $scope.peptide.sequence,
-        "precursorCharge": $scope.peptide.precursorCharge,
-        "charge" : charge,
-        "fragmentTypes" : $scope.checkModel,
-        "peakData" : submitData,
-        "mods" : $scope.modObject.selectedMods,
-        "toleranceType" : $scope.cutoffs.toleranceType,
-        "tolerance" : $scope.cutoffs.tolerance,
-        "matchingType": $scope.cutoffs.matchingType,
-        "cutoff": $scope.cutoffs.matchingCutoff
-      };
-
-      $scope.submittedData = data;
-      let modString = "";
-      if ($scope.modObject.selectedMods != undefined) {
-          $scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});          
-          $scope.modObject.selectedMods.forEach(function(mod) {
-              if (modString != ""){
-                  modString +=",";              
-              }
-              modString += mod.name + "@"+mod.site + (mod.index+1);
-          });
-      }
-	  
-	  var ionColors = {
-		a: $scope.checkModel.a.color,
-		b: $scope.checkModel.b.color,
-		c: $scope.checkModel.c.color,
-		x: $scope.checkModel.x.color,
-		y: $scope.checkModel.y.color,
-		z: $scope.checkModel.z.color
+	$scope.set = {
+		plotData:
+		{
+			x: [ ],
+			y: [ ],
+			color: [ ],
+			label: [ ],
+			labelCharge: [ ],
+			neutralLosses: [ ],
+			barwidth: [ ],
+			massError: [ ],
+			theoMz: [ ],
+			percentBasePeak: [ ],
+			TIC: 0
+		},
+		score: {
+			sa: 0.0,
+			corr: 0.0
+		},
+		mirrorPlotData:
+		{
+			x: [ ],
+			y: [ ],
+			color: [ ],
+			label: [ ],
+			labelCharge: [ ],
+			neutralLosses: [ ],
+			barwidth: [ ],
+			massError: [ ],
+			theoMz: [ ],
+			percentBasePeak: [ ],
+			TIC: 0
+		},
+		peptide:
+		{
+			sequence: "TESTPEPTIDE",
+			usi: 'mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2',
+			usiMirror: '',
+			precursorMz: 609.77229,
+			precursorCharge: $scope.peptide.precursorCharge,
+			mods: populateMods()
+		},
+		settings:
+		{
+			toleranceThreshold: 0,
+			toleranceType: "",
+			ionizationMode: ""
+		}
 	};
-      // httpRequest to submit data to processing script. 
-	  $http.post(url, data)
-        .then( function(response) {
 
-            $scope.annotatedResults = response.data;
-            $scope.plotData($scope.annotatedResults);
+	$scope.n = 150;
 
-            if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
-                var url2 = '';
-                if ($scope.mirrorModel.api === 'Prosit'){
-                    var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
-                    url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-                    $http.post(url2, query)
-					.then( function(response2) {
-					    rv = response2.data[0]
-					    let maxFragmentIonCharge = $scope.peptide.charge
-					    rv['ions'] = rv['ions'].filter(x => x.charge <= maxFragmentIonCharge)
-					    $scope.plotMirrorData(transform2scope(rv, ionColors));
-					    var res2 = response2.data[0];
 
-					    var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
-					    var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
-					    var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+	$scope.min = 0;
 
-						//calculate similarity scores
-					    var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-					    var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+	$scope.max = 100;
 
-					    $scope.score(
-							{ 
-								sa : Math.round(spectral_angle * 100)/100,
-								corr: Math.round(pearson_correlation * 100)/100
-							}
-						);
-					}, function(response2) {
-					    // if errors exist, alert user
-					    alert("Prosit: " + response2.data.message);  
-					});
-                }
-				else if ($scope.mirrorModel.api === 'ProteomeTools'){
-					url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
-					$http.get(url2, "")
-					.then( function(response2) {
-						var res2 = response2.data;
-						var spec = getClosestCESpectrum(res2, parseInt($scope.mirrorModel.ce, 10));
-						$scope.mirrorModel.ce = spec.collissionEnergy;
-						$scope.plotMirrorData(transform2scope(spec, ionColors));
-							
-						var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
-						var bottomSpectrumB = ipsa_helper["binning"](spec.ions);
-							
-						var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
-						//calculate similarity scores
-					    var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-					    var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+	$scope.randomize = function() {
+		_.times(150, function(n) {
+			var x = _.random(0, 2000);
+			var y = _.random(0, 100);
+			if (y < 1) {
+				y = 1;
+			}
+			$scope.set.plotData.TIC += y;
+			$scope.set.plotData.y.push(y);
+			$scope.set.plotData.x.push(x);
+			$scope.set.plotData.color.push("#A6A6A6");
+			$scope.set.plotData.label.push("");
+			$scope.set.plotData.labelCharge.push(0);
+			$scope.set.plotData.neutralLosses.push("");
+			$scope.set.plotData.barwidth.push(1);
+			$scope.set.plotData.massError.push("");
+			$scope.set.plotData.theoMz.push(0);
+			$scope.set.plotData.percentBasePeak.push(100 * y/d3.max($scope.set.plotData.y));
+		});
+		$scope.set.plotData.x.sort(function(a, b){return a - b});
+		$scope.set.settings.toleranceType = "ppm";
+		$scope.set.settings.toleranceThreshold = 10;
+		$scope.set.settings.ionizationMode = "+";
+	};
 
-					    $scope.score(
-							{ 
-								sa : Math.round(spectral_angle * 100)/100,
-								corr: Math.round(pearson_correlation * 100)/100
-							}
-						);
-					}, function(response2) {
-						// if errors exist, alert user
-						alert("ProteomeTools: " + response2.data.message);  
-					});
+	$scope.plotData = function(returnedData) {
+		$scope.set.peptide =
+		{
+			sequence: returnedData.sequence,
+			precursorMz: returnedData.precursorMz,
+			precursorCharge: $scope.peptide.precursorCharge,
+			mods: returnedData.modifications
+		};
+
+		$scope.set.settings =
+		{
+			toleranceThreshold: $scope.cutoffs.tolerance,
+			toleranceType: $scope.cutoffs.toleranceType,
+			ionizationMode: ""
+		};
+
+		if ($scope.peptide.precursorCharge > 0) {
+			$scope.set.settings.ionizationMode = "+";
+		} else {
+			$scope.set.settings.ionizationMode = "-";
+		}
+
+		$scope.set.plotData.x = [ ];
+		$scope.set.plotData.y = [ ];
+		$scope.set.plotData.color = [ ];
+		$scope.set.plotData.label = [ ];
+		$scope.set.plotData.labelCharge = [ ];
+		$scope.set.plotData.neutralLosses = [ ];
+		$scope.set.plotData.barwidth = [ ];
+		$scope.set.plotData.massError = [ ];
+		$scope.set.plotData.theoMz = [ ];
+		$scope.set.plotData.percentBasePeak = [ ];
+		$scope.set.plotData.TIC = 0;
+
+		returnedData.peaks.forEach(function(data) {
+			$scope.set.plotData.x.push(data.mz);
+			$scope.set.plotData.y.push(data.intensity);
+			$scope.set.plotData.TIC += data.intensity;
+			$scope.set.plotData.percentBasePeak.push(data.percentBasePeak);
+			if (data.matchedFeatures.length == 0) {
+				$scope.set.plotData.color.push($scope.colorArray[9]);
+				$scope.set.plotData.label.push("");
+				$scope.set.plotData.labelCharge.push(0);
+				$scope.set.plotData.neutralLosses.push("");
+				$scope.set.plotData.barwidth.push(1);
+				$scope.set.plotData.massError.push("");
+				$scope.set.plotData.theoMz.push(0);
+			} else {
+				var peakData = data.matchedFeatures[0];
+				var fragment = peakData.feature;
+				if (fragment.type == "a") {
+					$scope.set.plotData.color.push($scope.colorArray[0]);
+				} else if (fragment.type == "b") {
+					$scope.set.plotData.color.push($scope.colorArray[1]);
+				} else if (fragment.type == "c") {
+					$scope.set.plotData.color.push($scope.colorArray[2]);
+				} else if (fragment.type == "C") {
+					$scope.set.plotData.color.push($scope.colorArray[3]);
+				} else if (fragment.type == "x") {
+					$scope.set.plotData.color.push($scope.colorArray[4]);
+				} else if (fragment.type == "y") {
+					$scope.set.plotData.color.push($scope.colorArray[5]);
+				} else if (fragment.type == "z") {
+					$scope.set.plotData.color.push($scope.colorArray[6]);
+				} else if (fragment.type == "Z") {
+					$scope.set.plotData.color.push($scope.colorArray[7]);
+				} else if (fragment.type == "M") {
+					$scope.set.plotData.color.push($scope.colorArray[8]);
 				}
-				
-            }
-        }, function (response) {
-            // if errors exist, alert user          
-            alert(response.data.message);
-        });
-    }
-  };
-  
-  $scope.invalidColors = function() {
-    $scope.colorArray = [];
 
-    // Add colors to array if selected and valid
-    angular.forEach($scope.checkModel, function (value, key) {
-      if (key !== "H2O" && key !== "NH3" && key !== "HPO3" && key !== "CO2") {  
-        if (!$scope.checkHex(value.color)) {
-          alert("Invalid color HEX code for selected fragment: " + key);
-          return true;
-        } else {
-          if (value.selected) {
-            $scope.colorArray.push(value.color);
-          } else {
-            $scope.colorArray.push("");
-          }
-        }
-      }
-    });
+				if (fragment.neutralLoss == null) {
+					$scope.set.plotData.neutralLosses.push("");
+				} else {
+					$scope.set.plotData.neutralLosses.push(fragment.neutralLoss);
+				}
 
-    return false;
-  }
+				$scope.set.plotData.labelCharge.push(fragment.charge);
+				// two label types, precursor, or regular label w/wo neutral losses
+				if (fragment.hasOwnProperty("isPrecursor")) {
+					$scope.set.plotData.label.push("[" + fragment.type + fragment.number + "]");
+				} else {
+					$scope.set.plotData.label.push(fragment.type + fragment.number);
+				}
 
-  $scope.checkHex = function(value) {
-    return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value)
-  }
+				$scope.set.plotData.barwidth.push(3);
+				$scope.set.plotData.massError.push(peakData.massError);
+				$scope.set.plotData.theoMz.push(fragment.mz);
+			}
+		});
 
-  $scope.downloadData = function() {
-    var csvRows = [];
+		//$log.log($scope.set);
+	};
 
-    // write CV peptide sequence header
-    csvRows.push("Sequence, Theoretical Mz, Charge, Modifications <Name;Index;Mass Change>, # Matched Fragments, # Bonds Broken, % TIC Explained");
-    csvRows.push($scope.set.peptide.sequence + "," + d3.format("0.4f")($scope.set.peptide.precursorMz) + "," + $scope.set.peptide.precursorCharge + "," + 
-      $scope.formatModsForDownload() + "," + $scope.getNumberFragments() + "," + $scope.getFragmentedBonds() + "," + $scope.getPercentTicExplained());
-    
-    csvRows.push("");
+	$scope.plotMirrorData = function(returnedData) {
+		$scope.set.mirrorPlotData = returnedData;
+	}
 
-    // matched fragments headers
-    csvRows.push("Fragment Type, Fragmented Bond Number, Attached Modifications <Name;Index;Mass Change>, Neutral Loss, Fragment Charge, Intensity, Experimental Mz, Theoretical Mz, " +
-      "Mass Error (" + $scope.cutoffs.toleranceType + "), % Base Peak, % TIC");
+	$scope.score = function(returnedData) {
+		$scope.set.score = returnedData;
+	}
 
-    var fragments = $scope.formatMatchedFragmentRow();
+	$scope.processUSI = function() {
+		var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usi;
+		$http.get(url)
+			.then( function(response) {
+				var mzs = response.data.mzs;
+				var ints = response.data.intensities;
+				var seq = response.data.peptideSequence;
+				var charge = response.data.charge;
+				$scope.peptide.sequence = seq;
+				$scope.peptide.precursorCharge = charge;
+				$scope.peptide.charge = charge - 1;
+				$scope.db.items = mzs.map(
+						(x,i) => {
+							return {mZ: x, intensity: ints[i]};
+						}
+						);
+			});
 
-    fragments.forEach(function(fragment) {
-      csvRows.push(fragment);
-    });
+	}
 
-    var outputString = csvRows.join("\n");
-    var a = document.createElement('a');
+	$scope.processData = function() {
+		var url = "";
+		if ($scope.peptide.precursorCharge > 0) {
+			url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
+		} else {
+			url = "support/php/NegativeModeProcessData.php";
+		}
 
-    a.href = 'data:attachment/csv,' +  encodeURIComponent(outputString);
-    a.download = $scope.set.peptide.sequence + "_Data.csv";
-    document.body.appendChild(a);
+		let submitData;
 
-    a.click();
-    a.remove();
-  }
+		if ($scope.invalidColors()) {
 
-  $scope.getNumberFragments = function() {
-    var numFragments = 0;
-    $scope.set.plotData.label.forEach(function(label) {
-      if (label) {
-        numFragments++;
-      }
-    });
+		} else {
+			// format data before sending it out for processing
 
-    return numFragments;
-  };
+			// map data from handsontable to new object for submitData
+			if ($scope.db.items[0].hasOwnProperty('sN')){
+				submitData = $scope.db.items.map(({ mZ, intensity, sN }) => ({ mZ, intensity, sN }));
+			} else {
+				submitData = $scope.db.items.map(({ mZ, intensity }) => ({ mZ, intensity }));
+			}
 
-  $scope.getFragmentedBonds = function() {
+			//$log.log(submitData);
+			// filter out invalid entries from handsontable
+			var newArray = [];
 
-    var numBonds = $scope.set.peptide.sequence.length - 1;
-    var bondArray = new Array(numBonds).fill(0);
+			for (var i = 0; i < submitData.length; i++) {
+				let value = submitData[i];
+				if (value.hasOwnProperty("sN")) {loc
+					if (!isNaN(value.mZ) && !isNaN(value.intensity) && !isNaN(value.sN)) {
+						newArray.push(value);
+					}
+				} else {
+					if (!isNaN(value.mZ) && !isNaN(value.intensity)) {
+						newArray.push(value);
+					}
+				}
+			}
+			submitData = newArray;
+			//$log.log(newArray);
 
-    $scope.set.plotData.label.forEach(function(label) {
-      var text = label.charAt(0);
-      var location = label.slice(1);
+			// make charge compatible with processing scripts
+			var charge = 0;
+			if ($scope.peptide.precursorCharge > 0) {
+				charge = $scope.peptide.charge + 1;
+			} else {
+				charge = $scope.peptide.charge;
+			}
 
-      if (text == "a" || text == "b" || text == "c" || text == "C") {
-        bondArray[location - 1] = 1;
-      } else  if (text == "x" || text == "y" || text == "z" || text == "Z") {
-        bondArray[-(location - numBonds)] = 1;
-      }
-    });
+			// bind all data in froms to data
+			var data = {
+				"sequence" : $scope.peptide.sequence,
+				"precursorCharge": $scope.peptide.precursorCharge,
+				"charge" : charge,
+				"fragmentTypes" : $scope.checkModel,
+				"peakData" : submitData,
+				"mods" : $scope.modObject.selectedMods,
+				"toleranceType" : $scope.cutoffs.toleranceType,
+				"tolerance" : $scope.cutoffs.tolerance,
+				"matchingType": $scope.cutoffs.matchingType,
+				"cutoff": $scope.cutoffs.matchingCutoff
+			};
 
-    var uniqueBondsBroken = bondArray.reduce(function(a, b) { return a + b; }, 0);
-    return uniqueBondsBroken;
-  };
+			$scope.submittedData = data;
+			let modString = "";
+			if ($scope.modObject.selectedMods != undefined) {
+				$scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
+				$scope.modObject.selectedMods.forEach(function(mod) {
+					if (modString != ""){
+						modString +=",";
+					}
+					modString += mod.name + "@"+mod.site + (mod.index+1);
+				});
+			}
 
-  $scope.formatModsForDownload = function() {
-    var returnString = "\"";
+			var ionColors = {
+				a: $scope.checkModel.a.color,
+				b: $scope.checkModel.b.color,
+				c: $scope.checkModel.c.color,
+				x: $scope.checkModel.x.color,
+				y: $scope.checkModel.y.color,
+				z: $scope.checkModel.z.color
+			};
+			// httpRequest to submit data to processing script.
+			$http.post(url, data)
+				.then( function(response) {
 
-    if (typeof $scope.modObject.selectedMods !== 'undefined') {
-      $scope.modObject.selectedMods.forEach(function(mod) {
-        var modString = "<";
-        var index = mod.index + 1;
+					$scope.annotatedResults = response.data;
+					$scope.plotData($scope.annotatedResults);
 
-        if (index == 0) {
-          index = "N-terminus";
-        } else if (index == $scope.set.peptide.sequence.length + 1) {
-          index = "C-terminus";
-        }
+					if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
+						var url2 = '';
+						if ($scope.mirrorModel.api === 'Prosit'){
+							var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
+							url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+							$http.post(url2, query)
+								.then( function(response2) {
+									rv = response2.data[0]
+										let maxFragmentIonCharge = $scope.peptide.charge
+										rv['ions'] = rv['ions'].filter(x => x.charge <= maxFragmentIonCharge)
+										$scope.plotMirrorData(transform2scope(rv, ionColors));
+									var res2 = response2.data[0];
 
-        modString += mod.name + ";" + (index) + ";" + d3.format("0.4f")($scope.annotatedResults.modifications[mod.index + 1].deltaMass) + ">";
-        returnString += modString;
-      });
-    }
+									var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
+									var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
+									var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
 
-    if (returnString != "\"") {
-      returnString += "\"";
-    } else {
-      return "";
-    }
+									//calculate similarity scores
+									var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+									var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
 
-    return returnString;
-  };
+									$scope.score(
+											{
+												sa : Math.round(spectral_angle * 100)/100,
+												corr: Math.round(pearson_correlation * 100)/100
+											}
+										    );
+								}, function(response2) {
+									// if errors exist, alert user
+									alert("Prosit: " + response2.data.message);
+								});
+						}
+						else if ($scope.mirrorModel.api === 'ProteomeTools'){
+							url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
+							$http.get(url2, "")
+								.then( function(response2) {
+									var res2 = response2.data;
+									var spec = getClosestCESpectrum(res2, parseInt($scope.mirrorModel.ce, 10));
+									$scope.mirrorModel.ce = spec.collissionEnergy;
+									$scope.plotMirrorData(transform2scope(spec, ionColors));
 
-  $scope.formatReturnedModsForDownload = function(mods) {
-    var returnString = "";
+									var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
+									var bottomSpectrumB = ipsa_helper["binning"](spec.ions);
 
-    if (mods.length > 0) {
-      returnString += "\"";
+									var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+									//calculate similarity scores
+									var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+									var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
 
-      mods.forEach(function(mod) {
-        var modString = "<";
-        var index = mod.site + 1;
-        var name = "";
+									$scope.score(
+											{
+												sa : Math.round(spectral_angle * 100)/100,
+												corr: Math.round(pearson_correlation * 100)/100
+											}
+										    );
+								}, function(response2) {
+									// if errors exist, alert user
+									alert("ProteomeTools: " + response2.data.message);
+								});
+						}
 
-        $scope.modObject.selectedMods.forEach(function(selectedMod) {
-          if (mod.site == selectedMod.index && mod.deltaElement == selectedMod.elementChange) {
-            name = selectedMod.name;
-          }
-        });
+					} else if ($scope.mirrorModel.api === 'USI') {
+						var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usiMirror;
+						$http.get(url)
+							.then( function(response) {
+								var mzs = response.data.mzs;
+								var ints = response.data.intensities;
+								var seq = response.data.peptideSequence;
+								var charge = response.data.charge;
+								var url = "";
+								url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
 
-        if (index == 0) {
-          index = "N-terminus";
-        } else if (index == $scope.set.peptide.sequence.length + 1) {
-          index = "C-terminus";
-        }
+								let submitData = mzs.map((x,i) => {return {mZ: x, intensity: ints[i]}});
 
-        modString += name + ";" + (index) + ";" + d3.format("0.4f")(mod.deltaMass) + ">";
-        returnString += modString;
-      });
+								// format data before sending it out for processing
 
-      returnString += "\"";
-    }
-    
-    return returnString;
-  };
+								// map data from handsontable to new object for submitData
+								//$log.log(submitData);
 
-  $scope.getPercentTicExplained = function() {
-    var count = $scope.set.plotData.label.length;
-    var fragmentIntensity = 0;
+								// bind all data in froms to data
+								var data = {
+									"sequence" : seq,
+									"precursorCharge": charge + 1,
+									"charge" : charge,
+									"fragmentTypes" : $scope.checkModel,
+									"peakData" : submitData,
+									"mods" : $scope.modObject.selectedMods,
+									"toleranceType" : $scope.cutoffs.toleranceType,
+									"tolerance" : $scope.cutoffs.tolerance,
+									"matchingType": $scope.cutoffs.matchingType,
+									"cutoff": $scope.cutoffs.matchingCutoff
+								};
 
-    for (var i = 0; i < count; i++) {
-      if ($scope.set.plotData.label[i]) {
-        fragmentIntensity += $scope.set.plotData.y[i];
-      }
-    }
+								$scope.submittedData = data;
+								var ionColors = {
+									a: $scope.checkModel.a.color,
+									b: $scope.checkModel.b.color,
+									c: $scope.checkModel.c.color,
+									x: $scope.checkModel.x.color,
+									y: $scope.checkModel.y.color,
+									z: $scope.checkModel.z.color
+								};
+								// httpRequest to submit data to processing script.
+								$http.post(url, data)
+									.then( function(response) {
+										var spec = response.data;
 
-    return d3.format("0.2%")(fragmentIntensity / $scope.set.plotData.TIC);
-  };
+										spec.ions = spec.peaks.map((x, i) => {
+											let ion = spec.fragments.filter((y) => {return y.mz === (Math.round(x.mz * 10000)/ 10000)});
+											if (ion.length > 0) {
+												return {
+													mz: x.mz,
+													intensity: x.intensity,
+													ion: spec.fragments.filter((y) => {return y.mz === x.mz})[0].type,
+													number: spec.fragments.filter((y) => {return y.mz === x.mz})[0].number,
+													charge: spec.fragments.filter((y) => {return y.mz === x.mz})[0].charge,
+												};
+											} else {
+												return {
+													mz: x.mz,
+													intensity: x.intensity,
+												};
+											}
+										});
+										console.log(spec);
+										$scope.plotMirrorData(transform2scope(spec, ionColors));
 
-  $scope.formatMatchedFragmentRow = function() {
-    var fragmentRows = [];
-    var count = $scope.set.plotData.x.length;
-    for (var i = 0; i < count; i++) {
-      var row = "";
+										var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
+										var bottomSpectrumB = ipsa_helper["binning"](spec.peaks);
+										var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
 
-      var label = $scope.set.plotData.label[i];
+										//calculate similarity scores
+										var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+										var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
 
-      if (label) {
-        var type = $scope.getFragmentType(label); 
-        var number = $scope.getFragmentNumber(label);
-        var mods = $scope.getFragmentModifications(type, number);
-        mods = $scope.formatReturnedModsForDownload(mods);
-        var neutralLoss = $scope.set.plotData.neutralLosses[i];
-        var mz = $scope.set.plotData.x[i];
-        var charge = "";
-        if ($scope.set.settings.ionizationMode == "+") {
-          charge = $scope.set.plotData.labelCharge[i];
-        } else if ($scope.set.settings.ionizationMode == "-") {
-          charge = "-" + $scope.set.plotData.labelCharge[i];
-        }
-        var intensity = $scope.set.plotData.y[i];
-        var theoMz =  $scope.set.plotData.theoMz[i];
-        var error = $scope.set.plotData.massError[i];
-        var percentBasePeak = $scope.set.plotData.percentBasePeak[i];
-        var percentTIC = intensity / $scope.set.plotData.TIC;
+										$scope.score(
+												{
+													sa : Math.round(spectral_angle * 100)/100,
+													corr: Math.round(pearson_correlation * 100)/100
+												}
+											    );
 
-        row += type + "," + number + "," + mods + ", " + neutralLoss + "," + charge + "," + intensity + "," +  d3.format("0.4f")(mz) + "," +  d3.format("0.4f")(theoMz) + "," + 
-          d3.format("0.4f")(error) + "," + d3.format("0.2f")(percentBasePeak) + "%," + d3.format("0.2%")(percentTIC);
-        fragmentRows.push(row);
-      }
-    };
 
-    return fragmentRows;
-  };
+									});
 
-  $scope.getFragmentType = function(label) {
-    var char = label.charAt(0);
+							});
+					}
+				}, function (response) {
+					// if errors exist, alert user
+					alert(response.data.message);
+				});
+		}
+	};
 
-    if (char == "[") {
-      return label.slice(1, -1);
-    } else if (char == "C") {
-      return "[c-1]";
-    } else if (char == "Z") {
-      return "[z+1]";
-    } else {
-      return char;
-    }
-  };
+	$scope.invalidColors = function() {
+		$scope.colorArray = [];
 
-  $scope.getFragmentNumber = function(label) {
-    var char = label.charAt(0);
+		// Add colors to array if selected and valid
+		angular.forEach($scope.checkModel, function (value, key) {
+			if (key !== "H2O" && key !== "NH3" && key !== "HPO3" && key !== "CO2") {
+				if (!$scope.checkHex(value.color)) {
+					alert("Invalid color HEX code for selected fragment: " + key);
+					return true;
+				} else {
+					if (value.selected) {
+						$scope.colorArray.push(value.color);
+					} else {
+						$scope.colorArray.push("");
+					}
+				}
+			}
+		});
 
-    if (char == "[") {
-      return "";
-    } else {
-      return parseInt(label.slice(1));
-    }
-  }
+		return false;
+	}
 
-  $scope.getFragmentModifications = function(type, number) {
-    var returnArray = [];
-    var possibleMods = [];
-    if (type == "a" || type == "b" || type == "c" || type == "[c-1]") {
-      possibleMods = $scope.annotatedResults.modifications.slice(0, number + 1);
-    } else if (type == "x" || type == "y" || type == "z" || type == "[z+1]") {
-      possibleMods =  $scope.annotatedResults.modifications.slice(-number - 1);
-    }
+	$scope.checkHex = function(value) {
+		return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value)
+	}
 
-    possibleMods.forEach(function(mod) {
-      if (mod.deltaMass) {
-        returnArray.push(mod); 
-      }
-    });
+	$scope.downloadData = function() {
+		var csvRows = [];
 
-    return returnArray;
-  };
+		// write CV peptide sequence header
+		csvRows.push("Sequence, Theoretical Mz, Charge, Modifications <Name;Index;Mass Change>, # Matched Fragments, # Bonds Broken, % TIC Explained");
+		csvRows.push($scope.set.peptide.sequence + "," + d3.format("0.4f")($scope.set.peptide.precursorMz) + "," + $scope.set.peptide.precursorCharge + "," +
+				$scope.formatModsForDownload() + "," + $scope.getNumberFragments() + "," + $scope.getFragmentedBonds() + "," + $scope.getPercentTicExplained());
+
+		csvRows.push("");
+
+		// matched fragments headers
+		csvRows.push("Fragment Type, Fragmented Bond Number, Attached Modifications <Name;Index;Mass Change>, Neutral Loss, Fragment Charge, Intensity, Experimental Mz, Theoretical Mz, " +
+				"Mass Error (" + $scope.cutoffs.toleranceType + "), % Base Peak, % TIC");
+
+		var fragments = $scope.formatMatchedFragmentRow();
+
+		fragments.forEach(function(fragment) {
+			csvRows.push(fragment);
+		});
+
+		var outputString = csvRows.join("\n");
+		var a = document.createElement('a');
+
+		a.href = 'data:attachment/csv,' +  encodeURIComponent(outputString);
+		a.download = $scope.set.peptide.sequence + "_Data.csv";
+		document.body.appendChild(a);
+
+		a.click();
+		a.remove();
+	}
+
+	$scope.getNumberFragments = function() {
+		var numFragments = 0;
+		$scope.set.plotData.label.forEach(function(label) {
+			if (label) {
+				numFragments++;
+			}
+		});
+
+		return numFragments;
+	};
+
+	$scope.getFragmentedBonds = function() {
+
+		var numBonds = $scope.set.peptide.sequence.length - 1;
+		var bondArray = new Array(numBonds).fill(0);
+
+		$scope.set.plotData.label.forEach(function(label) {
+			var text = label.charAt(0);
+			var location = label.slice(1);
+
+			if (text == "a" || text == "b" || text == "c" || text == "C") {
+				bondArray[location - 1] = 1;
+			} else  if (text == "x" || text == "y" || text == "z" || text == "Z") {
+				bondArray[-(location - numBonds)] = 1;
+			}
+		});
+
+		var uniqueBondsBroken = bondArray.reduce(function(a, b) { return a + b; }, 0);
+		return uniqueBondsBroken;
+	};
+
+	$scope.formatModsForDownload = function() {
+		var returnString = "\"";
+
+		if (typeof $scope.modObject.selectedMods !== 'undefined') {
+			$scope.modObject.selectedMods.forEach(function(mod) {
+				var modString = "<";
+				var index = mod.index + 1;
+
+				if (index == 0) {
+					index = "N-terminus";
+				} else if (index == $scope.set.peptide.sequence.length + 1) {
+					index = "C-terminus";
+				}
+
+				modString += mod.name + ";" + (index) + ";" + d3.format("0.4f")($scope.annotatedResults.modifications[mod.index + 1].deltaMass) + ">";
+				returnString += modString;
+			});
+		}
+
+		if (returnString != "\"") {
+			returnString += "\"";
+		} else {
+			return "";
+		}
+
+		return returnString;
+	};
+
+	$scope.formatReturnedModsForDownload = function(mods) {
+		var returnString = "";
+
+		if (mods.length > 0) {
+			returnString += "\"";
+
+			mods.forEach(function(mod) {
+				var modString = "<";
+				var index = mod.site + 1;
+				var name = "";
+
+				$scope.modObject.selectedMods.forEach(function(selectedMod) {
+					if (mod.site == selectedMod.index && mod.deltaElement == selectedMod.elementChange) {
+						name = selectedMod.name;
+					}
+				});
+
+				if (index == 0) {
+					index = "N-terminus";
+				} else if (index == $scope.set.peptide.sequence.length + 1) {
+					index = "C-terminus";
+				}
+
+				modString += name + ";" + (index) + ";" + d3.format("0.4f")(mod.deltaMass) + ">";
+				returnString += modString;
+			});
+
+			returnString += "\"";
+		}
+
+		return returnString;
+	};
+
+	$scope.getPercentTicExplained = function() {
+		var count = $scope.set.plotData.label.length;
+		var fragmentIntensity = 0;
+
+		for (var i = 0; i < count; i++) {
+			if ($scope.set.plotData.label[i]) {
+				fragmentIntensity += $scope.set.plotData.y[i];
+			}
+		}
+
+		return d3.format("0.2%")(fragmentIntensity / $scope.set.plotData.TIC);
+	};
+
+	$scope.formatMatchedFragmentRow = function() {
+		var fragmentRows = [];
+		var count = $scope.set.plotData.x.length;
+		for (var i = 0; i < count; i++) {
+			var row = "";
+
+			var label = $scope.set.plotData.label[i];
+
+			if (label) {
+				var type = $scope.getFragmentType(label);
+				var number = $scope.getFragmentNumber(label);
+				var mods = $scope.getFragmentModifications(type, number);
+				mods = $scope.formatReturnedModsForDownload(mods);
+				var neutralLoss = $scope.set.plotData.neutralLosses[i];
+				var mz = $scope.set.plotData.x[i];
+				var charge = "";
+				if ($scope.set.settings.ionizationMode == "+") {
+					charge = $scope.set.plotData.labelCharge[i];
+				} else if ($scope.set.settings.ionizationMode == "-") {
+					charge = "-" + $scope.set.plotData.labelCharge[i];
+				}
+				var intensity = $scope.set.plotData.y[i];
+				var theoMz =  $scope.set.plotData.theoMz[i];
+				var error = $scope.set.plotData.massError[i];
+				var percentBasePeak = $scope.set.plotData.percentBasePeak[i];
+				var percentTIC = intensity / $scope.set.plotData.TIC;
+
+				row += type + "," + number + "," + mods + ", " + neutralLoss + "," + charge + "," + intensity + "," +  d3.format("0.4f")(mz) + "," +  d3.format("0.4f")(theoMz) + "," +
+					d3.format("0.4f")(error) + "," + d3.format("0.2f")(percentBasePeak) + "%," + d3.format("0.2%")(percentTIC);
+				fragmentRows.push(row);
+			}
+		};
+
+		return fragmentRows;
+	};
+
+	$scope.getFragmentType = function(label) {
+		var char = label.charAt(0);
+
+		if (char == "[") {
+			return label.slice(1, -1);
+		} else if (char == "C") {
+			return "[c-1]";
+		} else if (char == "Z") {
+			return "[z+1]";
+		} else {
+			return char;
+		}
+	};
+
+	$scope.getFragmentNumber = function(label) {
+		var char = label.charAt(0);
+
+		if (char == "[") {
+			return "";
+		} else {
+			return parseInt(label.slice(1));
+		}
+	}
+
+	$scope.getFragmentModifications = function(type, number) {
+		var returnArray = [];
+		var possibleMods = [];
+		if (type == "a" || type == "b" || type == "c" || type == "[c-1]") {
+			possibleMods = $scope.annotatedResults.modifications.slice(0, number + 1);
+		} else if (type == "x" || type == "y" || type == "z" || type == "[z+1]") {
+			possibleMods =  $scope.annotatedResults.modifications.slice(-number - 1);
+		}
+
+		possibleMods.forEach(function(mod) {
+			if (mod.deltaMass) {
+				returnArray.push(mod);
+			}
+		});
+
+		return returnArray;
+	};
 
 
 	if ( typeof $scope.peptide.usi !== 'undefined' && $scope.peptide.usi.length !== 0){
 		setTimeout(function(){$scope.processUSI()}, 1000);
-  
+
 		setTimeout(function(){
-	    $scope.checkModel.b.selected = true;
-	    $scope.checkModel.y.selected = true;
-	    $scope.mirrorModel.api = 'Prosit';
-	  
-	    $scope.processData();
-	  }, 
-	  2000);
+			$scope.checkModel.b.selected = true;
+			$scope.checkModel.y.selected = true;
+			$scope.mirrorModel.api = 'Prosit';
+
+			$scope.processData();
+		},
+		2000);
 	}
 }]);

@@ -26,7 +26,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     charge: 1,
     fragmentMin: 1,
     fragmentMax: 1,
-	usi: $scope.getUrlVars().usi
+    usi: $scope.getUrlVars().usi
   };
   
 
@@ -49,7 +49,9 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   };
   $scope.mirrorModel = {
 	ce: 25,
-	api: ''
+	api: '',
+	hideUSI: true,
+	hideCE: true 
   };
 
   $scope.checkResults = { 
@@ -393,7 +395,23 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   };
   
   $scope.searchUSI = function() {
-	  $scope.processUSI();
+     $scope.processUSI();
+  }
+
+  $scope.processMirror = function() {
+     switch ($scope.mirrorModel.api) {
+       case 'Prosit':
+       case 'ProteomeTools':
+	 $scope.mirrorModel.hideUSI=true;
+	 $scope.mirrorModel.hideCE=false;
+         break;
+       case 'USI':
+	 $scope.mirrorModel.hideCE=true;
+	 $scope.mirrorModel.hideUSI=false;
+         break;
+       default:
+         break;
+      }
   }
 
   $scope.validateSequence = function() {
