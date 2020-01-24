@@ -413,14 +413,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 										var spec = response.data;
 
 										spec.ions = spec.peaks.map((x, i) => {
-											let ion = spec.fragments.filter((y) => {return y.mz === (Math.round(x.mz * 10000)/ 10000)});
+											let ion = spec.fragments.filter((y) => {return (Math.round(y.mz * 100) / 100) === (Math.round(x.mz * 100)/ 100)});
 											if (ion.length > 0) {
 												return {
 													mz: x.mz,
 													intensity: x.intensity,
-													ion: spec.fragments.filter((y) => {return y.mz === x.mz})[0].type,
-													number: spec.fragments.filter((y) => {return y.mz === x.mz})[0].number,
-													charge: spec.fragments.filter((y) => {return y.mz === x.mz})[0].charge,
+													ion: ion[0].type,
+													number: ion[0].number,
+													charge: ion[0].charge
 												};
 											} else {
 												return {
@@ -429,7 +429,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 												};
 											}
 										});
-										console.log(spec);
 										$scope.plotMirrorData(transform2scope(spec, ionColors));
 
 										var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
