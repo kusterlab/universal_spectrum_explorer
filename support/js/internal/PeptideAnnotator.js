@@ -410,6 +410,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
 	 $scope.mirrorModel.hideUSI=false;
          break;
        default:
+	 $scope.mirrorModel.hideCE=true;
+	 $scope.mirrorModel.hideUSI=true;
          break;
       }
   }
