@@ -48,7 +48,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     unassigned: { selected: true, color: "#A6A6A6"}
   };
   $scope.mirrorModel = {
-	ce: 25,
+	ce: 30,
 	api: '',
 	hideUSI: true,
 	hideCE: true 
