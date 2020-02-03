@@ -23,6 +23,7 @@
     <script src="support/js/external/d3-tip.js"></script>
     <script src="support/js/internal/EuBIC2020/api.js"></script>
     <script src="support/js/internal/EuBIC2020/measures.js"></script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
     <link href="support/css/external/bootstrap.min.css" rel="stylesheet">
     <link href="support/css/external/select.min.css" rel="stylesheet">
     <link href="support/css/external/handsontable.full.min.css" rel="stylesheet">
@@ -33,13 +34,26 @@
     <link href="support/css/internal/PeptideAnnotator.css" rel="stylesheet">
   </head>
   <body>
-    <nav class="navbar navbar-default navbar-static-top" role="navigation">
-      <div class="navbar-header"> 
-        <a class="navbar-brand">
-          IPSA
-        </a> 
-      </div>
-    </nav>
+	<nav class="navbar navbar-default navbar-static-top" role="navigation">
+	<div class="navbar-header"> 
+	<a class="navbar-brand">
+	ISV (Interactive spectrum viewer)
+	</a> 
+	</div>
+	<ul class="nav navbar-nav">
+	<li class="divider-vertical"></li>
+	<li class="active"><a href="https://www.proteomicsdb.org/isv/?usi=mzspec:PXD015890:20190213_Rucks_atm6.raw%20(F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2">Example for comparison between exp. and predicted spectra</a></li>
+	<li class="divider-vertical"></li>
+	<li>
+                          <a>
+		Please be aware that not all features have been implemented yet
+			  </a>
+			 </li>
+	</ul>
+	<ul class="nav navbar-nav navbar-right">
+	<ul><a href="https://proteomics.wzw.tum.de/"><img src="https://proteomics.wzw.tum.de/fileadmin/tum/org/tum-logo.png"></a></ul>
+	</ul>
+	</nav>
     <div class="container-fluid">
       <div ng-controller="MasterCtrl">
         <div class="row">
