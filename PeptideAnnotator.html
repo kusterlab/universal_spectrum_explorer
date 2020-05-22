@@ -11,6 +11,7 @@
     <script src="support/js/external/handsontable.full.min.js"></script>
     <script src="support/js/external/ngHandsontable.min.js"></script>
     <script src="support/js/external/d3.v3.min.js" charset="utf-8"></script>
+    <script src="support/js/external/d3.v4.min.js" charset="utf-8"></script>
     <script src="support/js/external/d3-ease.v1.min.js"></script>
     <script src="support/js/external/lodash.min.js" charset="utf-8"></script>
     <script src="support/js/external/jquery.minicolors.min.js"></script>
@@ -20,6 +21,7 @@
     <script src="support/js/internal/PeptideAnnotator.js"></script>
     <script src="support/js/internal/controllers.js"></script>
     <script src="support/js/internal/IPSA.js"></script>
+    <!--  <script src="support/js/internal/DensityPlot.js"></script> -->
     <script src="support/js/external/d3-tip.js"></script>
     <script src="support/js/internal/EuBIC2020/api.js"></script>
     <script src="support/js/internal/EuBIC2020/measures.js"></script>
@@ -43,7 +45,7 @@
 	</div>
 	<ul class="nav navbar-nav">
 	<li class="divider-vertical"></li>
-	<li class="active"><a href="https://www.proteomicsdb.org/isv/?usi=mzspec:PXD015890:20190213_Rucks_atm6.raw%20(F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2">Example for comparison between exp. and predicted spectra</a></li>
+	<li class="active"><a href="https://www.proteomicsdb.org/isv/?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2">Example for comparison between exp. and predicted spectra</a></li>
 	<li class="divider-vertical"></li>
 	<li>
                           <a>
@@ -294,10 +296,17 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-7">
-	                <div annotated-spectrum plotdata="set.plotData" mirrorplotdata="set.mirrorPlotData" peptide="set.peptide" settings="set.settings" score="set.score" class="content"></div>
-	                <form role="form" ng-init="randomize()"></form>
-              </div>
+	      <div class="col-md-7">
+		<uib-tabset active="activeJustified" justified="true">
+		        <uib-tab index="0" heading="Spectrum Viewer">
+				<div annotated-spectrum plotdata="set.plotData" mirrorplotdata="set.mirrorPlotData" peptide="set.peptide" settings="set.settings" score="set.score" class="content"></div>
+				<form role="form" ng-init="randomize()"></form>
+			</uib-tab>
+			<uib-tab index="1" heading="SA Distribution">
+				<!-- <div density-plot saData="set.saDistData" class="content"></div> -->
+			</uib-tab>
+		      </uib-tabset>
+		</div> 
             </div>
           </div>
         </div>

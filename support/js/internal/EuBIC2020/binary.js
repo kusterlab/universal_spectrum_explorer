@@ -150,6 +150,18 @@ var binary_full_merge = function(check_spectrum, ref_spectrum){
 	return(merge1);
 }
 
+var create_post_body_for_prediction = function(aSequence, iCharge, dCe, aMods){
+	var postbody = {"sequence": [], "charge": [], "ce": [], "mods":[]};
+	function reducer(total, el, i){
+				total["sequence"].push(el);
+				total["charge"].push(iCharge);
+				total["ce"].push(dCe);
+				total["mods"].push(aMods[i]);
+				return total;
+			}
+	return aSequence.reduce(reducer, postbody);
+}
+
 exports.generate_searchF = generate_searchF
 exports.add_exp_flag = add_exp_flag
 exports.extract_mzs = extract_mzs 

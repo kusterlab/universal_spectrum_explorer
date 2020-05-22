@@ -306,6 +306,31 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 					$scope.annotatedResults = response.data;
 					$scope.plotData($scope.annotatedResults);
 
+					var saDistUrl = 'https://www.proteomicsdb.org/logic/api/getScoringCandidatesByMassCharge.xsjs?PrecursorMz='+$scope.set.peptide.precursorMz+'&PrecursorCharge='+ $scope.peptide.precursorCharge;
+					$http.post(saDistUrl, {})
+						.then( function(saResponce) {
+							console.log(saResponce); 
+							var seqs = saResponce.data.map((x) => { return(x.SEQUENCE)});
+							var aMods = seqs.map((x) => {return('')});
+							var a = create_post_body_for_prediction(seqs, 2, $scope.mirrorModel.ce, aMods); 
+							/*a = {
+								"sequence": a.sequence.slice(0,12),
+								"charge": a.charge.slice(0,12),
+								"ce": a.ce.slice(0,12),
+								"mods" : a.mods.slice(0,12)
+							};*/
+							console.log(a);
+							$http.post('https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs', JSON.stringify(a))
+								.then(function(apiResponse){
+									var saDistData = apiResponse.data.map( el => {
+										var binarySpectrum = binary_full_merge(response.data.peaks, el["ions"]);
+										var similarity =  ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+										return {"similarity": similarity, "sequence": el.sequence, "precursorCharge": el.precursorCharge,"hypothesis": el.sequence == $scope.peptide.sequence ?true : false}
+									});
+									$scope.set.saDistData = saDistData;
+								});
+						});
+						
 					if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
 						var url2 = '';
 						if ($scope.mirrorModel.api === 'Prosit'){
@@ -705,6 +730,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 			$scope.checkModel.b.selected = true;
 			$scope.checkModel.y.selected = true;
 			$scope.mirrorModel.api = 'Prosit';
+	 		$scope.mirrorModel.hideCE=false;
 
 			$scope.processData();
 		},
