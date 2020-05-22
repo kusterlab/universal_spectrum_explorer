@@ -102,6 +102,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 			precursorCharge: $scope.peptide.precursorCharge,
 			mods: returnedData.modifications
 		};
+		console.log( returnedData.modifications)
 
 		$scope.set.settings =
 		{
@@ -318,13 +319,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 										$scope.plotMirrorData(transform2scope(rv, ionColors));
 									var res2 = response2.data[0];
 
-									var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
-									var bottomSpectrumB = ipsa_helper["binning"](res2.ions);
-									var mergedSpectrum = ipsa_helper["aligning"](topSpectrumB, bottomSpectrumB);
+									var binarySpectrum = binary_full_merge(res2.ions, response.data.peaks);
+									var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
 
 									//calculate similarity scores
-									var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
-									var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](mergedSpectrum["intensity_1"], mergedSpectrum["intensity_2"]);
+									var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
 
 									$scope.score(
 											{

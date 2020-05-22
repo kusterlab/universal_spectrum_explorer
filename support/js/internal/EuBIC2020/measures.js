@@ -1,3 +1,10 @@
+// https://github.com/OpenMS/OpenMS/blob/5a70018d9e03ce32e64fcbb1c985b7a1256efc7a/src/tests/class_tests/openms/data/PILISSequenceDB_DFPIANGER_1.dta
+exports = {}
+
+// bin distiance of openMS
+// we expect already binned data (avging summed intensity for same m/z bin)
+
+
 extract_mz = function(prev, next){
 	// maps [{"mz":v1, "intensity": v2}, ...]
 	// to {"v1" : v2, ....}
@@ -43,12 +50,6 @@ reducer = function(prev, next){
 // sum up
 //
 
-spectrum = [{"mz":1019.74, "intensity": 1},
-	{"mz":326.1234, "intensity": 122095.0},
-	{"mz":326.1345, "intensity": 111771.0},
-	{"mz":326.1232, "intensity": 60817.0}]
-
-
 
 f_rounding = function(digits){
 	return function(mz){
@@ -61,7 +62,7 @@ f_rounding_3 = f_rounding(3)
 
 
 add_rounding = function(obj){
-	obj["mz_round"] = f_rounding_2(obj["mz"])
+	obj["mz_round"] = f_rounding_3(obj["mz"])
 	return(obj)
 }
 
@@ -85,11 +86,6 @@ var groupBy = function(data, key) { // `data` is an array of objects, `key` is t
 	}, {}); // {} is the initial value of the storage
 };
 
-
-grouped_spectrum = groupBy(spectrum.map(add_rounding), "mz_round")
-
-test =   [ { "mz": 326.1234, "intensity": 122095, "mz_round": 326.123 },
-	{ "mz": 326.1232, "intensity": 60817, "mz_round": 326.123 } ] 
 
 sum_group = function(prev, next){
 	prev["intensity"] += next["intensity"]
@@ -136,7 +132,9 @@ var ipsa_helper = {
 		mz_value1 = spectrum_1.map(x => x["mz"])
 		mz_value2 = spectrum_2.map(x => x["mz"])
 		mz_set = [...new Set(mz_value1.concat(mz_value2))]
-		mz_set = mz_value2
+		mz_set = mz_value2 // TODO explain why this is not the exact case
+
+
 		aligned_spectrum = mz_set.map(z) // fill with 0
 		aligned_spectrum2 = aligned_spectrum.reduce(reduce_aligned_spectrum_to_comparison_in,{"intensity_1": [], "intensity_2": []})
 		return(aligned_spectrum2)
@@ -145,60 +143,111 @@ var ipsa_helper = {
 
 	},
 	"comparison":{
+		// https://brenocon.com/blog/2012/03/cosine-similarity-pearson-correlation-and-ols-coefficients/
 		// All functions in here must comply to 
 		// spectrum_1_intensity = [....]
 		// spectrum_2_intensity = [....]
 		"dot_product": function(spectrum_1, spectrum_2){
-			necessary_dot = aligned_spectrum.map(f2 ).reduce(reducer,{"sum_1_m_1" : 0, "sum_2_m_2": 0, "sum_1_m_2" : 0}
-			)
-			similarity = necessary_dot["sum_1_m_2"] / Math.sqrt(necessary_dot["sum_1_m_1"] * necessary_dot["sum_2_m_2"] )
-
-			return(similarity)
+			var dot_help = 0
+			var a = 0
+			var norm_a = 0
+			var b = 0
+			var norm_b = 0
+			// norm_2 (x)	sqrt (sum |xi|2 )
+			for (n = 0; n < spectrum_1.length; n++) {
+				a += Math.pow(spectrum_1[n], 2)
+				b += Math.pow(spectrum_2[n], 2)
+			}
+			norm_a = Math.sqrt(a);
+			norm_b = Math.sqrt(b);
+			for (n = 0; n < spectrum_1.length; n++) {
+				// we normalize the vector in here elementwise
+				dot_help += (spectrum_1[n] / norm_a) * (spectrum_2[n] / norm_b)
+			}
+			return(dot_help)
 
 		},
-                "spectral_angle": function(spectrum_1, spectrum_2){
-                        necessary_dot = aligned_spectrum.map(f2 ).reduce(reducer,{"sum_1_m_1" : 0, "sum_2_m_2": 0, "sum_1_m_2" : 0}
-                        )
-                        similarity = necessary_dot["sum_1_m_2"] / Math.sqrt(necessary_dot["sum_1_m_1"] * necessary_dot["sum_2_m_2"] )
+		"spectral_angle": function(spectrum_1, spectrum_2){
+			var dot_help = 0
+			var a = 0
+			var norm_a = 0
+			var b = 0
+			var norm_b = 0
+			// norm_2 (x)	sqrt (sum |xi|2 )
+			for (n = 0; n < spectrum_1.length; n++) {
+				a += Math.pow(spectrum_1[n], 2)
+				b += Math.pow(spectrum_2[n], 2)
+			}
+			norm_a = Math.sqrt(a);
+			norm_b = Math.sqrt(b);
+			for (n = 0; n < spectrum_1.length; n++) {
+				// we normalize the vector in here elementwise
+				dot_help += (spectrum_1[n] / norm_a) * (spectrum_2[n] / norm_b)
+			}
+			if(isNaN(dot_help)){
+				return(0);
+			}
+			return(1-2*Math.acos(dot_help)/Math.PI)
 
-                        return(1-(2*Math.acos(similarity))/3.14159265359)
-
-                },
+		},
 		"euclidean_distance": function(spectrum_1, spectrum_2){
 			var rangesum = 0 
-  			var sum = 0
-  			var n
-  			for (n = 0; n < spectrum_1.length; n++) {
-  			  sum += Math.pow(spectrum_1[n] - spectrum_2[n], 2)
-       			  var values = [spectrum_1[n],spectrum_2[n]]
-                          rangesum += Math.pow(Math.max(...values),2)
- 			 }
-  			return(1-Math.sqrt(sum/rangesum))
+			var sum = 0
+			var n
+			for (n = 0; n < spectrum_1.length; n++) {
+				sum += Math.pow(spectrum_1[n] - spectrum_2[n], 2)
+				var values = [spectrum_1[n],spectrum_2[n]]
+				rangesum += Math.pow(Math.max(...values),2)
+			}
+			return(1-Math.sqrt(sum/rangesum))
 		},
-                "bray_curtis_distance": function(spectrum_1, spectrum_2){
-                        var difference = 0
-                        var sum = 0
-                        var n
-                        for (n = 0; n < spectrum_1.length; n++) {
-			  difference += Math.abs(spectrum_1[n] - spectrum_2[n])
-                          sum += Math.abs(spectrum_1[n] + spectrum_2[n])
-                         }
-                        return(1-(difference/sum))
-                },
+		"bray_curtis_distance": function(spectrum_1, spectrum_2){
+			var difference = 0
+			var sum = 0
+			var n
+			for (n = 0; n < spectrum_1.length; n++) {
+				difference += Math.abs(spectrum_1[n] - spectrum_2[n])
+				sum += Math.abs(spectrum_1[n] + spectrum_2[n])
+			}
+			return(1-(difference/sum))
+		},
 		"pearson_correlation": function(spectrum_1, spectrum_2){
-                        var xsum = 0
+			var xsum = 0
 			var xavg = spectrum_1.reduce((a,b) => a + b, 0) / spectrum_1.length
 			var ysum = 0
-                        var yavg = spectrum_2.reduce((a,b) => a + b, 0) / spectrum_2.length
-                        var sum = 0
-                        var n
-                        for (n = 0; n < spectrum_1.length; n++) {
-			  sum += (spectrum_1[n] - xavg)*(spectrum_2[n] - yavg)
-                          xsum += Math.pow((spectrum_1[n] - xavg),2)
-                          ysum += Math.pow((spectrum_2[n] - yavg),2)
-                         }
-                        return(sum/Math.sqrt(xsum*ysum))
+			var yavg = spectrum_2.reduce((a,b) => a + b, 0) / spectrum_2.length
+			var sum = 0
+			var n
+			for (n = 0; n < spectrum_1.length; n++) {
+				sum += (spectrum_1[n] - xavg)*(spectrum_2[n] - yavg)
+				xsum += Math.pow((spectrum_1[n] - xavg),2)
+				ysum += Math.pow((spectrum_2[n] - yavg),2)
+			}
+			return(sum/Math.sqrt(xsum*ysum))
 		}
 	}
 
 }
+/*
+a = ipsa_helper["binning"](spectrum_1)
+b = ipsa_helper["binning"](spectrum_2)
+console.log(a.length)
+console.log(b.length)
+c = ipsa_helper["aligning"](a, b)
+console.log(c["intensity_1"].length)
+console.log(c["intensity_1"].length)
+d = ipsa_helper["comparison"]["dot_product"](c["intensity_1"], c["intensity_2"])
+e = ipsa_helper["comparison"]["euclidean_distance"](c["intensity_1"], c["intensity_2"])
+f = ipsa_helper["comparison"]["bray_curtis_distance"](c["intensity_1"], c["intensity_2"])
+g = ipsa_helper["comparison"]["pearson_correlation"](c["intensity_1"], c["intensity_2"])
+h = ipsa_helper["comparison"]["spectral_angle"](c["intensity_1"], c["intensity_2"])
+console.log(d)
+console.log(e)
+console.log(f)
+console.log(g)
+console.log(h)
+*/
+exports.ipsa_helper = ipsa_helper
+// console.log(ipsa_helper["binning"](spectrum_1))
+//console.log(ipsa_helper["comparison"]["dot_product"](spectrum_1, spectrum_2))
+
