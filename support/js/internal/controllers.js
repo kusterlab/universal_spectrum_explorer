@@ -13,6 +13,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 	}
 
 	$scope.set = {
+		saDist: {
+			data: [ ]
+		},
 		plotData:
 		{
 			x: [ ],
@@ -192,43 +195,49 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 		$scope.set.mirrorPlotData = returnedData;
 	}
 
+	$scope.plotSaData = function(returnedData) {
+		$scope.set.saDist.data = returnedData;
+	}
+
 	$scope.score = function(returnedData) {
 		$scope.set.score = returnedData;
 	}
 
-	$scope.processUSI = function() {
-		var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usi;
+	$scope.processUSI = function(topSpectrum = true) {
+    var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
+		var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + sUsi;
 		$http.get(url)
 			.then( function(response) {
 				var mzs = response.data.mzs;
 				var ints = response.data.intensities;
 				var seq = response.data.peptideSequence;
 				var charge = response.data.charge;
-				$scope.peptide.sequence = seq;
-				$scope.peptide.precursorCharge = charge;
-				$scope.peptide.charge = charge - 1;
-				$scope.db.items = mzs.map(
-						(x,i) => {
-							return {mZ: x, intensity: ints[i]};
-						}
-						);
+        if (topSpectrum) {
+          $scope.peptide.sequence = seq;
+          $scope.peptide.precursorCharge = charge;
+          $scope.peptide.charge = charge - 1;
+          $scope.db.items = mzs.map(
+              (x,i) => {
+                return {mZ: x, intensity: ints[i]};
+              }
+              );
+        } else {
+          $scope.peptideBottom.sequence = seq;
+          $scope.peptideBottom.precursorCharge = charge;
+          $scope.peptideBottom.charge = charge - 1;
+          $scope.dbBottom.items = mzs.map(
+              (x,i) => {
+                return {mZ: x, intensity: ints[i]};
+              }
+              );
+        }
 			});
 
 	}
 
-	$scope.processData = function() {
-		var url = "";
-		if ($scope.peptide.precursorCharge > 0) {
-			url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
-		} else {
-			url = "support/php/NegativeModeProcessData.php";
-		}
-
-		let submitData;
-
-		if ($scope.invalidColors()) {
-
-		} else {
+  $scope.prepareDataToProcess = function(topSpectrum = true) {
+    if (topSpectrum) {
+      let submitData;
 			// format data before sending it out for processing
 
 			// map data from handsontable to new object for submitData
@@ -238,7 +247,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 				submitData = $scope.db.items.map(({ mZ, intensity }) => ({ mZ, intensity }));
 			}
 
-			//$log.log(submitData);
 			// filter out invalid entries from handsontable
 			var newArray = [];
 
@@ -278,8 +286,23 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 				"matchingType": $scope.cutoffs.matchingType,
 				"cutoff": $scope.cutoffs.matchingCutoff
 			};
+      return data;
+    }
+  }
 
-			$scope.submittedData = data;
+	$scope.processData = function() {
+		if ($scope.invalidColors()) {
+
+		} else {
+      var url = "";
+      if ($scope.peptide.precursorCharge > 0) {
+        url = "https://www.proteomicsdb.org/logic/api/getIPSAannotations.xsjs";
+      } else {
+        url = "support/php/NegativeModeProcessData.php";
+      }
+
+			$scope.submittedDataTop = $scope.prepareDataToProcess();
+			$scope.submittedDataBottom = $scope.prepareDataToProcess(false);
 			let modString = "";
 			if ($scope.modObject.selectedMods != undefined) {
 				$scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
@@ -300,7 +323,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 				z: $scope.checkModel.z.color
 			};
 			// httpRequest to submit data to processing script.
-			$http.post(url, data)
+			$http.post(url, $scope.submittedDataTop)
 				.then( function(response) {
 
 					$scope.annotatedResults = response.data;
@@ -311,8 +334,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 						.then( function(saResponce) {
 							console.log(saResponce); 
 							var seqs = saResponce.data.map((x) => { return(x.SEQUENCE)});
+							seqs.push($scope.peptide.sequence);
 							var aMods = seqs.map((x) => {return('')});
-							var a = create_post_body_for_prediction(seqs, 2, $scope.mirrorModel.ce, aMods); 
+							var a = create_post_body_for_prediction(seqs, $scope.peptide.precursorCharge, $scope.peptideBottom.ce, aMods); 
+
 							/*a = {
 								"sequence": a.sequence.slice(0,12),
 								"charge": a.charge.slice(0,12),
@@ -323,18 +348,23 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 							$http.post('https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs', JSON.stringify(a))
 								.then(function(apiResponse){
 									var saDistData = apiResponse.data.map( el => {
-										var binarySpectrum = binary_full_merge(response.data.peaks, el["ions"]);
+										var binarySpectrum = binary_search_spectrum(response.data.peak, el["ions"]);
+                    console.log(binarySpectrum);
+
+										// var binarySpectrum = binary_full_merge(response.data.peaks, el["ions"]);
 										var similarity =  ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
 										return {"similarity": similarity, "sequence": el.sequence, "precursorCharge": el.precursorCharge,"hypothesis": el.sequence == $scope.peptide.sequence ?true : false}
 									});
-									$scope.set.saDistData = saDistData;
+									console.log(saDistData);
+									$scope.plotSaData(saDistData);
+									//$scope.set.saDistData = saDistData;
 								});
 						});
 						
-					if ( $scope.mirrorModel.api === 'Prosit' || $scope.mirrorModel.api === 'ProteomeTools' ) {
+					if ( $scope.peptideBottom.api === 'Prosit' || $scope.peptideBottom.api === 'ProteomeTools' ) {
 						var url2 = '';
-						if ($scope.mirrorModel.api === 'Prosit'){
-							var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.mirrorModel.ce], "mods" : [modString]};
+						if ($scope.peptideBottom.api === 'Prosit'){
+							var query = {"sequence": [$scope.peptide.sequence], "charge": [$scope.peptide.precursorCharge], "ce": [$scope.peptideBottom.ce], "mods" : [modString]};
 							url2 = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
 							$http.post(url2, query)
 								.then( function(response2) {
@@ -344,7 +374,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 										$scope.plotMirrorData(transform2scope(rv, ionColors));
 									var res2 = response2.data[0];
 
-									var binarySpectrum = binary_full_merge(res2.ions, response.data.peaks);
+									// var binarySpectrum = binary_full_merge(res2.ions, response.data.peaks);
+									// var binarySpectrum = binary_search_spectrum(res2.ions, response.data.peaks);
+									var binarySpectrum = binary_search_spectrum(response.data.peaks, res2.ions);
+                  console.log(binarySpectrum);
 									var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
 
 									//calculate similarity scores
@@ -361,13 +394,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 									alert("Prosit: " + response2.data.message);
 								});
 						}
-						else if ($scope.mirrorModel.api === 'ProteomeTools'){
+						else if ($scope.peptideBottom.api === 'ProteomeTools'){
 							url2 = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" +$scope.peptide.sequence + "&charge=" + $scope.peptide.precursorCharge + "&mods=" + modString;
 							$http.get(url2, "")
 								.then( function(response2) {
 									var res2 = response2.data;
-									var spec = getClosestCESpectrum(res2, parseInt($scope.mirrorModel.ce, 10));
-									$scope.mirrorModel.ce = spec.collissionEnergy;
+									var spec = getClosestCESpectrum(res2, parseInt($scope.peptideBottom.ce, 10));
+									$scope.peptideBottom.ce = spec.collissionEnergy;
 									$scope.plotMirrorData(transform2scope(spec, ionColors));
 
 									var topSpectrumB = ipsa_helper["binning"](response.data.peaks);
@@ -390,7 +423,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 								});
 						}
 
-					} else if ($scope.mirrorModel.api === 'USI') {
+					} else if ($scope.peptideBottom.api === 'USI') {
 						var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + $scope.peptide.usiMirror;
 						$http.get(url)
 							.then( function(response) {
@@ -729,8 +762,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 		setTimeout(function(){
 			$scope.checkModel.b.selected = true;
 			$scope.checkModel.y.selected = true;
-			$scope.mirrorModel.api = 'Prosit';
-	 		$scope.mirrorModel.hideCE=false;
+			$scope.peptideBottom.api = 'Prosit';
+	 		$scope.peptideBottom.hideCE=false;
 
 			$scope.processData();
 		},

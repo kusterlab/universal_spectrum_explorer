@@ -98,8 +98,8 @@ img {
 }
 
 .select2-results li > div:hover {
-color: #FFFFFF;
-background: #000000;
+  color: #FFFFFF;
+  background: #000000;
 }
 
 .panel {
@@ -110,6 +110,12 @@ background: #000000;
 }
 
 .panel > .panel-body {
+  background-image: none;
+  background-color: #e2e2e3;
+  border-color: #000000;
+}
+
+.panel-body {
   background-image: none;
   background-color: #e2e2e3;
   border-color: #000000;
@@ -129,7 +135,7 @@ background: #000000;
   border-color: #555555; 
   transition: all .5s;
 } 
- 
+
 .btn-fragment:hover, 
 .btn-fragment:focus {
   color: #000000; 
@@ -173,9 +179,9 @@ body {
 }
 
 .barlabel {
-   font-family: Open Sans, sans-serif;
-   text-anchor: middle;
-   font-size: 16px;
+  font-family: Open Sans, sans-serif;
+  text-anchor: middle;
+  font-size: 16px;
 }
 
 .aminoacid {
@@ -299,8 +305,8 @@ body {
 }
 
 .ui-select-choices-row:hover {
-background-color: #3875d7;
-color: #fff;
+  background-color: #3875d7;
+  color: #fff;
 }
 
 div.valid-data i {
@@ -330,4 +336,128 @@ a:hover {
 .table {
   margin-bottom: 0px;
   margin-top: 0px;
+}
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 80px;
+  height: 56px;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+// = Tabs
+.tab-content {
+  min-height: 275px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+// = Side Tabs
+.tabs-below > .nav-tabs,
+.tabs-right > .nav-tabs,
+.tabs-left > .nav-tabs {
+  border-bottom: 0;
+}
+
+.tab-content > .tab-pane,
+.pill-content > .pill-pane {
+  display: none;
+}
+
+.tab-content > .active,
+.pill-content > .active {
+  display: block;
+}
+
+.tabs-below > .nav-tabs {
+  border-top: 1px solid #ddd;
+}
+
+.tabs-below > .nav-tabs > li {
+  margin-top: -1px;
+  margin-bottom: 0;
+}
+
+.tabs-below > .nav-tabs > li > a {
+  -webkit-border-radius: 0 0 4px 4px;
+  -moz-border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4px 4px;
+}
+
+.tabs-below > .nav-tabs > li > a:hover,
+.tabs-below > .nav-tabs > li > a:focus {
+  border-top-color: #ddd;
+  border-bottom-color: transparent;
+}
+
+.tabs-below > .nav-tabs > .active > a,
+.tabs-below > .nav-tabs > .active > a:hover,
+.tabs-below > .nav-tabs > .active > a:focus {
+  border-color: transparent #ddd #ddd #ddd;
+}
+
+.tabs-left > .nav-tabs > li,
+.tabs-right > .nav-tabs > li {
+  float: none;
+}
+
+.tabs-left > .nav-tabs > li > a,
+.tabs-right > .nav-tabs > li > a {
+  min-width: 74px;
+  margin-right: 0;
+  margin-bottom: 3px;
+}
+
+.tabs-left > .nav-tabs {
+  float: left;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+
+.tabs-left > .nav-tabs > li > a {
+  margin-right: -1px;
+  -webkit-border-radius: 4px 0 0 4px;
+  -moz-border-radius: 4px 0 0 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.tabs-left > .nav-tabs > li > a:hover,
+.tabs-left > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+
+.tabs-left > .nav-tabs .active > a,
+.tabs-left > .nav-tabs .active > a:hover,
+.tabs-left > .nav-tabs .active > a:focus {
+  border-color: #ddd transparent #ddd #ddd;
+  *border-right-color: #ffffff;
+}
+
+.tabs-right > .nav-tabs {
+  float: right;
+  margin-left: 19px;
+  border-left: 1px solid #ddd;
+}
+
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.tabs-right > .nav-tabs > li > a:hover,
+.tabs-right > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+
+.tabs-right > .nav-tabs .active > a,
+.tabs-right > .nav-tabs .active > a:hover,
+.tabs-right > .nav-tabs .active > a:focus {
+  border-color: #ddd #ddd #ddd transparent;
+  *border-left-color: #ffffff;
 }
