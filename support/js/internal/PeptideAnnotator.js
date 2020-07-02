@@ -418,7 +418,9 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     matchingCutoff: 0,
     matchingType: "% Base Peak",
     toleranceType: "ppm",
-    tolerance: 10
+    tolerance: 10,
+    compToleranceType: "ppm",
+    compTolerance: 10
   };
 
   $scope.searchUSI = function(topSpectrum = true) {
@@ -477,6 +479,16 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
         }
         alert(character + " is not a valid amino acid. Only the 20 canonical amino acids are supported.");
       }
+    }
+  }
+
+  $scope.swapCompToleranceType = function() {
+    if ($scope.cutoffs.compToleranceType === "Da") {
+      $scope.cutoffs.compToleranceType = "ppm";
+      $scope.cutoffs.compTolerance *= 1000
+    } else {
+      $scope.cutoffs.compToleranceType = "Da";
+      $scope.cutoffs.compTolerance /= 1000
     }
   }
 

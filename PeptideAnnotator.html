@@ -146,7 +146,7 @@
                             </div>
                           </div>
                         </div>
-                        <div uib-accordion-group class="panel-default" heading="Prediction">
+                        <div uib-accordion-group class="panel-default" heading="Predicted/Experimental">
                           <div class="panel-body">
                             <div class="col-md-12">
                               <div ng-controller="DataCtrl">
@@ -156,7 +156,6 @@
                                     <div class="input-group">
                                       <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted()">Prosit</label>
                                       <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted()">ProteomeTools</label>
-                                      <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'USI'" uncheckable ng-click="processPredicted()">USI</label>
                                     </div>
                                   </div>
                                   <div class="col-md-12">
@@ -185,10 +184,27 @@
                                         </div>
                                       </div>
                                     </div>
+                                    <div class="row">
+                                      <div class="col-md-12">
+                                        <label for="dataFormat">Select Peptide Modifications</label>
+                                      </div>
+                                      <div class="col-md-9">
+                                        <div ng-controller="ModCtrl">
+                                          <div class="form-group-lg">
+                                            <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
+                                              <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
+                                              <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
+                                            </ui-select>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                    </div>
+                                    <br/>
                                   </div>
-                                  <div class="row" ng-hide="peptide.hideUSI" >
+                                  <div class="row">
                                     <div class="col-md-12">
-                                      <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptide.usi"/>
+                                      <button class="btn btn-primary" type="button" ng-click="processReference()">Get Predicted/Reference Spectrum</button> 
                                     </div>
                                     <br/>
                                   </div>
@@ -273,7 +289,7 @@
                             </div>
                           </div>
                         </div>
-                        <div uib-accordion-group class="panel-default" heading="Prediction">
+                        <div uib-accordion-group class="panel-default" heading="Predicted/Experimental">
                           <div class="panel-body">
                             <div class="col-md-12">
                               <div ng-controller="DataCtrl">
@@ -283,7 +299,6 @@
                                     <div class="input-group">
                                       <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted(false)">Prosit</label>
                                       <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted(false)">ProteomeTools</label>
-                                      <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'USI'" uncheckable ng-click="processPredicted(false)">USI</label>
                                     </div>
                                   </div>
                                   <div class="col-md-12">
@@ -312,6 +327,29 @@
                                         </div>
                                       </div>
                                     </div>
+                                    <div class="row">
+                                      <div class="col-md-12">
+                                        <label for="dataFormat">Select Peptide Modifications</label>
+                                      </div>
+                                      <div class="col-md-9">
+                                        <div ng-controller="ModCtrl">
+                                          <div class="form-group-lg">
+                                            <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
+                                              <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
+                                              <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
+                                            </ui-select>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                    </div>
+                                    <br/>
+                                  </div>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <button class="btn btn-primary" type="button" ng-click="processReference(false)">Get Predicted/Reference Spectrum</button> 
+                                    </div>
+                                    <br/>
                                   </div>
                                 </div>
                               </div>
@@ -379,15 +417,24 @@
                             <br/>
                             <div class="row">
                               <div class="col-md-6">
-                                <label>Fragment Tolerance (+/-)</label>
+                                <label>Annotation Fragment Tolerance (+/-)</label>
                                 <div class="input-group">
                                   <input type="number" class="form-control" ng-model="cutoffs.tolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapToleranceType()">{{cutoffs.toleranceType}}</button> </span> 
                                 </div>
                               </div>
                               <div class="col-md-6">
-                                <label>Matching Threshold</label>
+                                <label>Annotation Matching Threshold</label>
                                 <div class="input-group">
                                   <input type="number" class="form-control" ng-model="cutoffs.matchingCutoff" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapMatchingType()">{{cutoffs.matchingType}}</button> </span> 
+                                </div>
+                              </div>
+                            </div>
+                            <br/>
+                            <div class="row">
+                              <div class="col-md-6">
+                                <label>Comparison Matching Tolerance (+/-)</label>
+                                <div class="input-group">
+                                  <input type="number" class="form-control" ng-model="cutoffs.compTolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapCompToleranceType()">{{cutoffs.compToleranceType}}</button> </span> 
                                 </div>
                               </div>
                             </div>
@@ -466,7 +513,16 @@
               <div class="col-md-7">
                 <uib-tabset active="activeJustified" justified="true">
                   <uib-tab index="0" heading="Spectrum Viewer">
-                    <div annotated-spectrum plotdata="set.plotData" mirrorplotdata="set.mirrorPlotData" peptide="set.peptide" settings="set.settings" score="set.score" class="content"></div>
+                    <div annotated-spectrum 
+                      plotdata="set.plotData" 
+                      mirrorplotdata="set.plotDataBottom" 
+                      peptide="set.peptide"
+                      peptidebottom="set.peptideBottom" 
+                      settings="set.settings" 
+                      scoretop="set.scoreTop" 
+                      scorebottom="set.scoreBottom" 
+                      score="set.score" 
+                      class="content"></div>
                     <form role="form" ng-init="randomize()"></form>
                   </uib-tab>
                   <uib-tab index="1" heading="SA Distribution">
