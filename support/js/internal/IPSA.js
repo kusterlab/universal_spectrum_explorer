@@ -536,8 +536,22 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
      * @example ["", "3", "3", ...]
      * @returns {Array} An array containing all mass errors of annotated fragments. Non-annotated spectral features should default to empty strings.
      */
+    scope.getMassErrorX = function() {
+      return scope.plotdata.massErrorX;
+    };
+
+
+    /**
+     * @description Retrieves an array containing mass errors of annotated fragments. Non-annotated spectral features should default to empty strings.
+     * @example ["", "3", "3", ...]
+     * @returns {Array} An array containing all mass errors of annotated fragments. Non-annotated spectral features should default to empty strings.
+     */
     scope.getMassError = function() {
       return scope.plotdata.massError;
+    };
+
+    scope.getIntensityError = function(){
+      return scope.plotdata.intensityError;
     };
 
     /**
@@ -567,6 +581,17 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
      */
     scope.getSettingsBottom = function() {
       return scope.settingsBottom;
+    };
+
+    /**
+     * @description Retrieves an array which contains an entry for every possible modifictaion position on the peptide. Modification locations are shown on the peptide sequence by changing 
+     * 		the single character amino acid representations to lower case.
+     * @example N-terminus (index -1) is unmodified. The first amino acid (index 0) has a water loss. [{site: -1, deltaElement: null, deltaMass: 0}, {site: 0, deltaElement: "H-2 O-1, 
+     * 		deltaMass: -18.01056468403"}...]
+     * @returns {array} retrieves all peptide modifications. 
+     */
+    scope.getModificationsBottom = function() {
+      return scope.peptidebottom.mods;
     };
 
     /**
@@ -1054,7 +1079,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
      * 		peptide backbone using colored hashes. The colors were previously specified by the user. 
      */
     scope.drawInteractiveTitleBottom = function() {
-      var x, y, xAxis, yAxis, dataset, options = scope.getOptions(), sequence = scope.getSequenceBottom(), aminoAcidTicks = scope.getTickData(false), mods = scope.getModifications();
+      var x, y, xAxis, yAxis, dataset, options = scope.getOptions(), sequence = scope.getSequenceBottom(), aminoAcidTicks = scope.getTickData(false), mods = scope.getModificationsBottom();
       // set variables to plot interactive title
 
       // the min and max units defined here are somewhat arbitrary. Since the scaling is meant to evenly distribute one letter abbreviations, the actual units aren't important, 
@@ -1896,14 +1921,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .on("zoom", function() {
 
             // define translation object to move svg elements from original to zoomed position on the svg
-            var t = zoomX.translate(); 
-
+            var t = zoomX.translate();
+            console.log(t);
             var maxX = d3.max(x.range());
 
             var tx = Math.max(Math.min(0, t[0]), options.annotation.width - maxX * zoomX.scale());
 
             // update translation to new coordinates. 
-            zoomX.translate([ 0, 0 ]);
+            // zoomX.translate([ 0, 0 ]);
+            zoomX.translate([ tx, t[1] ]);
 
             // calling the x axes here seems to be necessary to get them to scale correctly. 
             scope.container.selectAll("g.xAnnotation").call(xAxis);
@@ -2203,7 +2229,11 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           // set all mass error circles back to normal
           var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
-          massErrorCircles.style("r", 4).style("stroke", "none");
+          massErrorCircles.style("r", 
+            function(d){
+              return d.radius
+            }
+          ).style("stroke", "none");
         });
 
         /////////////////////
@@ -2321,10 +2351,12 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
      * 		error chart on the bottom of the svg with interactivity. I split it into a different function as scope.drawAnnotation was getting long
      */
     scope.drawMassError = function() {
-      var x, y, xAxis, yAxis, dummyXAxis, dummyYAxis, massErrorLabel, shiftFactor, barDataset, options = scope.getOptions(), xValues = scope.getX(), 
+      var x, y, xAxis, yAxis, dummyXAxis, dummyYAxis, massErrorLabel, shiftFactor, barDataset, options = scope.getOptions(), xValues = scope.getMassErrorX(), 
         yValues = scope.getMassError(), colors = scope.getColors(), settings = scope.getSettings(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges()
       sequence = scope.getSequence(), theoMz = scope.getTheoreticalMz(), neutralLosses = scope.getNeutralLosses(), sequenceBottom = scope.getSequenceBottom();
-
+      var intensityError = scope.getIntensityError();
+      var intensityErrorScale= d3.scale.linear().domain([d3.min(intensityError),d3.max(intensityError)]).range([0,1]);
+      
       // if x and y values are empty, initialize them to an empty array to squash an error caused by a race condition on page render
       if (isNaN(d3.max(xValues))) {
         xValues = [0];
@@ -2332,7 +2364,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       if (isNaN(d3.max(yValues))) {
         yValues = [0];
       }
-
       if (xValues && yValues) {
 
         // extract what type of mass error we're looking at (ppm or Da)
@@ -2351,7 +2382,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // define x and y scales. 
         x = d3.scale.linear().domain([d3.min(xValues) - xScaleFudgeFactor, d3.max(xValues) + xScaleFudgeFactor]).range([ 0, options.fragments.width], 0);
-        y = d3.scale.linear().domain([-shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor), shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor)]).range([ options.fragments.height, 0]);
+        // y = d3.scale.linear().domain([-shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor), shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor)]).range([ options.fragments.height, 0]);
+        y = d3.scale.linear().domain([d3.max(yValues), d3.min(yValues)]).range([ options.fragments.height, 0]);
 
         // here we define 4 scales instead of just 2. the dummy axes are only used to encapsulate the mass error chart in borders.
         xAxis = d3.svg.axis().scale(x).orient("top").ticks(10);
@@ -2364,9 +2396,11 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         // Prevent non-annotated spectral features from displaying mass error circles
         for (var i = 0; i < xValues.length; i++) {
           var color = colors[i];
+          /*
           if (!yValues[i]) {
             color = "none";
           }
+          */
 
           // format our data for easy D3 visualization
           plotData.push({
@@ -2374,10 +2408,11 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             theoMz: theoMz[i],
             neutLoss: formatNeutralLoss(neutralLosses[i]),
             error: yValues[i] * shiftFactor,
-            color: color,
-            radius: 4
+            color: yValues[i] ===0? "grey": "black",
+            radius: 1.5 + intensityErrorScale(intensityError[i]) * 3
           });
         }
+
 
         // give the y-axis a label based on the mass error unit
         var massErrorLabel = scope.fragmentContainer.selectAll(".yAnnotationLabel").text("Error (" + massErrorLabel + ")").style('font-size', '13px');
@@ -2538,8 +2573,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           labelObj.style("font-size", 16).style("font-weight", "normal");
 
           // remove the stroke and resize the circle back to normal
-          circleDataset.style("r", function() {
-            return 4;
+          circleDataset.style("r", function(data) {
+            return data.radius;
           }).style("stroke", function() {
             return "none";
           });

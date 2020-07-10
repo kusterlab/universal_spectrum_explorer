@@ -88,6 +88,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
   $scope.n = 150;
 
+  $scope.promiseTop = {
+      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3600)})
+  };
+
+
+  $scope.promiseBottom = {
+      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3600)})
+  };
 
   $scope.min = 0;
 
@@ -128,7 +136,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         precursorCharge: $scope.peptideBottom.precursorCharge,
         mods: returnedData.modifications
       };
-    console.log( returnedData.modifications)
 
     $scope.set.settingsBottom =
       {
@@ -213,7 +220,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     //$log.log($scope.set);
   };
-  $scope.plotData = function(returnedData) {
+  $scope.plotData = function(returnedData, returnedError = [], returnedErrorX = [], intensityError=[]) {
     $scope.set.peptide =
       {
         sequence: returnedData.sequence,
@@ -221,7 +228,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         precursorCharge: $scope.peptide.precursorCharge,
         mods: returnedData.modifications
       };
-    console.log( returnedData.modifications)
 
     $scope.set.settings =
       {
@@ -299,9 +305,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         }
 
         $scope.set.plotData.barwidth.push(3);
-        $scope.set.plotData.massError.push(peakData.massError);
         $scope.set.plotData.theoMz.push(fragment.mz);
       }
+      $scope.set.plotData.massError = returnedError;
+      $scope.set.plotData.massErrorX = returnedErrorX;
+      $scope.set.plotData.intensityError = intensityError;
     });
 
     //$log.log($scope.set);
@@ -323,16 +331,28 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.set.score = returnedData;
   }
 
-  $scope.processReference = function(topSpectrum = true) {
+  $scope.processReference = function(topSpectrum = true, auto = false) {
     let modString = "";
-    if ($scope.modObject.selectedMods != undefined) {
-      $scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
-      $scope.modObject.selectedMods.forEach(function(mod) {
-        if (modString != ""){
-          modString +=",";
-        }
-        modString += mod.name + "@"+mod.site + (mod.index+1);
-      });
+    if(topSpectrum) {
+      if ($scope.modObject.selectedMods != undefined) {
+        $scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
+        $scope.modObject.selectedMods.forEach(function(mod) {
+          if (modString != ""){
+            modString +=",";
+          }
+          modString += mod.name + "@"+mod.site + (mod.index+1);
+        });
+      }
+    } else {
+      if ($scope.modObjectBottom.selectedMods != undefined) {
+        $scope.modObjectBottom.selectedMods.sort((x,y) => {return x.index > y.index});
+        $scope.modObjectBottom.selectedMods.forEach(function(mod) {
+          if (modString != ""){
+            modString +=",";
+          }
+          modString += mod.name + "@"+mod.site + (mod.index+1);
+        });
+      }
     }
 
     let ionColors = {
@@ -351,12 +371,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       iPreCh =  topSpectrum ? $scope.peptide.precursorCharge : $scope.peptideBottom.precursorCharge,
       iCh = topSpectrum ? $scope.peptide.charge : $scope.peptideBottom.charge, 
       iCE = topSpectrum ? $scope.peptide.ce : $scope.peptideBottom.ce;
-
+  
+    var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     switch (sApi) {
       case 'Prosit':
         query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString]};
         url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-        $http.post(url, query)
+        reference.resolved = $http.post(url, query)
           .then( function(response2) {
             let rv = response2.data[0]
             let maxFragmentIonCharge = iCh;
@@ -374,15 +395,19 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 }
               );
             } 
-
+            if (!auto){
+              $scope.openModalConfirmation('The predicted Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
+            }
+            return (true);
           }, function(response2) {
             // if errors exist, alert user
             alert("Prosit: " + response2.data.message);
+            return(false);
           });
         break;
       case 'ProteomeTools':
         url = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" + sSeq + "&charge=" + iPreCh + "&mods=" + modString;
-        $http.get(url, "")
+        reference.resolved = $http.get(url, "")
           .then( function(response2) {
             var res2 = response2.data;
             var spec = getClosestCESpectrum(res2, parseInt(iCE, 10));
@@ -401,20 +426,25 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 }
               );
             }
-
+            if (!auto) {
+              $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
+            }
+            return(true);
           }, function(response2) {
             // if errors exist, alert user
             alert("ProteomeTools: " + response2.data.message);
+            return(false);
           });
         break;
       default: return;
     }
   }
 
-  $scope.processUSI = function(topSpectrum = true, fillBothSequences = false) {
+  $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
+    var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + sUsi;
-    $http.get(url)
+    reference.resolved = $http.get(url)
       .then( function(response) {
         var mzs = response.data.mzs;
         var ints = response.data.intensities;
@@ -444,6 +474,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           $scope.peptide.sequence = seq;
           $scope.peptideBottom.sequence = seq;
         }
+
+        if (!auto) {
+          $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
+        }
+        return(true);
+      },
+      function(response2){
+        return(false);
       });
   }
 
@@ -497,7 +535,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       "charge" : charge,
       "fragmentTypes" : $scope.checkModel,
       "peakData" : submitData,
-      "mods" : $scope.modObject.selectedMods,
+      "mods" : topSpectrum ? $scope.modObject.selectedMods : $scope.modObjectBottom.selectedMods,
       "toleranceType" : $scope.cutoffs.toleranceType,
       "tolerance" : $scope.cutoffs.tolerance,
       "matchingType": $scope.cutoffs.matchingType,
@@ -506,17 +544,37 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return {url: url, data: data};
   }
 
-  $scope.calculateScores = function(sp1, sp2, contains = true){
-      var binarySpectrum = binary_search_spectrum(sp1, sp2, contains);
-      var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
-      var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+  $scope.mergeSpectra = function(sp1,sp2) {
 
-      return (
-        {
-          sa : Math.round(spectral_angle * 100)/100,
-          corr: Math.round(pearson_correlation * 100)/100
-        }
-      );
+    var binarySpectrum_1 = binary_search_spectrum(sp1, sp2);
+    var binarySpectrum_2 = binary_search_spectrum(sp2, sp1);
+    binarySpectrum_1 = selectMostIntensePeak(binarySpectrum_1);
+    binarySpectrum_2 = selectMostIntensePeak(binarySpectrum_2);
+    result = full_merge(binarySpectrum_1, binarySpectrum_2);
+    return result;
+  }
+
+  $scope.calculateScores = function(sp1, sp2, contains = true){
+
+    result = $scope.mergeSpectra(sp1,sp2);
+    binarySpectrum = {};
+    binarySpectrum["intensity_1"] = result.map(function(x){
+      return x.intensity_1
+    });
+    binarySpectrum["intensity_2"] = result.map(function(x){
+      return x.intensity_2
+    });
+
+
+    var spectral_angle = ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+    var pearson_correlation = ipsa_helper["comparison"]["pearson_correlation"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+
+    return (
+      {
+        sa : Math.round(spectral_angle * 100)/100,
+        corr: Math.round(pearson_correlation * 100)/100
+      }
+    );
   }
 
   $scope.getScores = function(spec1, spec2){
@@ -526,6 +584,18 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     $scope.score($scope.calculateScores(spec1, spec2, false));
 
+  }
+
+  $scope.getPromise1 = function(ina){
+    // should return a promise
+    return $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
+  }
+  $scope.getA = function(a){
+    return $http.get("/")
+      .then(function(res){
+        return(3);
+      })
+      .catch();
   }
 
   $scope.processData = function() {
@@ -543,17 +613,55 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
       $scope.submittedDataTop = $scope.prepareDataToProcess();
       $scope.submittedDataBottom = $scope.prepareDataToProcess(false);
+
       // httpRequest to submit data to processing script.
       $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
         .then( function(response) {
 
           $scope.annotatedResults = response.data;
-          $scope.plotData($scope.annotatedResults);
+          console.log(response.data);
 
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
             .then( function(responseBottom) {
 
               $scope.annotatedResultsBottom = responseBottom.data;
+              // linear regression
+              var mergedForRegression = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
+              console.log(mergedForRegression); // TODO MAP IDs
+              var originalData = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
+
+              // remove non matches for linear fit
+              mergedForRegression = mergedForRegression.filter((x) =>{return x.mz_1 !==-1 && x.mz_2!== -1});
+              var int1 = mergedForRegression.map((x) =>{return x.intensity_1});
+              var int2 = mergedForRegression.map((x) =>{return x.intensity_2});
+              beta_hat = regressionThroughZero(int1, int2);
+
+
+              var int1Scaling = d3.max(mergedForRegression.map((x) => {return x.intensity_1}));
+              var int2Scaling = d3.max(mergedForRegression.map((x) => {return x.intensity_2}));
+
+              var intensityerror = originalData.map((x) => {
+                if(x.mz_1 === -1 || x.mz_2 === -1){
+                  return 0;
+                }
+                var delta = x.mz_1 - x.mz_2;
+                var avg = (x.mz_1 + x.mz_2) / 2;
+                return delta / avg * Math.pow(10, 6);
+              })
+              var intensityerrorx = originalData.map((x) =>{if(x.mz_1 <0){return x.mz_2}else if(x.mz_2 <0){return x.mz_1}return (x.mz_1 + x.mz_2) / 2});
+              // size of bubble
+              var intensityDifference = originalData.map((x) => {
+                if(x.mz_1 === -1){
+                  return Math.abs(x.intensity_2 / int2Scaling);
+                }
+                if(x.mz_2 === -1){
+                  return Math.abs(beta_hat * (x.intensity_1 / int1Scaling));
+                }
+              // return(Math.abs( beta_hat * (x.intensity_1/int1Scaling) - x.intensity_2/int2Scaling) *100)
+              return Math.abs(beta_hat * (x.intensity_1/int1Scaling) - (x.intensity_2/int2Scaling))
+              });
+
+              $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference);
               $scope.plotDataBottom($scope.annotatedResultsBottom);
 
               $scope.getScores(response.data.peaks, responseBottom.data.peaks);
@@ -614,34 +722,61 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       csvRows.push(fragment);
     });
 
+
+    // write CV peptide sequence header
+    csvRows.push("Sequence, Theoretical Mz, Charge, Modifications <Name;Index;Mass Change>, # Matched Fragments, # Bonds Broken, % TIC Explained");
+    csvRows.push($scope.set.peptideBottom.sequence + "," + d3.format("0.4f")($scope.set.peptideBottom.precursorMz) + "," + $scope.set.peptideBottom.precursorCharge + "," +
+      $scope.formatModsForDownload(false) + "," + $scope.getNumberFragments(false) + "," + $scope.getFragmentedBonds(false) + "," + $scope.getPercentTicExplained(false));
+
+    csvRows.push("");
+
+    // matched fragments headers
+    csvRows.push("Fragment Type, Fragmented Bond Number, Attached Modifications <Name;Index;Mass Change>, Neutral Loss, Fragment Charge, Intensity, Experimental Mz, Theoretical Mz, " +
+      "Mass Error (" + $scope.cutoffs.toleranceType + "), % Base Peak, % TIC");
+
+    var fragmentsBottom = $scope.formatMatchedFragmentRow(false);
+
+    fragmentsBottom.forEach(function(fragment) {
+      csvRows.push(fragment);
+    });
+
     var outputString = csvRows.join("\n");
     var a = document.createElement('a');
 
     a.href = 'data:attachment/csv,' +  encodeURIComponent(outputString);
-    a.download = $scope.set.peptide.sequence + "_Data.csv";
+    a.download = "ISV_Data.csv";
     document.body.appendChild(a);
 
     a.click();
     a.remove();
   }
 
-  $scope.getNumberFragments = function() {
+  $scope.getNumberFragments = function(topSpectrum = true) {
     var numFragments = 0;
-    $scope.set.plotData.label.forEach(function(label) {
-      if (label) {
-        numFragments++;
-      }
-    });
+    if(topSpectrum) {
+      $scope.set.plotData.label.forEach(function(label) {
+        if (label) {
+          numFragments++;
+        }
+      });
+    } else {
+      $scope.set.plotDataBottom.label.forEach(function(label) {
+        if (label) {
+          numFragments++;
+        }
+      });
+    }
 
     return numFragments;
   };
 
-  $scope.getFragmentedBonds = function() {
+  $scope.getFragmentedBonds = function(topSpectrum = true) {
 
-    var numBonds = $scope.set.peptide.sequence.length - 1;
+    var numBonds = (topSpectrum ? $scope.set.peptide.sequence.length : $scope.set.peptideBottom.sequence.length) - 1;
     var bondArray = new Array(numBonds).fill(0);
 
-    $scope.set.plotData.label.forEach(function(label) {
+    var aPlotData = topSpectrum ? $scope.set.plotData.label : $scope.set.plotDataBottom.label ;
+    aPlotData.forEach(function(label) {
       var text = label.charAt(0);
       var location = label.slice(1);
 
@@ -656,21 +791,22 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return uniqueBondsBroken;
   };
 
-  $scope.formatModsForDownload = function() {
+  $scope.formatModsForDownload = function(topSpectrum = true) {
     var returnString = "\"";
+    var aMods = topSpectrum ? $scope.modObject.selectedMods : $scope.modObjectBottom.selectedMods;
 
-    if (typeof $scope.modObject.selectedMods !== 'undefined') {
-      $scope.modObject.selectedMods.forEach(function(mod) {
+    if (typeof aMods !== 'undefined') {
+      aMods.forEach(function(mod) {
         var modString = "<";
         var index = mod.index + 1;
 
         if (index == 0) {
           index = "N-terminus";
-        } else if (index == $scope.set.peptide.sequence.length + 1) {
+        } else if (( topSpectrum && index == $scope.set.peptide.sequence.length + 1) || (!topSpectrum && index == $scope.set.peptideBottom.sequence.length + 1))  {
           index = "C-terminus";
         }
 
-        modString += mod.name + ";" + (index) + ";" + d3.format("0.4f")($scope.annotatedResults.modifications[mod.index + 1].deltaMass) + ">";
+        modString += mod.name + ";" + (index) + ";" + ( topSpectrum ?  d3.format("0.4f")($scope.annotatedResults.modifications[mod.index + 1].deltaMass) :  d3.format("0.4f")($scope.annotatedResultsBottom.modifications[mod.index + 1].deltaMass)) + ">";
         returnString += modString;
       });
     }
@@ -684,7 +820,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return returnString;
   };
 
-  $scope.formatReturnedModsForDownload = function(mods) {
+  $scope.formatReturnedModsForDownload = function(mods, topSpectrum = true) {
     var returnString = "";
 
     if (mods.length > 0) {
@@ -695,7 +831,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         var index = mod.site + 1;
         var name = "";
 
-        $scope.modObject.selectedMods.forEach(function(selectedMod) {
+        var aMods = topSpectrum ? $scope.modObject.selectedMods : $scope.modObjectBottom.selectedMods;
+
+        aMods.forEach(function(selectedMod) {
           if (mod.site == selectedMod.index && mod.deltaElement == selectedMod.elementChange) {
             name = selectedMod.name;
           }
@@ -703,7 +841,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
         if (index == 0) {
           index = "N-terminus";
-        } else if (index == $scope.set.peptide.sequence.length + 1) {
+        } else if ((topSpectrum && index == $scope.set.peptide.sequence.length + 1) || (!topSpectrum && index == $scope.set.peptideBottom.sequence.length + 1)) {
           index = "C-terminus";
         }
 
@@ -717,45 +855,47 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return returnString;
   };
 
-  $scope.getPercentTicExplained = function() {
-    var count = $scope.set.plotData.label.length;
+  $scope.getPercentTicExplained = function(topSpectrum = true) {
+    var count = topSpectrum ? $scope.set.plotData.label.length : $scope.set.plotDataBottom.label.length;
     var fragmentIntensity = 0;
-
+    var aPlotData = topSpectrum ? $scope.set.plotData : $scope.set.plotDataBottom;
     for (var i = 0; i < count; i++) {
-      if ($scope.set.plotData.label[i]) {
-        fragmentIntensity += $scope.set.plotData.y[i];
+      if (aPlotData.label[i]) {
+        fragmentIntensity += aPlotData.y[i];
       }
     }
 
-    return d3.format("0.2%")(fragmentIntensity / $scope.set.plotData.TIC);
+    return d3.format("0.2%")(fragmentIntensity / aPlotData.TIC);
   };
 
-  $scope.formatMatchedFragmentRow = function() {
+  $scope.formatMatchedFragmentRow = function(topSpectrum = true) {
+    var aPlotData = topSpectrum ? $scope.set.plotData : $scope.set.plotDataBottom;
+    var sSettings = topSpectrum ? $scope.set.settings.ionizationMode : $scope.set.settingsBottom.ionizationMode;
     var fragmentRows = [];
-    var count = $scope.set.plotData.x.length;
+    var count = aPlotData.x.length;
     for (var i = 0; i < count; i++) {
       var row = "";
 
-      var label = $scope.set.plotData.label[i];
+      var label = aPlotData.label[i];
 
       if (label) {
         var type = $scope.getFragmentType(label);
         var number = $scope.getFragmentNumber(label);
-        var mods = $scope.getFragmentModifications(type, number);
-        mods = $scope.formatReturnedModsForDownload(mods);
-        var neutralLoss = $scope.set.plotData.neutralLosses[i];
-        var mz = $scope.set.plotData.x[i];
+        var mods = $scope.getFragmentModifications(type, number, topSpectrum);
+        mods = $scope.formatReturnedModsForDownload(mods, topSpectrum);
+        var neutralLoss = aPlotData.neutralLosses[i];
+        var mz = aPlotData.x[i];
         var charge = "";
-        if ($scope.set.settings.ionizationMode == "+") {
-          charge = $scope.set.plotData.labelCharge[i];
-        } else if ($scope.set.settings.ionizationMode == "-") {
-          charge = "-" + $scope.set.plotData.labelCharge[i];
+        if (sSettings == "+") {
+          charge = aPlotData.labelCharge[i];
+        } else if (sSettings == "-") {
+          charge = "-" + aPlotData.labelCharge[i];
         }
-        var intensity = $scope.set.plotData.y[i];
-        var theoMz =  $scope.set.plotData.theoMz[i];
-        var error = $scope.set.plotData.massError[i];
-        var percentBasePeak = $scope.set.plotData.percentBasePeak[i];
-        var percentTIC = intensity / $scope.set.plotData.TIC;
+        var intensity = aPlotData.y[i];
+        var theoMz =  aPlotData.theoMz[i];
+        var error = aPlotData.massError[i];
+        var percentBasePeak = aPlotData.percentBasePeak[i];
+        var percentTIC = intensity / aPlotData.TIC;
 
         row += type + "," + number + "," + mods + ", " + neutralLoss + "," + charge + "," + intensity + "," +  d3.format("0.4f")(mz) + "," +  d3.format("0.4f")(theoMz) + "," +
           d3.format("0.4f")(error) + "," + d3.format("0.2f")(percentBasePeak) + "%," + d3.format("0.2%")(percentTIC);
@@ -790,13 +930,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     }
   }
 
-  $scope.getFragmentModifications = function(type, number) {
+  $scope.getFragmentModifications = function(type, number, topSpectrum = true) {
     var returnArray = [];
     var possibleMods = [];
     if (type == "a" || type == "b" || type == "c" || type == "[c-1]") {
-      possibleMods = $scope.annotatedResults.modifications.slice(0, number + 1);
+      possibleMods = topSpectrum ? $scope.annotatedResults.modifications.slice(0, number + 1) : $scope.annotatedResultsBottom.modifications.slice(0, number + 1);
     } else if (type == "x" || type == "y" || type == "z" || type == "[z+1]") {
-      possibleMods =  $scope.annotatedResults.modifications.slice(-number - 1);
+      possibleMods =  topSpectrum ? $scope.annotatedResults.modifications.slice(-number - 1) : $scope.annotatedResultsBottom.modifications.slice(-number - 1); 
     }
 
     possibleMods.forEach(function(mod) {
@@ -808,17 +948,58 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return returnArray;
   };
 
+  var USIsInitialCount = "none";
 
-  if ( typeof $scope.peptide.usi !== 'undefined' && $scope.peptide.usi.length !== 0){
-    $scope.processUSI(true,true);
+  if ( typeof $scope.peptide.usi !== 'undefined' && $scope.peptide.usi.length !== 0){ USIsInitialCount = "top"; }
+  if ( typeof $scope.peptideBottom.usi !== 'undefined' && $scope.peptideBottom.usi.length !== 0){ 
+    if( USIsInitialCount !== "top") {
+      USIsInitialCount = "bottom";
+    } else {
+      USIsInitialCount = "both";
+    }
+  }
+  
 
-    setTimeout(function(){
-      $scope.checkModel.b.selected = true;
-      $scope.checkModel.y.selected = true;
+  $scope.checkModel.b.selected = true;
+  $scope.checkModel.y.selected = true;
+
+  switch(USIsInitialCount) {
+    case "top":
+      $scope.processUSI(true,true, true);
       $scope.peptideBottom.api = 'Prosit';
       $scope.peptideBottom.hideCE=false;
-    },2000);
-      setTimeout( function () {$scope.processReference(false)},3000);
-      setTimeout( function () {$scope.processData();},4000);
+
+      $scope.abc = Promise.all([$scope.promiseTop.resolved])
+        .then((values) => {
+          if ( values[0] ){
+            $scope.processReference(false, true);
+          }
+        });
+      break;
+    case "bottom":
+      $scope.processUSI(false,true);
+      setTimeout(function(){
+        $scope.peptide.api = 'Prosit';
+        $scope.peptide.hideCE=false;
+      },2000);
+      setTimeout( function () {$scope.processReference(true, true)},3000);
+      break;
+    case "both":
+      $scope.processUSI(true,false,true);
+      $scope.processUSI(false,false,true);
+      break;
+    default:
+      break;
   }
+  
+  setTimeout((x) => {
+  let abc2 = Promise.all([$scope.promiseTop.resolved, $scope.promiseBottom.resolved])
+    .then( (values) => {
+      if(d3.sum(values) === 2) {
+        $scope.processData();
+      }
+    } , function(response2) {
+    } 
+    );
+  }, 2000);
 }]);

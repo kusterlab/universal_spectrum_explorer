@@ -1,10 +1,11 @@
-<div>
+  <div id="hottablebottom">
 	<hot-table
-		settings="{colHeaders: true, contextMenu: false, afterInit: afterInit}"
+		settings="{colHeaders: true, contextMenu: false, afterInit: afterInitBottom}"
 	    stretch-h="'all'"
 	    datarows="dbBottom.items"
-	    columns="dbBottom.columns"
+	    columns="[{data:'mZ',title:'Mass To Charge',type:'numeric',format:'0,0,0.0000'},{data:'intensity',title:'Intensity',type:'numeric',format:'0,0,0.0000'}]"
 	    height="188"
+	    min-width="350"
 	    min-rows="7"
 	    min-spare-rows="0"
 		>

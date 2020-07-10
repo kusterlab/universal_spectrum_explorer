@@ -40,21 +40,22 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     charge: 1,
     fragmentMin: 1,
     fragmentMax: 1,
-    usi: $scope.getUrlVars().usiBottom,
+    usi: $scope.getUrlVars().usibottom,
     ce: 30,
     api: '',
     hideUSI: true,
     hideCE: true 
   };
 
+
   // stores the values for selected fragments and colors
   $scope.checkModel = {
     a: { selected: false, color: "#820CAD", label: "a" },
-    b: { selected: false, color: "#0D75BC", label: "b" },
+    b: { selected: true, color: "#0D75BC", label: "b" },
     c: { selected: false, color: "#07A14A", label: "c" },
     C: { selected: false, color: "#035729", label: "c-1" },
     x: { selected: false, color: "#D1E02D", label: "x" },
-    y: { selected: false, color: "#BE202D", label: "y" },
+    y: { selected: true, color: "#BE202D", label: "y" },
     z: { selected: false, color: "#F79420", label: "z\u2022" },
     Z: { selected: false, color: "#A16016", label: "z+1" },
     H2O: { selected: false },
@@ -63,6 +64,18 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     CO2: { selected: false },
     precursor: { selected: true, color: "#666666"},
     unassigned: { selected: true, color: "#A6A6A6"}
+  };
+
+  $scope.accordionTop = {
+    manual : true,
+    usi : false,
+    reference : false
+  };
+
+  $scope.accordionBottom = {
+    manual : true,
+    usi : false,
+    reference : false
   };
 
   $scope.checkResults = { 
@@ -116,19 +129,24 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.predeterminedMods = [];
   $scope.userMods = [];
   $scope.potentialMods = [];
+  $scope.potentialModsBottom = [];
 
   $scope.$watchCollection('peptide.sequence', function () {
     $scope.loadMods();
+  });
+
+  $scope.$watchCollection('peptideBottom.sequence', function () {
+    $scope.loadMods(false);
   });
 
   $scope.$watchCollection('userMods', function () {
     $scope.loadMods();
   });
 
-  var contains = function(a) {
+  var contains = function(a, scopeMods) {
     var isIn = false;
-    for (var i = 0; i < $scope.mods.length; i++) {
-      var listMod = $scope.mods[i];
+    for (var i = 0; i < scopeMods.length; i++) {
+      var listMod = scopeMods[i];
       if (a.name == listMod.name) {
         if (a.site == listMod.site) {
           if (a.index == listMod.index) {
@@ -148,7 +166,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     return isIn;
   }
 
-  $scope.loadMods = function() {
+  $scope.loadMods = function(topSpectrum = true) {
     // get potential mods from text file
     if ($scope.predeterminedMods.length == 0) {
       var text = 'Mods not yet loaded.';
@@ -176,14 +194,22 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
             $scope.userMods = [];
           }
 
-          $scope.potentialMods = $scope.userMods.concat($scope.predeterminedMods);
+          if(topSpectrum) {
+            $scope.potentialMods = $scope.userMods.concat($scope.predeterminedMods);
+            $scope.mods = [];
+          } else{
+            $scope.potentialModsBottom = $scope.userMods.concat($scope.predeterminedMods);
+            $scope.modsBottom = [];
+          }
 
-          $scope.mods = [];
-          for (var i = 0; i < $scope.peptide.sequence.length; i++) {
-            var char = $scope.peptide.sequence.charAt(i).toUpperCase();
+          var sSeq = topSpectrum ? $scope.peptide.sequence : $scope.peptideBottom.sequence;
 
-            for (var j = 0; j < $scope.potentialMods.length; j++) {
-              var mod = $scope.potentialMods[j];
+          var aTempPotMods = topSpectrum ? $scope.potentialMods : $scope.potentialModsBottom;
+          var aMods = topSpectrum ? $scope.mods : $scope.modsBottom;
+          for (var i = 0; i < sSeq.length; i++) {
+            var char = sSeq.charAt(i).toUpperCase();
+            for (var j = 0; j < aTempPotMods.length; j++) {
+              var mod = aTempPotMods[j];
               var addMod = {};
               if (mod.site.charAt(0) == char && mod.site != "N-terminus" && mod.site != "C-terminus") {
 
@@ -205,8 +231,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                     };
                 }
 
-                if (!contains(addMod)) {
-                  $scope.mods.push(addMod);
+                if (!contains(addMod, aMods)) {
+                  if(topSpectrum){
+                    $scope.mods.push(addMod);
+                  } else {
+                    $scope.modsBottom.push(addMod);
+                  }
                 }
               } else if (mod.site == "N-terminus") {
                 if (mod.hasOwnProperty("deltaMass")) {
@@ -226,8 +256,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       elementChange: mod.elementChange
                     };
                 }
-                if (!contains(addMod)) {
-                  $scope.mods.push(addMod);
+                if (!contains(addMod, aMods)) {
+                  if(topSpectrum){
+                    $scope.mods.push(addMod);
+                  } else {
+                    $scope.modsBottom.push(addMod);
+                  }
                 }
               } else if (mod.site == "C-terminus") {
                 if (mod.hasOwnProperty("deltaMass")) {
@@ -235,7 +269,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                     {
                       name: mod.name,
                       site: mod.site,
-                      index: $scope.peptide.sequence.length,
+                      index: sSeq.length,
                       deltaMass: mod.deltaMass
                     };
                 } else {
@@ -243,12 +277,16 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                     {
                       name: mod.name,
                       site: mod.site,
-                      index: $scope.peptide.sequence.length,
+                      index: sSeq.length,
                       elementChange: mod.elementChange
                     };
                 }
-                if (!contains(addMod)) {
-                  $scope.mods.push(addMod);
+                if (!contains(addMod, aMods)) {
+                  if(topSpectrum){
+                    $scope.mods.push(addMod);
+                  } else {
+                    $scope.modsBottom.push(addMod);
+                  }
                 }
               }
             }
@@ -262,15 +300,22 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       if (typeof $scope.userMods === "undefined") {
         $scope.userMods = [];
       }
+      if(topSpectrum) {
+        $scope.potentialMods = $scope.userMods.concat($scope.predeterminedMods);
+        $scope.mods = [];
+      } else{
+        $scope.potentialModsBottom = $scope.userMods.concat($scope.predeterminedMods);
+        $scope.modsBottom = [];
+      }
 
-      $scope.potentialMods = $scope.userMods.concat($scope.predeterminedMods);
+      var sSeq = topSpectrum ? $scope.peptide.sequence : $scope.peptideBottom.sequence;
 
-      $scope.mods = [];
-      for (var i = 0; i < $scope.peptide.sequence.length; i++) {
-        var char = $scope.peptide.sequence.charAt(i);
-
-        for (var j = 0; j < $scope.potentialMods.length; j++) {
-          var mod = $scope.potentialMods[j];
+      var aTempPotMods = topSpectrum ? $scope.potentialMods : $scope.potentialModsBottom;
+      var aMods = topSpectrum ? $scope.mods : $scope.modsBottom;
+      for (var i = 0; i < sSeq.length; i++) {
+        var char = sSeq.charAt(i).toUpperCase();
+        for (var j = 0; j < aTempPotMods.length; j++) {
+          var mod = aTempPotMods[j];
           var addMod = {};
           if (mod.site.charAt(0) == char && mod.site != "N-terminus" && mod.site != "C-terminus") {
 
@@ -292,8 +337,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                 };
             }
 
-            if (!contains(addMod)) {
-              $scope.mods.push(addMod);
+            if (!contains(addMod, aMods)) {
+              if(topSpectrum){
+                $scope.mods.push(addMod);
+              } else {
+                $scope.modsBottom.push(addMod);
+              }
             }
           } else if (mod.site == "N-terminus") {
             if (mod.hasOwnProperty("deltaMass")) {
@@ -313,8 +362,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   elementChange: mod.elementChange
                 };
             }
-            if (!contains(addMod)) {
-              $scope.mods.push(addMod);
+            if (!contains(addMod, aMods)) {
+              if(topSpectrum){
+                $scope.mods.push(addMod);
+              } else {
+                $scope.modsBottom.push(addMod);
+              }
             }
           } else if (mod.site == "C-terminus") {
             if (mod.hasOwnProperty("deltaMass")) {
@@ -322,7 +375,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                 {
                   name: mod.name,
                   site: mod.site,
-                  index: $scope.peptide.sequence.length,
+                  index: sSeq.length,
                   deltaMass: mod.deltaMass
                 };
             } else {
@@ -330,12 +383,16 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                 {
                   name: mod.name,
                   site: mod.site,
-                  index: $scope.peptide.sequence.length,
+                  index: sSeq.length,
                   elementChange: mod.elementChange
                 };
             }
-            if (!contains(addMod)) {
-              $scope.mods.push(addMod);
+            if (!contains(addMod, aMods)) {
+              if(topSpectrum){
+                $scope.mods.push(addMod);
+              } else {
+                $scope.modsBottom.push(addMod);
+              }
             }
           }
         }
@@ -346,6 +403,38 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.mods = [];
 
   $scope.modObject = {};
+  $scope.modObjectBottom = {};
+
+  $scope.renderTable = function (topSpectrum = true) {
+    console.log('Renderiiiiiiing');
+    if(topSpectrum) {
+      setTimeout(function(x) {$scope.handsonTableInstance.render();}, 100);
+    } else {
+      setTimeout(function(x) {$scope.handsonTableInstanceBottom.render();}, 100);
+    }
+  }
+
+  $scope.openModalConfirmation = function ( message, topSpectrum = true ) {
+    $uibModal.open({
+      templateUrl: 'support/html/ModalTemplateConfirmation.html',
+      scope: $scope,
+      controller: function ($scope, $uibModalInstance, $localStorage) {
+        $scope.confMessage = message;
+        $scope.closePopUp = function () {
+          let acrd = topSpectrum ? $scope.accordionTop : $scope.accordionBottom ;
+          acrd.manual = true;
+          acrd.usi = false;
+          acrd.reference = false;
+
+          $uibModalInstance.close();
+        };
+
+      }
+      //Squash unhandled rejection on backdrop click that's thrown
+      //TODO
+      //Sorry future debugger
+    }).result.then(function(){}, function(result){})
+  };
 
   $scope.openModal = function () {
     $uibModal.open({
@@ -536,8 +625,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       }
 
       // check to make sure precursor charge is a valid value (not -1, 0, 1) 
-      if ($scope.peptide.precursorCharge == 0 || $scope.peptide.precursorCharge == 1) {
-        $scope.peptide.precursorCharge = 2;
+      if ($scope.peptide.precursorCharge == 0 ) {
+        $scope.peptide.precursorCharge = 1;
         $scope.peptide.charge = 1;
       } else if ($scope.peptide.precursorCharge == -1) {
         $scope.peptide.precursorCharge = -2;
@@ -546,7 +635,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
 
       // set fragment charge min and max from the precursor charge
       if ($scope.peptide.precursorCharge > 0) {
-        $scope.peptide.fragmentMax = $scope.peptide.precursorCharge - 1;
+        $scope.peptide.fragmentMax = $scope.peptide.precursorCharge; // TODO: check with mathias
         $scope.peptide.fragmentMin = 1;
         $scope.checkModel.a.label = "a";
       } else {
@@ -570,8 +659,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       }
 
       // check to make sure precursor charge is a valid value (not -1, 0, 1) 
-      if ($scope.peptideBottom.precursorCharge == 0 || $scope.peptideBottom.precursorCharge == 1) {
-        $scope.peptideBottom.precursorCharge = 2;
+      if ($scope.peptideBottom.precursorCharge == 0 ) { // TODO: check
+        $scope.peptideBottom.precursorCharge = 1;
         $scope.peptideBottom.charge = 1;
       } else if ($scope.peptideBottom.precursorCharge == -1) {
         $scope.peptideBottom.precursorCharge = -2;
@@ -580,7 +669,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
 
       // set fragment charge min and max from the precursor charge
       if ($scope.peptideBottom.precursorCharge > 0) {
-        $scope.peptideBottom.fragmentMax = $scope.peptideBottom.precursorCharge - 1;
+        $scope.peptideBottom.fragmentMax = $scope.peptideBottom.precursorCharge ; // TODO: check
         $scope.peptideBottom.fragmentMin = 1;
         $scope.checkModel.a.label = "a";
       } else {
@@ -691,18 +780,48 @@ myApp.controller('PeptideCtrl', function ($scope) {
 
 });
 
+myApp.controller('HotCtrlTop', function ($scope) {
+      $scope.afterInit = function() {
+        console.log('AfterInitTop');
+      };
+
+      $scope.handsonTableInstance = this;
+      $scope.handleFormat = function(item) {
+      };
+
+      $scope.reset = function() {
+        $scope.db.items = [];
+      };
+});
+
+myApp.controller('HotCtrlBottom', function ($scope) {
+
+
+      $scope.afterInitBottom = function() {
+        console.log('AfterInitBottom');
+        setTimeout(function(x){$scope.handsonTableInstanceBottom = this;}, 1000);
+      };
+
+      $scope.handleFormatBottom = function(item) {
+      };
+
+      $scope.resetBottom = function() {
+        $scope.dbBottom.items = [];
+      };
+});
+
 //controller for generating data paste dropdown and handsonTable
 myApp.directive("handsontabletest", function() {
 
   return{
-    templateUrl: 'support/html/HotTableTemplate.html',
+    templateUrl: 'support/html/HotTableTemplate.html' /*,
     controller: function($scope, $element, $attrs, $transclude, $log) {
 
       $scope.afterInit = function() {
+        console.log('AfterInitTop');
+        console.log(this);
         $scope.handsonTableInstance = this;
       };
-
-      $scope.db.items = [];
 
       $scope.handleFormat = function(item) {
       };
@@ -710,28 +829,7 @@ myApp.directive("handsontabletest", function() {
       $scope.reset = function() {
         $scope.db.items = [];
       };
-    }
-  };
-});
-myApp.directive("handsontabletestbottom", function() {
-
-  return{
-    templateUrl: 'support/html/HotTableTemplateBottom.html',
-    controller: function($scope, $element, $attrs, $transclude, $log) {
-
-      $scope.afterInit = function() {
-        $scope.handsonTableInstance = this;
-      };
-
-      $scope.dbBottom.items = [];
-
-      $scope.handleFormat = function(item) {
-      };
-
-      $scope.reset = function() {
-        $scope.dbBottom.items = [];
-      };
-    }
+    }*/
   };
 });
 
@@ -740,10 +838,10 @@ myApp.controller('DataCtrl', ['$scope', function ($scope) {
 }]);
 
 myApp.controller('ModCtrl', ['$scope', '$log', function ($scope, $log) {
-  $scope.modSelectOption = function(mod) {
+  $scope.modSelectOption = function(mod, topSpectrum = true) {
     var returnString = mod.name + ": " + mod.site;
 
-    if (mod.index != -1 && mod.index != $scope.peptide.sequence.length) {
+    if (mod.index != -1 && (topSpectrum && mod.index != $scope.peptide.sequence.length) || (!topSpectrum && mod.index != $scope.peptideBottom.sequence.length)) {
       returnString += mod.index + 1 
     }
 
