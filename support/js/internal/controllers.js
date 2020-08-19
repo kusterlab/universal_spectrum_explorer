@@ -652,12 +652,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       // httpRequest to submit data to processing script.
       $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
         .then( function(response) {
+          delete response.data.fragments;
 
           $scope.annotatedResults = response.data;
-          delete response.data.fragments;
-          console.log(response.data);
+          const annotation1 = new Annotation($scope.submittedDataTop.data);
+          console.log(annotation1.fakeAPI());
+          $scope.annotatedResults = annotation1.fakeAPI();
 
-          console.log($scope.submittedDataBottom.data);
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
             .then( function(responseBottom) {
 

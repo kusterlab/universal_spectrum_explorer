@@ -55,6 +55,12 @@ Annotation = class Annotation {
 				"intensity": el["intensity"],
 			}
 		});
+    var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
+    console.log(max_peak);
+    this.peakData = this.peakData.map((el) => {
+      el["intensity"] = el["intensity"] / max_peak.intensity;
+      return(el);
+    })
 		this.response = {};
 		this.mods = request.mods===undefined? []: request.mods;
 		this.aminoAcids = this.generateAminoAcids(
