@@ -22,7 +22,8 @@
     <script src="support/js/internal/PeptideAnnotator.js"></script>
     <script src="support/js/internal/controllers.js"></script>
     <script src="support/js/internal/IPSA.js"></script>
-    <script src="support/js/internal/DensityPlot.js"></script>
+    <script src="support/js/internal/bundle.js"></script>
+    <script src="support/js/internal/bundle123.js"></script>
     <script src="support/js/external/d3-tip.js"></script>
     <script src="support/js/internal/EuBIC2020/api.js"></script>
     <script src="support/js/internal/EuBIC2020/measures.js"></script>
@@ -46,7 +47,7 @@
       </div>
       <ul class="nav navbar-nav">
         <li class="divider-vertical"></li>
-        <li class="active"><a href="https://www.proteomicsdb.org/isv/?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2">Example for comparison between exp. and predicted spectra</a></li>
+        <li class="active"><a href="https://www.proteomicsdb.org/isv_dev/?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2">Example for comparison between exp. and predicted spectra</a></li>
         <li class="divider-vertical"></li>
         <li>
           <a>
@@ -59,497 +60,529 @@
       </ul>
     </nav>
     <div class="container-fluid">
-      <div ng-controller="MasterCtrl">
-        <div class="row">
-          <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
-          <a class="github-button" href="https://github.com/kusterlab/ipsa/issues" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue kusterlab/ipsa on GitHub">Issue</a>
-        </div>
-        <div class="row">
-          <div ng-controller="PeptideCtrl">
-            <div ng-controller="GraphCtrl">
-              <div class="col-md-5">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Annotation Options</h3>
-                  </div>
-                  <uib-tabset vertical="true" type="pills" justified="true" class="tabs-left">
-                    <uib-tab heading="Top Spectrum" select="renderTable()">
-                      <uib-accordion close-others="true">  
-                        <div uib-accordion-group heading="Manual input" is-open="accordionTop.manual">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div class="row">
-                                <div class="col-md-12">
-                                  <label>Peptide Sequence</label>
-                                  <div class="input-group-md">
-                                    <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptide.sequence" ng-blur="validateSequence()"> 
-                                  </div>
-                                </div>
-                              </div>
-                              <br/>
-                              <div ng-controller="DataCtrl">
+      <div id = "gray-overlay">
+        <div ng-controller="MasterCtrl">
+          <div class="row">
+            <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
+            <a class="github-button" href="https://github.com/kusterlab/ipsa/issues" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue kusterlab/ipsa on GitHub">Issue</a>
+          </div>
+          <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
+            <span class="progress" >
+              <uib-progressbar class="{{busy.type}}" value="busy.progress" type="success" max="100">
+                {{"Please wait... Loading"}}
+              </uib-progressbar>
+            </span>
+            {{busy.loaded}}
+          </div>
+          <div class="row">
+            <div ng-controller="PeptideCtrl">
+              <div ng-controller="GraphCtrl">
+                <div class="col-md-5">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h3 class="panel-title">Annotation Options</h3>
+                    </div>
+                    <uib-tabset vertical="true" type="pills" justified="true" class="tabs-left">
+                      <uib-tab heading="Top Spectrum" select="renderTable()">
+                        <uib-accordion close-others="true">  
+                          <div uib-accordion-group heading="Manual input" is-open="accordionTop.manual">
+                            <div class="panel-body">
+                              <div class="col-md-12">
                                 <div class="row">
-                                  <div class="col-md-4">
-                                    <label for="charge">Max Fragment Charge</label>
+                                  <div class="col-md-12">
+                                    <label>Peptide Sequence</label>
                                     <div class="input-group-md">
-                                      <input type="number" class="form-control" id="charge" placeholder=1 min="{{peptide.fragmentMin}}" max="{{peptide.fragmentMax}}" ng-model="peptide.charge" ng-blur="validateFragmentCharge()"> 
-                                    </div>
-                                  </div>
-                                  <div class="col-md-4">
-                                    <label for="sequence">Precursor Charge</label>
-                                    <div class="input-group-md">
-                                      <input type="number" class="form-control" placeholder="2" ng-model="peptide.precursorCharge" ng-blur="validateCharge()"> 
+                                      <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptide.sequence" ng-blur="validateSequence()"> 
                                     </div>
                                   </div>
                                 </div>
                                 <br/>
-                                <div ng-controller="HotCtrlTop">
+                                <div ng-controller="DataCtrl">
                                   <div class="row">
-                                    <div class="col-md-12">
-                                      <label for="handsonTable">Enter Spectral Data Here</label>
-                                      <div handsontabletest id="topTable"></div>
-                                    </div>
-                                    <div class="col-md-12">
-                                      <button class="btn btn-primary pull-right" type="button" ng-click="reset()">Clear table</button>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <label for="dataFormat">Select Peptide Modifications</label>
-                                  </div>
-                                  <div class="col-md-9">
-                                    <div ng-controller="ModCtrl">
-                                      <div class="form-group-lg">
-                                        <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
-                                          <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
-                                          <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
-                                        </ui-select>
+                                    <div class="col-md-4">
+                                      <label for="charge">Max Fragment Charge</label>
+                                      <div class="input-group-md">
+                                        <input type="number" class="form-control" id="charge" placeholder=1 min="{{peptide.fragmentMin}}" max="{{peptide.fragmentMax}}" ng-model="peptide.charge" ng-blur="validateFragmentCharge()"> 
                                       </div>
                                     </div>
-                                  </div>
-                                  <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
-                                </div>
-                                <br/>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div uib-accordion-group class="panel-default" heading="USI" is-open="accordionTop.usi">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div class="row">
-                                <div class="col-md-12">
-                                  <label>Search with USI</label>
-                                  <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptide.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI()">Search USI</button> </span> 
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div uib-accordion-group class="panel-default" heading="Predicted/Experimental" is-open="accordionTop.reference">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div ng-controller="DataCtrl">
-                                <div class="row">
-                                  <div class="col-md-6">
-                                    <label>Mirror Spectrum Origin</label>
-                                    <div class="input-group">
-                                      <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted()">Prosit</label>
-                                      <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted()">ProteomeTools</label>
-                                    </div>
-                                  </div>
-                                  <div class="col-md-12">
-                                    <div class="row">
-                                      <div class="col-md-12">
-                                        <label>Peptide Sequence</label>
-                                        <div class="input-group-md">
-                                          <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptide.sequence" ng-blur="validateSequence()"> 
-                                        </div>
+                                    <div class="col-md-4">
+                                      <label for="sequence">Precursor Charge</label>
+                                      <div class="input-group-md">
+                                        <input type="number" class="form-control" placeholder="2" ng-model="peptide.precursorCharge" ng-blur="validateCharge()"> 
                                       </div>
                                     </div>
                                   </div>
                                   <br/>
-                                  <div class="col-md-12">
+                                  <div ng-controller="HotCtrlTop">
                                     <div class="row">
-                                      <div class="col-md-6">
-                                        <label for="sequence">Precursor Charge</label>
-                                        <div class="input-group-md">
-                                          <input type="number" class="form-control" placeholder="2" ng-model="peptide.precursorCharge" ng-blur="validateCharge()"> 
-                                        </div>
+                                      <div class="col-md-12">
+                                        <label for="handsonTable">Enter Spectral Data Here</label>
+                                        <div handsontabletest id="topTable"></div>
                                       </div>
-                                      <div class="col-md-6">
-                                        <label>Collission Energy</label>
-                                        <div class="input-group">
-                                          <input type="number" class="form-control" ng-model="peptide.ce" min="0" />
+                                      <div class="col-md-12">
+                                        <button class="btn btn-primary pull-right" type="button" ng-click="reset()">Clear table</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <label for="dataFormat">Select Peptide Modifications</label>
+                                    </div>
+                                    <div class="col-md-9">
+                                      <div ng-controller="ModCtrl">
+                                        <div class="form-group-lg">
+                                          <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
+                                            <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
+                                            <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
+                                          </ui-select>
                                         </div>
                                       </div>
                                     </div>
+                                    <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                  </div>
+                                  <br/>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div uib-accordion-group class="panel-default" heading="USI" is-open="accordionTop.usi">
+                            <div class="panel-body">
+                              <div class="col-md-12">
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <label>Search with USI</label>
+                                    <div class="input-group">
+                                      <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptide.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI()">Search USI</button> </span> 
+                                    </div>
+                                    <br/>
                                     <div class="row">
                                       <div class="col-md-12">
-                                        <label for="dataFormat">Select Peptide Modifications</label>
+                                        <label>USI origin</label>
+                                        <div class="btn-group" data-toggle="buttons">
+                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'pride' ">PRIDE</label>
+                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
+                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'jpost'">jPOST</label>
+                                        </div>
                                       </div>
-                                      <div class="col-md-9">
-                                        <div ng-controller="ModCtrl">
-                                          <div class="form-group-lg">
-                                            <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
-                                              <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
-                                              <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
-                                            </ui-select>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div uib-accordion-group class="panel-default" heading="Predicted/Experimental" is-open="accordionTop.reference">
+                            <div class="panel-body">
+                              <div class="col-md-12">
+                                <div ng-controller="DataCtrl">
+                                  <div class="row">
+                                    <div class="col-md-6">
+                                      <label>Mirror Spectrum Origin</label>
+                                      <div class="input-group">
+                                        <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted()">Prosit</label>
+                                        <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted()">ProteomeTools</label>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <label>Peptide Sequence</label>
+                                          <div class="input-group-md">
+                                            <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptide.sequence" ng-blur="validateSequence()"> 
                                           </div>
                                         </div>
                                       </div>
-                                      <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                     </div>
                                     <br/>
-                                  </div>
-                                  <div class="row">
                                     <div class="col-md-12">
-                                      <button class="btn btn-primary" type="button" ng-click="processReference()">Get Predicted/Reference Spectrum</button> 
-                                    </div>
-                                    <br/>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </uib-accordion>
-                    </uib-tab>
-                    <uib-tab heading="Bottom Spectrum" select="renderTable(false)">
-                      <uib-accordion close-others="true">  
-                        <div uib-accordion-group heading="Manual input" is-open="accordionBottom.manual">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div class="row">
-                                <div class="col-md-12">
-                                  <label>Peptide Sequence</label>
-                                  <div class="input-group-md">
-                                    <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptideBottom.sequence" ng-blur="validateSequenceBottom()"> 
-                                  </div>
-                                </div>
-                              </div>
-                              <br/>
-                              <div ng-controller="DataCtrl">
-                                <div class="row">
-                                  <div class="col-md-4">
-                                    <label for="charge">Max Fragment Charge</label>
-                                    <div class="input-group-md">
-                                      <input type="number" class="form-control" id="charge" placeholder=1 min="{{peptideBottom.fragmentMin}}" max="{{peptideBottom.fragmentMax}}" ng-model="peptideBottom.charge" ng-blur="validateFragmentCharge(false)"> 
-                                    </div>
-                                  </div>
-                                  <div class="col-md-4">
-                                    <label for="sequence">Precursor Charge</label>
-                                    <div class="input-group-md">
-                                      <input type="number" class="form-control" placeholder="2" ng-model="peptideBottom.precursorCharge" ng-blur="validateCharge(false)"> 
-                                    </div>
-                                  </div>
-                                </div>
-                                <br/>
-                                <div ng-controller="HotCtrlBottom">
-                                  <div class="row">
-                                    <div class="col-md-12">
-                                      <label>Enter Spectral Data Here</label>
-                                          <hot-table
-                                            settings="{colHeaders: true, contextMenu: false, afterInit: afterInitBottom}"
-                                              stretch-h="'all'"
-                                              datarows="dbBottom.items"
-                                              columns="[{data:'mZ',title:'Mass To Charge',type:'numeric',format:'0,0,0.0000'},{data:'intensity',title:'Intensity',type:'numeric',format:'0,0,0.0000'}]"
-                                              height="188"
-                                              min-width="350"
-                                              min-rows="7"
-                                              min-spare-rows="0"
-                                            >
-                                          </hot-table>
-                                    </div>
-                                    <div class="col-md-12">
-                                      <button class="btn btn-primary pull-right" type="button" ng-click="resetBottom()">Clear table</button>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <label for="dataFormat">Select Peptide Modifications</label>
-                                  </div>
-                                  <div class="col-md-9">
-                                    <div ng-controller="ModCtrl">
-                                      <div class="form-group-lg">
-                                        <ui-select multiple ng-model="modObjectBottom.selectedMods" search-enabled="true">
-                                          <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item, false)"></span> </ui-select-match>
-                                          <ui-select-choices repeat="mod in modsBottom | filter: $select.search"> <span ng-bind="modSelectOption(mod, false)"></span> </ui-select-choices>
-                                        </ui-select>
+                                      <div class="row">
+                                        <div class="col-md-6">
+                                          <label for="sequence">Precursor Charge</label>
+                                          <div class="input-group-md">
+                                            <input type="number" class="form-control" placeholder="2" ng-model="peptide.precursorCharge" ng-blur="validateCharge()"> 
+                                          </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                          <label>Collission Energy</label>
+                                          <div class="input-group">
+                                            <input type="number" class="form-control" ng-model="peptide.ce" min="0" />
+                                          </div>
+                                        </div>
                                       </div>
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <label for="dataFormat">Select Peptide Modifications</label>
+                                        </div>
+                                        <div class="col-md-9">
+                                          <div ng-controller="ModCtrl">
+                                            <div class="form-group-lg">
+                                              <ui-select multiple ng-model="modObject.selectedMods" search-enabled="true">
+                                                <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item)"></span> </ui-select-match>
+                                                <ui-select-choices repeat="mod in mods | filter: $select.search"> <span ng-bind="modSelectOption(mod)"></span> </ui-select-choices>
+                                              </ui-select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                      </div>
+                                      <br/>
                                     </div>
-                                  </div>
-                                  <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
-                                </div>
-                                <br/>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div uib-accordion-group class="panel-default" heading="USI" is-open="accordionBottom.usi">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div class="row">
-                                <div class="col-md-12">
-                                  <label>Search with USI</label>
-                                  <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptideBottom.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI(false)">Search USI</button> </span> 
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div uib-accordion-group class="panel-default" heading="Predicted/Experimental" is-open="accordionBottom.reference">
-                          <div class="panel-body">
-                            <div class="col-md-12">
-                              <div ng-controller="DataCtrl">
-                                <div class="row">
-                                  <div class="col-md-6">
-                                    <label>Mirror Spectrum Origin</label>
-                                    <div class="input-group">
-                                      <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted(false)">Prosit</label>
-                                      <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted(false)">ProteomeTools</label>
-                                    </div>
-                                  </div>
-                                  <div class="col-md-12">
                                     <div class="row">
                                       <div class="col-md-12">
-                                        <label>Peptide Sequence</label>
-                                        <div class="input-group-md">
-                                          <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptideBottom.sequence" ng-blur="validateSequence(false)"> 
-                                        </div>
+                                        <button class="btn btn-primary" type="button" ng-click="processReference()">Get Predicted/Reference Spectrum</button> 
+                                      </div>
+                                      <br/>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </uib-accordion>
+                      </uib-tab>
+                      <uib-tab heading="Bottom Spectrum" select="renderTable(false)">
+                        <uib-accordion close-others="true">  
+                          <div uib-accordion-group heading="Manual input" is-open="accordionBottom.manual">
+                            <div class="panel-body">
+                              <div class="col-md-12">
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <label>Peptide Sequence</label>
+                                    <div class="input-group-md">
+                                      <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptideBottom.sequence" ng-blur="validateSequenceBottom()"> 
+                                    </div>
+                                  </div>
+                                </div>
+                                <br/>
+                                <div ng-controller="DataCtrl">
+                                  <div class="row">
+                                    <div class="col-md-4">
+                                      <label for="charge">Max Fragment Charge</label>
+                                      <div class="input-group-md">
+                                        <input type="number" class="form-control" id="charge" placeholder=1 min="{{peptideBottom.fragmentMin}}" max="{{peptideBottom.fragmentMax}}" ng-model="peptideBottom.charge" ng-blur="validateFragmentCharge(false)"> 
+                                      </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <label for="sequence">Precursor Charge</label>
+                                      <div class="input-group-md">
+                                        <input type="number" class="form-control" placeholder="2" ng-model="peptideBottom.precursorCharge" ng-blur="validateCharge(false)"> 
                                       </div>
                                     </div>
                                   </div>
                                   <br/>
-                                  <div class="col-md-12">
-                                    <div class="row">
-                                      <div class="col-md-6">
-                                        <label for="sequence">Precursor Charge</label>
-                                        <div class="input-group-md">
-                                          <input type="number" class="form-control" placeholder="2" ng-model="peptideBottom.precursorCharge" ng-blur="validateCharge(false)"> 
-                                        </div>
-                                      </div>
-                                      <div class="col-md-6">
-                                        <label>Collission Energy</label>
-                                        <div class="input-group">
-                                          <input type="number" class="form-control" ng-model="peptideBottom.ce" min="0" />
-                                        </div>
-                                      </div>
-                                    </div>
+                                  <div ng-controller="HotCtrlBottom">
                                     <div class="row">
                                       <div class="col-md-12">
-                                        <label for="dataFormat">Select Peptide Modifications</label>
+                                        <label>Enter Spectral Data Here</label>
+                                        <hot-table
+                                           settings="{colHeaders: true, contextMenu: false, afterInit: afterInitBottom}"
+                                           stretch-h="'all'"
+                                           datarows="dbBottom.items"
+                                           columns="[{data:'mZ',title:'Mass To Charge',type:'numeric',format:'0,0,0.0000'},{data:'intensity',title:'Intensity',type:'numeric',format:'0,0,0.0000'}]"
+                                           height="188"
+                                           min-width="350"
+                                           min-rows="7"
+                                           min-spare-rows="0"
+                                           >
+                                        </hot-table>
                                       </div>
-                                      <div class="col-md-9">
-                                        <div ng-controller="ModCtrl">
-                                          <div class="form-group-lg">
-                                            <ui-select multiple ng-model="modObjectBottom.selectedMods" search-enabled="true">
-                                              <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item, false)"></span> </ui-select-match>
-                                              <ui-select-choices repeat="mod in modsBottom | filter: $select.search"> <span ng-bind="modSelectOption(mod, false)"></span> </ui-select-choices>
-                                            </ui-select>
-                                          </div>
-                                        </div>
+                                      <div class="col-md-12">
+                                        <button class="btn btn-primary pull-right" type="button" ng-click="resetBottom()">Clear table</button>
                                       </div>
-                                      <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                     </div>
-                                    <br/>
                                   </div>
                                   <div class="row">
                                     <div class="col-md-12">
-                                      <button class="btn btn-primary" type="button" ng-click="processReference(false)">Get Predicted/Reference Spectrum</button> 
+                                      <label for="dataFormat">Select Peptide Modifications</label>
+                                    </div>
+                                    <div class="col-md-9">
+                                      <div ng-controller="ModCtrl">
+                                        <div class="form-group-lg">
+                                          <ui-select multiple ng-model="modObjectBottom.selectedMods" search-enabled="true">
+                                            <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item, false)"></span> </ui-select-match>
+                                            <ui-select-choices repeat="mod in modsBottom | filter: $select.search"> <span ng-bind="modSelectOption(mod, false)"></span> </ui-select-choices>
+                                          </ui-select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                  </div>
+                                  <br/>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div uib-accordion-group class="panel-default" heading="USI" is-open="accordionBottom.usi">
+                            <div class="panel-body">
+                              <div class="col-md-12">
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <label>Search with USI</label>
+                                    <div class="input-group">
+                                      <input type="text" class="form-control" placeholder="Enter USI from PRIDE here..." ng-model="peptideBottom.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI(false)">Search USI</button> </span> 
                                     </div>
                                     <br/>
+                                    <div class="row">
+                                      <div class="col-md-12">
+                                        <label>USI origin</label>
+                                        <div class="btn-group">
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'pride'">PRIDE</label>
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'jpost'">jPOST</label>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </uib-accordion>
-                    </uib-tab>
-                    <uib-tab heading="Meta">
-                      <div class="panel-body">
-                        <div class="col-md-12">
-                          <div ng-controller="DataCtrl">
-                            <div class="row">
-                              <div class="col-md-4">
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <label>N-terminal</label>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <div class="btn-group">
-                                      <label class="btn btn-fragment" ng-model="checkModel.a.selected" uib-btn-checkbox>{{checkModel.a.label}}</label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.b.selected" uib-btn-checkbox>{{checkModel.b.label}}</label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.c.selected" uib-btn-checkbox>{{checkModel.c.label}}</label>
-                                      <!--<label class="btn btn-fragment" ng-model="checkModel.C.selected" uib-btn-checkbox>{{checkModel.C.label}}</label>-->
+                          <div uib-accordion-group class="panel-default" heading="Predicted/Experimental" is-open="accordionBottom.reference">
+                            <div class="panel-body">
+                              <div class="col-md-12">
+                                <div ng-controller="DataCtrl">
+                                  <div class="row">
+                                    <div class="col-md-6">
+                                      <label>Mirror Spectrum Origin</label>
+                                      <div class="input-group">
+                                        <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted(false)">Prosit</label>
+                                        <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted(false)">ProteomeTools</label>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <label>Peptide Sequence</label>
+                                          <div class="input-group-md">
+                                            <input type="text" class="form-control" placeholder="Enter sequence here..." ng-model="peptideBottom.sequence" ng-blur="validateSequence(false)"> 
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <br/>
+                                    <div class="col-md-12">
+                                      <div class="row">
+                                        <div class="col-md-6">
+                                          <label for="sequence">Precursor Charge</label>
+                                          <div class="input-group-md">
+                                            <input type="number" class="form-control" placeholder="2" ng-model="peptideBottom.precursorCharge" ng-blur="validateCharge(false)"> 
+                                          </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                          <label>Collission Energy</label>
+                                          <div class="input-group">
+                                            <input type="number" class="form-control" ng-model="peptideBottom.ce" min="0" />
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <label for="dataFormat">Select Peptide Modifications</label>
+                                        </div>
+                                        <div class="col-md-9">
+                                          <div ng-controller="ModCtrl">
+                                            <div class="form-group-lg">
+                                              <ui-select multiple ng-model="modObjectBottom.selectedMods" search-enabled="true">
+                                                <ui-select-match placeholder="Select peptide modifications..."> <span ng-bind="modSelectOption($item, false)"></span> </ui-select-match>
+                                                <ui-select-choices repeat="mod in modsBottom | filter: $select.search"> <span ng-bind="modSelectOption(mod, false)"></span> </ui-select-choices>
+                                              </ui-select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
+                                      </div>
+                                      <br/>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-12">
+                                        <button class="btn btn-primary" type="button" ng-click="processReference(false)">Get Predicted/Reference Spectrum</button> 
+                                      </div>
+                                      <br/>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                              <div class="col-md-4">
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <label>C-terminal</label>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <div class="btn-group">
-                                      <label class="btn btn-fragment" ng-model="checkModel.x.selected" uib-btn-checkbox>{{checkModel.x.label}}</label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.y.selected" uib-btn-checkbox>{{checkModel.y.label}}</label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.z.selected" uib-btn-checkbox>{{checkModel.z.label}}</label>
-                                      <!--<label class="btn btn-fragment" ng-model="checkModel.Z.selected" uib-btn-checkbox>{{checkModel.Z.label}}</label>-->
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div class="col-md-4">
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <label>Neutral Losses</label>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-md-12">
-                                    <div class="btn-group">
-                                      <label class="btn btn-fragment" ng-model="checkModel.H2O.selected" uib-btn-checkbox>-H<sub>2</sub>O</label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.NH3.selected" uib-btn-checkbox>-NH<sub>3</sub></label>
-                                      <label class="btn btn-fragment" ng-model="checkModel.CO2.selected" uib-btn-checkbox>-CO<sub>2</sub></label>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <br/>
-                            <div class="row">
-                              <div class="col-md-6">
-                                <label>Annotation Fragment Tolerance (+/-)</label>
-                                <div class="input-group">
-                                  <input type="number" class="form-control" ng-model="cutoffs.tolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapToleranceType()">{{cutoffs.toleranceType}}</button> </span> 
-                                </div>
-                              </div>
-                              <div class="col-md-6">
-                                <label>Annotation Matching Threshold</label>
-                                <div class="input-group">
-                                  <input type="number" class="form-control" ng-model="cutoffs.matchingCutoff" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapMatchingType()">{{cutoffs.matchingType}}</button> </span> 
-                                </div>
-                              </div>
-                            </div>
-                            <br/>
-                            <div class="row">
-                              <div class="col-md-6">
-                                <label>Comparison Matching Tolerance (+/-)</label>
-                                <div class="input-group">
-                                  <input type="number" class="form-control" ng-model="cutoffs.compTolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapCompToleranceType()">{{cutoffs.compToleranceType}}</button> </span> 
-                                </div>
-                              </div>
-                            </div>
-                            <br/>
-                            <div ng-controller="ColorCtrl">
-                              <div class="row">
-                                <div class="col-md-3" ng-hide="!checkModel.a.selected">
-                                  <label for="wheel-demo1">{{checkModel.a.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo1" class="form-control" type="text" ng-model="checkModel.a.color"> 
-                                </div>
-                                <div class="col-md-3" ng-hide="!checkModel.b.selected">
-                                  <label for="wheel-demo2">{{checkModel.b.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo2" class="form-control" type="text" ng-model="checkModel.b.color"> 
-                                </div>
-                                <div class="col-md-3" ng-hide="!checkModel.c.selected">
-                                  <label for="wheel-demo3">{{checkModel.c.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo3" class="form-control" type="text" ng-model="checkModel.c.color"> 
-                                </div>
-                                <!--
-                                  <div class="col-md-3" ng-hide="!checkModel.C.selected">
-                                  <label for="wheel-demo">{{checkModel.C.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.C.color"> 
-                                  </div>
-                                -->
-                                <div class="col-md-3" ng-hide="!checkModel.x.selected">
-                                  <label for="wheel-demo4">{{checkModel.x.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo4" class="form-control" type="text" ng-model="checkModel.x.color"> 
-                                </div>
-                                <div class="col-md-3" ng-hide="!checkModel.y.selected">
-                                  <label for="wheel-demo5">{{checkModel.y.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo5" class="form-control" type="text" ng-model="checkModel.y.color"> 
-                                </div>
-                                <div class="col-md-3" ng-hide="!checkModel.z.selected">
-                                  <label for="wheel-demo6">{{checkModel.z.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo6" class="form-control" type="text" ng-model="checkModel.z.color"> 
-                                </div>
-                                <!--
-                                  <div class="col-md-3" ng-hide="!checkModel.Z.selected">
-                                  <label for="wheel-demo">{{checkModel.Z.label}}</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.Z.color"> 
-                                  </div>
-                                -->
-                                <div class="col-md-3">
-                                  <label for="wheel-demo7">Precursor</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo7" class="form-control" type="text" ng-model="checkModel.precursor.color"> 
-                                </div>
-                                <div class="col-md-3">
-                                  <label for="wheel-demo8">Unassigned</label>
-                                  <input minicolors="wheelsettings" id="wheel-demo8" class="form-control" type="text" ng-model="checkModel.unassigned.color"> 
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      <br/>
-
-                    </uib-tab>
-                  </uib-tabset>
-                  <div class="panel-body">
-                    <div class="col-md-12">
-                      <div ng-controller="DataCtrl">
-                        <br/>
-                        <div class="row">
+                        </uib-accordion>
+                      </uib-tab>
+                      <uib-tab heading="Meta">
+                        <div class="panel-body">
                           <div class="col-md-12">
-                            <button type="submit" class="btn btn-success" ng-click="processData()">Generate Chart</button>
-                            <button class="btn btn-primary" ng-click="downloadData()">Export Data</button>
-                            <button svg-download title="{{peptideBottom.sequence}}" class="btn btn-primary">Download as SVG</button>
+                            <div ng-controller="DataCtrl">
+                              <div class="row">
+                                <div class="col-md-4">
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <label>N-terminal</label>
+                                    </div>
+                                  </div>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <div class="btn-group">
+                                        <label class="btn btn-fragment" ng-model="checkModel.a.selected" uib-btn-checkbox>{{checkModel.a.label}}</label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.b.selected" uib-btn-checkbox>{{checkModel.b.label}}</label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.c.selected" uib-btn-checkbox>{{checkModel.c.label}}</label>
+                                        <!--<label class="btn btn-fragment" ng-model="checkModel.C.selected" uib-btn-checkbox>{{checkModel.C.label}}</label>-->
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <label>C-terminal</label>
+                                    </div>
+                                  </div>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <div class="btn-group">
+                                        <label class="btn btn-fragment" ng-model="checkModel.x.selected" uib-btn-checkbox>{{checkModel.x.label}}</label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.y.selected" uib-btn-checkbox>{{checkModel.y.label}}</label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.z.selected" uib-btn-checkbox>{{checkModel.z.label}}</label>
+                                        <!--<label class="btn btn-fragment" ng-model="checkModel.Z.selected" uib-btn-checkbox>{{checkModel.Z.label}}</label>-->
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-4">
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <label>Neutral Losses</label>
+                                    </div>
+                                  </div>
+                                  <div class="row">
+                                    <div class="col-md-12">
+                                      <div class="btn-group">
+                                        <label class="btn btn-fragment" ng-model="checkModel.H2O.selected" uib-btn-checkbox>-H<sub>2</sub>O</label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.NH3.selected" uib-btn-checkbox>-NH<sub>3</sub></label>
+                                        <label class="btn btn-fragment" ng-model="checkModel.CO2.selected" uib-btn-checkbox>-CO<sub>2</sub></label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <br/>
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <label>Annotation Fragment Tolerance (+/-)</label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" ng-model="cutoffs.tolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapToleranceType()">{{cutoffs.toleranceType}}</button> </span> 
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <label>Annotation Matching Threshold</label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" ng-model="cutoffs.matchingCutoff" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapMatchingType()">{{cutoffs.matchingType}}</button> </span> 
+                                  </div>
+                                </div>
+                              </div>
+                              <br/>
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <label>Comparison Matching Tolerance (+/-)</label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" ng-model="cutoffs.compTolerance" min="0" /> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="swapCompToleranceType()">{{cutoffs.compToleranceType}}</button> </span> 
+                                  </div>
+                                </div>
+                              </div>
+                              <br/>
+                              <div ng-controller="ColorCtrl">
+                                <div class="row">
+                                  <div class="col-md-3" ng-hide="!checkModel.a.selected">
+                                    <label for="wheel-demo1">{{checkModel.a.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo1" class="form-control" type="text" ng-model="checkModel.a.color"> 
+                                  </div>
+                                  <div class="col-md-3" ng-hide="!checkModel.b.selected">
+                                    <label for="wheel-demo2">{{checkModel.b.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo2" class="form-control" type="text" ng-model="checkModel.b.color"> 
+                                  </div>
+                                  <div class="col-md-3" ng-hide="!checkModel.c.selected">
+                                    <label for="wheel-demo3">{{checkModel.c.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo3" class="form-control" type="text" ng-model="checkModel.c.color"> 
+                                  </div>
+                                  <!--
+                                    <div class="col-md-3" ng-hide="!checkModel.C.selected">
+                                    <label for="wheel-demo">{{checkModel.C.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.C.color"> 
+                                    </div>
+                                  -->
+                                  <div class="col-md-3" ng-hide="!checkModel.x.selected">
+                                    <label for="wheel-demo4">{{checkModel.x.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo4" class="form-control" type="text" ng-model="checkModel.x.color"> 
+                                  </div>
+                                  <div class="col-md-3" ng-hide="!checkModel.y.selected">
+                                    <label for="wheel-demo5">{{checkModel.y.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo5" class="form-control" type="text" ng-model="checkModel.y.color"> 
+                                  </div>
+                                  <div class="col-md-3" ng-hide="!checkModel.z.selected">
+                                    <label for="wheel-demo6">{{checkModel.z.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo6" class="form-control" type="text" ng-model="checkModel.z.color"> 
+                                  </div>
+                                  <!--
+                                    <div class="col-md-3" ng-hide="!checkModel.Z.selected">
+                                    <label for="wheel-demo">{{checkModel.Z.label}}</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo" class="form-control" type="text" ng-model="checkModel.Z.color"> 
+                                    </div>
+                                  -->
+                                  <div class="col-md-3">
+                                    <label for="wheel-demo7">Precursor</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo7" class="form-control" type="text" ng-model="checkModel.precursor.color"> 
+                                  </div>
+                                  <div class="col-md-3">
+                                    <label for="wheel-demo8">Unassigned</label>
+                                    <input minicolors="wheelsettings" id="wheel-demo8" class="form-control" type="text" ng-model="checkModel.unassigned.color"> 
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <br/>
+
+                      </uib-tab>
+                    </uib-tabset>
+                    <div class="panel-body">
+                      <div class="col-md-12">
+                        <div ng-controller="DataCtrl">
+                          <br/>
+                          <div class="row">
+                            <div class="col-md-12">
+                              <button type="submit" class="btn btn-success" ng-click="processData()">Generate Chart</button>
+                              <button class="btn btn-primary" ng-click="downloadData()">Export Data</button>
+                              <button svg-download title="{{peptideBottom.sequence}}" class="btn btn-primary">Download as SVG</button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                <div class="col-md-7">
+                  <uib-tabset active="activeJustified" justified="true">
+                    <uib-tab index="0" heading="Spectrum Viewer">
+                      <div annotated-spectrum 
+                                       plotdata="set.plotData" 
+                                       mirrorplotdata="set.plotDataBottom" 
+                                       peptide="set.peptide"
+                                       peptidebottom="set.peptideBottom" 
+                                       settings="set.settings" 
+                                       scoretop="set.scoreTop" 
+                                       scorebottom="set.scoreBottom" 
+                                       score="set.score" 
+                                       class="content"></div>
+                      <form role="form" ng-init="randomize()"></form>
+                    </uib-tab>
+                    <uib-tab index="1" heading="SA Distribution">
+                      <div density-plot sadata="set.saDist.data" class="contentDensity">
+                        are we there yet</div> 
+                      <div id="colorButton">
+                        <input type="radio" name="colorButton" value="bar" checked> bar<br>
+                        <input type="radio" name="colorButton" value="ecdf"> ecdf<br>
+                      </div>
+                    </uib-tab>
+                  </uib-tabset>
+                </div> 
               </div>
-              <div class="col-md-7">
-                <uib-tabset active="activeJustified" justified="true">
-                  <uib-tab index="0" heading="Spectrum Viewer">
-                    <div annotated-spectrum 
-                      plotdata="set.plotData" 
-                      mirrorplotdata="set.plotDataBottom" 
-                      peptide="set.peptide"
-                      peptidebottom="set.peptideBottom" 
-                      settings="set.settings" 
-                      scoretop="set.scoreTop" 
-                      scorebottom="set.scoreBottom" 
-                      score="set.score" 
-                      class="content"></div>
-                    <form role="form" ng-init="randomize()"></form>
-                  </uib-tab>
-                  <uib-tab index="1" heading="SA Distribution">
-                    <div density-plot sadata="set.saDist.data" class="contentDensity">
-                      are we there yet</div> 
-                    <div id="colorButton">
-                      <input type="radio" name="colorButton" value="bar" checked> bar<br>
-                      <input type="radio" name="colorButton" value="ecdf"> ecdf<br>
-                    </div>
-                  </uib-tab>
-                </uib-tabset>
-              </div> 
             </div>
           </div>
         </div>

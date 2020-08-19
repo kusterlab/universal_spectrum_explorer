@@ -412,6 +412,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       return scope.mirrorplotdata.x;
     };
 
+    scope.getId = function() {
+      
+      return scope.plotdata.id;
+    };
+
+    scope.getIdMirror = function() {
+      return scope.mirrorplotdata.id;
+    };
+
     /**
      * @description Retrieves all of the spectral intensity values
      * @example [10000, 648059, 393403, ...]
@@ -540,6 +549,13 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       return scope.plotdata.massErrorX;
     };
 
+      scope.getIntensityErrorIdsTop = function(){
+      return scope.plotdata.intensityErrorIdsTop; 
+    };
+      scope.getIntensityErrorIdsBottom = function(){
+      return scope.plotdata.intensityErrorIdsBottom; 
+    };
+
 
     /**
      * @description Retrieves an array containing mass errors of annotated fragments. Non-annotated spectral features should default to empty strings.
@@ -548,6 +564,13 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
      */
     scope.getMassError = function() {
       return scope.plotdata.massError;
+    };
+
+    scope.getMassErrorBottomId = function(){
+      return scope.mirrorplotdata.id;
+    };
+    scope.getMassErrorTopId = function(){
+      return scope.plotdata.id;
     };
 
     scope.getIntensityError = function(){
@@ -1731,6 +1754,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         percentBasePeak2 = scope.getMirrorPercentBasePeak(),
         labels2 = scope.getMirrorLabels(), labelCharges2 = scope.getMirrorLabelCharges(),
         colors2 = scope.getMirrorColors(),
+        id = scope.getId(),
+        id2 = scope.getIdMirror(),
         massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
         neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(),widths2 = scope.getMirrorWidths(), sequence = scope.getSequence();
 
@@ -1794,6 +1819,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           plotData.push({
             mz: xValues[i],
             intensity: yValues[i],
+            id: id[i],
             x: xValues[i],
             y: percentBasePeak[i],
             percentBasePeak: percentBasePeak[i],
@@ -1819,6 +1845,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           mirrorPlotData.push({
             mz: xValues2[i],
             intensity: yValues2[i],
+            id: id2[i],
             x: xValues2[i],
             y: percentBasePeak2[i],
             percentBasePeak: percentBasePeak2[i],
@@ -2211,7 +2238,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           // make it a little bigger
           massErrorCircles.style("r", function(e, j) {
-            if (i === j) {
+            if (d.id === e.top_id) {
               return 7;
             }
             // give it a stroke
@@ -2258,19 +2285,19 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           var color = colors2[i];
 
           // use the selected label index and highlight the mass error circle
-          //var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
+          var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
 
           // make it a little bigger
-          // massErrorCircles.style("r", function(e, j) {
-          //  if (i === j) {
-          //    return 7;
-          //  }
-          //  // give it a stroke
-          //}).style("stroke", function(e, j) {
-          //  if (i === j) {
-          //    return "black";
-          // }
-          //});
+           massErrorCircles.style("r", function(e, j) {
+            if (d.id === e.bottom_id) {
+              return 7;
+            }
+            // give it a stroke
+          }).style("stroke", function(e, j) {
+            if (i === j) {
+              return "black";
+           }
+          });
         }).on("mouseleave", function(d, i) {
           // hide tooltip
           tip.hide();
@@ -2279,8 +2306,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           d3.select(this).style("font-size", 16).style("font-weight", "normal");
 
           // set all mass error circles back to normal
-          //var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
-          //massErrorCircles.style("r", 4).style("stroke", "none");
+          var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
+          massErrorCircles.style("r", function(d){
+            return d.radius
+          }).style("stroke", "none");
         });
 
         /////////////////////
@@ -2356,6 +2385,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       sequence = scope.getSequence(), theoMz = scope.getTheoreticalMz(), neutralLosses = scope.getNeutralLosses(), sequenceBottom = scope.getSequenceBottom();
       var intensityError = scope.getIntensityError();
       var intensityErrorScale= d3.scale.linear().domain([d3.min(intensityError),d3.max(intensityError)]).range([0,1]);
+      var bottomId = scope.getMassErrorBottomId();
+      console.log(bottomId);
+      var topId = scope.getMassErrorTopId();
       
       // if x and y values are empty, initialize them to an empty array to squash an error caused by a race condition on page render
       if (isNaN(d3.max(xValues))) {
@@ -2403,13 +2435,19 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           */
 
           // format our data for easy D3 visualization
+          // here we need the IDs
+          // TODO: do it tobi
           plotData.push({
             mz: xValues[i],
             theoMz: theoMz[i],
+            top_id: scope.getIntensityErrorIdsTop()[i],
+            bottom_id: scope.getIntensityErrorIdsBottom()[i],
             neutLoss: formatNeutralLoss(neutralLosses[i]),
             error: yValues[i] * shiftFactor,
             color: yValues[i] ===0? "grey": "black",
-            radius: 1.5 + intensityErrorScale(intensityError[i]) * 3
+            radius: 1.5 + intensityErrorScale(intensityError[i]) * 3,
+            topId: topId[i],
+            bottomId: bottomId[i]
           });
         }
 
@@ -2548,6 +2586,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           // highlight the selected circle by making it bigger and giving it a stroke
           circleDataset.style("r", function(e, j) {
+            console.log(d);
+            // TODO HIGHLIGHT CORRECTLY
+            // This is fine => its just self highlight
             if (i === j) {
               return 7;
             }

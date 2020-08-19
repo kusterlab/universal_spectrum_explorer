@@ -4,6 +4,9 @@
 // we expect already binned data (avging summed intensity for same m/z bin)
 var exports = {}
 
+
+var t = new UsiResponse("ppm");
+
 extract_mz = function(prev, next){
   // maps [{"mz":v1, "intensity": v2}, ...]
   // to {"v1" : v2, ....}
@@ -14,15 +17,13 @@ extract_mz = function(prev, next){
 //  will return function f(ary1) => ary2
 
 var regressionThroughZero = function(ary1, ary2){
+  console.log(ary1);
+  console.log(ary2);
   const maxAry1 = ary1.reduce(function(prev, current) {
     return (prev > current) ? prev : current
   }) //returns object
   const maxAry2 = ary2.reduce(function(prev, current) { 
     return (prev > current) ? prev : current                                                                                                                                                                                                                                            }) //returns object
-  console.log(ary1);
-  console.log(ary2);
-  console.log(maxAry1);
-  console.log(maxAry2);
 
   const nominator = _.zip(ary1, ary2)
     .map(function(x){

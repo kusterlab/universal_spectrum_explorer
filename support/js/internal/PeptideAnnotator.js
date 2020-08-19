@@ -20,6 +20,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     return vars;
   };
 
+  $scope.busy = {
+    progress : 100,
+    type : "progress-striped active",
+    isProcessing : false
+  };
+
   // stores peptide information
   $scope.peptide = {
     sequence: "TESTPEPTIDE",
@@ -31,7 +37,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     ce: 30,
     api: '',
     hideUSI: true,
-    hideCE: true 
+    hideCE: true ,
+    usiOriginTop : 'pride'
   };
 
   $scope.peptideBottom = {
@@ -44,8 +51,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     ce: 30,
     api: '',
     hideUSI: true,
-    hideCE: true 
+    hideCE: true,
+    usiOriginBottom: 'pride'
   };
+
 
 
   // stores the values for selected fragments and colors
@@ -408,11 +417,26 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.renderTable = function (topSpectrum = true) {
     console.log('Renderiiiiiiing');
     if(topSpectrum) {
-      setTimeout(function(x) {$scope.handsonTableInstance.render();}, 100);
+      //setTimeout(function(x) {$scope.handsonTableInstance.render(); console.log("Render Top")}, 100);
     } else {
-      setTimeout(function(x) {$scope.handsonTableInstanceBottom.render();}, 100);
+      //setTimeout(function(x) {$scope.handsonTableInstanceBottom.render();}, 100);
     }
   }
+
+  $scope.openModalLoading = function () {
+    $uibModal.open({
+      templateUrl: 'support/html/ModalTemplateLoading.html',
+      scope: $scope,
+      controller: function ($scope, $uibModalInstance, $localStorage) {
+        $scope.closeModalLoading = function () {
+          $uibModalInstance.close();
+        };
+      }
+      //Squash unhandled rejection on backdrop click that's thrown
+      //TODO
+      //Sorry future debugger
+    }).result.then(function(){}, function(result){})
+  };
 
   $scope.openModalConfirmation = function ( message, topSpectrum = true ) {
     $uibModal.open({
@@ -783,6 +807,7 @@ myApp.controller('PeptideCtrl', function ($scope) {
 myApp.controller('HotCtrlTop', function ($scope) {
       $scope.afterInit = function() {
         console.log('AfterInitTop');
+        $scope.handsonTableInstance = this;
       };
 
       $scope.handsonTableInstance = this;

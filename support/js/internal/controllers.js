@@ -20,6 +20,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     {
       x: [ ],
       y: [ ],
+      id: [ ],
       color: [ ],
       label: [ ],
       labelCharge: [ ],
@@ -46,6 +47,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     {
       x: [ ],
       y: [ ],
+      id: [ ],
       color: [ ],
       label: [ ],
       labelCharge: [ ],
@@ -70,7 +72,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       usi: 'mzspec:PXD015890:20190213_Rucks_atm6.raw (F002091).mzid_20190213_Rucks_atm6.raw_(F002091).MGF:index:914:YLDGLTAER/2',
       precursorMz: 609.77229,
       precursorCharge: $scope.peptide.precursorCharge,
-      mods: populateMods()
+      mods: populateMods(),
+      usiOriginTop: 'pride',
     },
     settingsBottom:
     {
@@ -83,8 +86,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       toleranceThreshold: 0,
       toleranceType: "",
       ionizationMode: ""
-    }
+    },
+
   };
+
 
   $scope.n = 150;
 
@@ -162,9 +167,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.set.plotDataBottom.percentBasePeak = [ ];
     $scope.set.plotDataBottom.TIC = 0;
 
-    returnedData.peaks.forEach(function(data) {
+    console.log(returnedData.peaks);
+    returnedData.peaks.forEach(function(data, i) {
       $scope.set.plotDataBottom.x.push(data.mz);
       $scope.set.plotDataBottom.y.push(data.intensity);
+      $scope.set.plotDataBottom.id.push(i);
       $scope.set.plotDataBottom.TIC += data.intensity;
       $scope.set.plotDataBottom.percentBasePeak.push(data.percentBasePeak);
       if (data.matchedFeatures.length == 0) {
@@ -220,7 +227,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     //$log.log($scope.set);
   };
-  $scope.plotData = function(returnedData, returnedError = [], returnedErrorX = [], intensityError=[]) {
+  $scope.plotData = function(returnedData, returnedError = [], returnedErrorX = [], intensityError=[], intensityErrorIdsTop=[], intensityErrorIdsBottom=[]) {
     $scope.set.peptide =
       {
         sequence: returnedData.sequence,
@@ -254,9 +261,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.set.plotData.percentBasePeak = [ ];
     $scope.set.plotData.TIC = 0;
 
-    returnedData.peaks.forEach(function(data) {
+    returnedData.peaks.forEach(function(data, i) {
       $scope.set.plotData.x.push(data.mz);
       $scope.set.plotData.y.push(data.intensity);
+      $scope.set.plotData.id.push(i);
       $scope.set.plotData.TIC += data.intensity;
       $scope.set.plotData.percentBasePeak.push(data.percentBasePeak);
       if (data.matchedFeatures.length == 0) {
@@ -310,6 +318,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       $scope.set.plotData.massError = returnedError;
       $scope.set.plotData.massErrorX = returnedErrorX;
       $scope.set.plotData.intensityError = intensityError;
+      $scope.set.plotData.intensityErrorIdsTop = intensityErrorIdsTop;
+      $scope.set.plotData.intensityErrorIdsBottom = intensityErrorIdsBottom;
+
     });
 
     //$log.log($scope.set);
@@ -332,6 +343,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.processReference = function(topSpectrum = true, auto = false) {
+    $scope.busy.isProcessing = true;
     let modString = "";
     if(topSpectrum) {
       if ($scope.modObject.selectedMods != undefined) {
@@ -398,9 +410,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             if (!auto){
               $scope.openModalConfirmation('The predicted Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
+            $scope.busy.isProcessing = false;
             return (true);
           }, function(response2) {
             // if errors exist, alert user
+            $scope.busy.isProcessing = false;
             alert("Prosit: " + response2.data.message);
             return(false);
           });
@@ -429,9 +443,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             if (!auto) {
               $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
+            $scope.busy.isProcessing = false;
             return(true);
           }, function(response2) {
             // if errors exist, alert user
+            $scope.busy.isProcessing = false;
             alert("ProteomeTools: " + response2.data.message);
             return(false);
           });
@@ -441,19 +457,35 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
+
+    var aUrls = {
+      pride: 'https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=',
+      peptideatlas: 'https://www.proteomicsdb.org/proxy_ppc/peptideAtlas?usi=',
+      jpost: 'https://www.proteomicsdb.org/proxy_ppc/jPOST?usi=',
+    };
+    $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
-    var url = "https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=" + sUsi;
+    console.log($scope.usiOriginTop);
+    console.log($scope.peptide.usiOriginTop);
+    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
+    var abc = $http.get(aUrls["jpost"] + "mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3");
+    var def = $http.get(aUrls["peptideatlas"] + "mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2");
+    usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
+
+  //  console.log(abc);
     reference.resolved = $http.get(url)
       .then( function(response) {
-        var mzs = response.data.mzs;
-        var ints = response.data.intensities;
-        var seq = response.data.peptideSequence;
-        var charge = response.data.charge;
+        console.log(response.data);
+        usi.parseData(response.data);
+        var mzs = usi.aMz;
+        var ints = usi.aInt;
+        var seq = usi.sequence;
+        var charge = usi.precursorCharge;
         if (topSpectrum) {
           $scope.peptide.sequence = seq;
           $scope.peptide.precursorCharge = charge;
-          $scope.peptide.charge = charge - 1;
+          $scope.peptide.charge = charge;
           $scope.db.items = mzs.map(
             (x,i) => {
               return {mZ: x, intensity: ints[i]};
@@ -478,9 +510,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         if (!auto) {
           $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
         }
+        $scope.busy.isProcessing = false;
         return(true);
       },
       function(response2){
+        $scope.busy.isProcessing = false;
         return(false);
       });
   }
@@ -599,6 +633,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.processData = function() {
+    $scope.busy.isProcessing = true;
     if ($scope.invalidColors()) {
 
     } else {
@@ -619,12 +654,30 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         .then( function(response) {
 
           $scope.annotatedResults = response.data;
+          delete response.data.fragments;
           console.log(response.data);
 
+          console.log($scope.submittedDataBottom.data);
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
             .then( function(responseBottom) {
 
               $scope.annotatedResultsBottom = responseBottom.data;
+              console.log(responseBottom.data);
+              console.log($scope.submittedDataBottom.data);
+              const annotation = new Annotation($scope.submittedDataBottom.data);
+              console.log(annotation);
+              $scope.annotatedResultsBottom = annotation.fakeAPI();
+
+              console.log($scope.annotatedResultsBottom);
+              check = function(spectrum){
+              if (typeof spectrum == 'undefined') {
+                return [{"mz":"", "intensity":"", "percentBasePeak": 0, "sn": null, "matchedFeatures": []}]
+              }else{
+                return spectrum;
+              }
+              }
+              response.data.peaks = check(response.data.peaks);
+              responseBottom.data.peaks = check(responseBottom.data.peaks);
               // linear regression
               var mergedForRegression = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
               console.log(mergedForRegression); // TODO MAP IDs
@@ -661,16 +714,22 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               return Math.abs(beta_hat * (x.intensity_1/int1Scaling) - (x.intensity_2/int2Scaling))
               });
 
-              $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference);
+              $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference,
+                originalData.map(x => {return x.id_1}),
+                originalData.map(x => {return x.id_2})
+                );
               $scope.plotDataBottom($scope.annotatedResultsBottom);
 
               $scope.getScores(response.data.peaks, responseBottom.data.peaks);
+              $scope.busy.isProcessing = false;
             }, function (response) {
               // if errors exist, alert user
+              $scope.busy.isProcessing = false;
               alert(response.data.message);
             });
         }, function (response) {
           // if errors exist, alert user
+          $scope.busy.isProcessing = false;
           alert(response.data.message);
         });
     }
@@ -948,6 +1007,16 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     return returnArray;
   };
 
+  $scope.toggleBusy = function() {
+    if ($scope.busy.isProcessing) {
+      //$scope.openModalLoading();      
+    } else {
+      //$uibModalInstance.close();
+    }
+  };
+  
+  $scope.$watch('busy.isProcessing', $scope.toggleBusy, true);
+
   var USIsInitialCount = "none";
 
   if ( typeof $scope.peptide.usi !== 'undefined' && $scope.peptide.usi.length !== 0){ USIsInitialCount = "top"; }
@@ -959,9 +1028,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     }
   }
   
-
-  $scope.checkModel.b.selected = true;
-  $scope.checkModel.y.selected = true;
 
   switch(USIsInitialCount) {
     case "top":
@@ -992,14 +1058,15 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       break;
   }
   
-  setTimeout((x) => {
+  setTimeout((xxxx) => {
   let abc2 = Promise.all([$scope.promiseTop.resolved, $scope.promiseBottom.resolved])
     .then( (values) => {
       if(d3.sum(values) === 2) {
+        console.log("Generating plots");
         $scope.processData();
       }
     } , function(response2) {
     } 
     );
-  }, 2000);
+  }, 3000);
 }]);
