@@ -539,7 +539,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     for (var i = 0; i < submitData.length; i++) {
       let value = submitData[i];
-      if (!isNaN(value.mZ) && !isNaN(value.intensity)) {
+      if (!isNaN(value.mZ) && !isNaN(value.intensity) && value.mZ !=="" && value.intensity !== "") {
         newArray.push(value);
       }
     }
@@ -581,10 +581,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.mergeSpectra = function(sp1,sp2) {
 
     var binarySpectrum_1 = binary_search_spectrum(sp1, sp2);
+    console.log(binarySpectrum_1);
     var binarySpectrum_2 = binary_search_spectrum(sp2, sp1);
     binarySpectrum_1 = selectMostIntensePeak(binarySpectrum_1);
+    console.log(binarySpectrum_1);
     binarySpectrum_2 = selectMostIntensePeak(binarySpectrum_2);
     result = full_merge(binarySpectrum_1, binarySpectrum_2);
+    console.log(result);
     return result;
   }
 
@@ -683,16 +686,24 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               var mergedForRegression = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
               console.log(mergedForRegression); // TODO MAP IDs
               var originalData = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
+              console.log(originalData);
 
               // remove non matches for linear fit
               mergedForRegression = mergedForRegression.filter((x) =>{return x.mz_1 !==-1 && x.mz_2!== -1});
               var int1 = mergedForRegression.map((x) =>{return x.intensity_1});
               var int2 = mergedForRegression.map((x) =>{return x.intensity_2});
-              beta_hat = regressionThroughZero(int1, int2);
+              if (int1.length ===0 && int2.length ===0){
+                beta_hat = 1;
+              }else{
+               beta_hat = regressionThroughZero(int1, int2);
+              }
+              
 
-
+              // data is max scaled if no merged peaks are found
               var int1Scaling = d3.max(mergedForRegression.map((x) => {return x.intensity_1}));
+              int1Scaling = isNaN(int1Scaling) ?  d3.max(originalData, (x) => {return x.intensity_1}) : int1Scaling;
               var int2Scaling = d3.max(mergedForRegression.map((x) => {return x.intensity_2}));
+              int2Scaling = isNaN(int2Scaling) ?  d3.max(originalData, (x) => {return x.intensity_2}) : int2Scaling;
 
               var intensityerror = originalData.map((x) => {
                 if(x.mz_1 === -1 || x.mz_2 === -1){
@@ -704,6 +715,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               })
               var intensityerrorx = originalData.map((x) =>{if(x.mz_1 <0){return x.mz_2}else if(x.mz_2 <0){return x.mz_1}return (x.mz_1 + x.mz_2) / 2});
               // size of bubble
+              console.log(int2Scaling);
+              console.log(originalData);
               var intensityDifference = originalData.map((x) => {
                 if(x.mz_1 === -1){
                   return Math.abs(x.intensity_2 / int2Scaling);
@@ -714,6 +727,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               // return(Math.abs( beta_hat * (x.intensity_1/int1Scaling) - x.intensity_2/int2Scaling) *100)
               return Math.abs(beta_hat * (x.intensity_1/int1Scaling) - (x.intensity_2/int2Scaling))
               });
+              console.log(intensityDifference);
 
               $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference,
                 originalData.map(x => {return x.id_1}),

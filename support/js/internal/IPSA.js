@@ -1532,8 +1532,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         ;
 
       var statisticsData = [];
-      statisticsData.push({ title: "SA: ", data: score });
-      statisticsData.push({ title: "PC: ", data: correlation });
+      statisticsData.push({ title: "SA: ", data: score + " (" + score + ")" });
+      statisticsData.push({ title: "PC: ", data: correlation + " (" + correlation + ")"});
       if(topSpectrum){
         dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
         dataset.enter().append("text").attr("class", "precursorstatscategory");
@@ -1949,7 +1949,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
             // define translation object to move svg elements from original to zoomed position on the svg
             var t = zoomX.translate();
-            console.log(t);
             var maxX = d3.max(x.range());
 
             var tx = Math.max(Math.min(0, t[0]), options.annotation.width - maxX * zoomX.scale());
@@ -2384,9 +2383,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         yValues = scope.getMassError(), colors = scope.getColors(), settings = scope.getSettings(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges()
       sequence = scope.getSequence(), theoMz = scope.getTheoreticalMz(), neutralLosses = scope.getNeutralLosses(), sequenceBottom = scope.getSequenceBottom();
       var intensityError = scope.getIntensityError();
+      console.log(intensityError);
       var intensityErrorScale= d3.scale.linear().domain([d3.min(intensityError),d3.max(intensityError)]).range([0,1]);
       var bottomId = scope.getMassErrorBottomId();
-      console.log(bottomId);
       var topId = scope.getMassErrorTopId();
       
       // if x and y values are empty, initialize them to an empty array to squash an error caused by a race condition on page render
@@ -2415,7 +2414,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         // define x and y scales. 
         x = d3.scale.linear().domain([d3.min(xValues) - xScaleFudgeFactor, d3.max(xValues) + xScaleFudgeFactor]).range([ 0, options.fragments.width], 0);
         // y = d3.scale.linear().domain([-shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor), shiftFactor * (settings.toleranceThreshold + yScaleFudgeFactor)]).range([ options.fragments.height, 0]);
-        y = d3.scale.linear().domain([d3.max(yValues), d3.min(yValues)]).range([ options.fragments.height, 0]);
+        y = d3.scale.linear().domain([d3.max(yValues) + 1, d3.min(yValues ) - 1]).range([ options.fragments.height, 0]);
 
         // here we define 4 scales instead of just 2. the dummy axes are only used to encapsulate the mass error chart in borders.
         xAxis = d3.svg.axis().scale(x).orient("top").ticks(10);
@@ -2466,6 +2465,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // bind plotData to the chart to be rendered into circles by D3
         circleDataset = scope.massErrorContainer.selectAll(".masserror").data(plotData);
+        console.log(plotData);
         circleDataset.enter().append("circle").attr("class", "masserror");
 
         // actually render the circles and transition them in
@@ -2586,7 +2586,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           // highlight the selected circle by making it bigger and giving it a stroke
           circleDataset.style("r", function(e, j) {
-            console.log(d);
             // TODO HIGHLIGHT CORRECTLY
             // This is fine => its just self highlight
             if (i === j) {

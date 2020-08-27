@@ -56,9 +56,17 @@ Annotation = class Annotation {
 			}
 		});
     var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
+    let max_peak_intensity = max_peak.intensity;
     console.log(max_peak);
     this.peakData = this.peakData.map((el) => {
-      el["intensity"] = el["intensity"] / max_peak.intensity;
+      let bac_intensity = el["intensity"];
+      el["intensity"] = el["intensity"] / max_peak_intensity;
+      if (el["intensity"] > 1){
+        console.log("why");
+        console.log(bac_intensity);
+        console.log(bac_intensity / max_peak.intensity);
+        console.log(el);
+      }
       return(el);
     })
 		this.response = {};

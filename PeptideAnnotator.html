@@ -558,8 +558,6 @@
                   </div>
                 </div>
                 <div class="col-md-7">
-                  <uib-tabset active="activeJustified" justified="true">
-                    <uib-tab index="0" heading="Spectrum Viewer">
                       <div annotated-spectrum 
                                        plotdata="set.plotData" 
                                        mirrorplotdata="set.plotDataBottom" 
@@ -571,16 +569,6 @@
                                        score="set.score" 
                                        class="content"></div>
                       <form role="form" ng-init="randomize()"></form>
-                    </uib-tab>
-                    <uib-tab index="1" heading="SA Distribution">
-                      <div density-plot sadata="set.saDist.data" class="contentDensity">
-                        are we there yet</div> 
-                      <div id="colorButton">
-                        <input type="radio" name="colorButton" value="bar" checked> bar<br>
-                        <input type="radio" name="colorButton" value="ecdf"> ecdf<br>
-                      </div>
-                    </uib-tab>
-                  </uib-tabset>
                 </div> 
               </div>
             </div>
