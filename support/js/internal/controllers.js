@@ -818,7 +818,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     var a = document.createElement('a');
 
     a.href = 'data:attachment/csv,' +  encodeURIComponent(outputString);
-    a.download = "ISV_Data.csv";
+    a.download = "USE_Data.csv";
     document.body.appendChild(a);
 
     a.click();
