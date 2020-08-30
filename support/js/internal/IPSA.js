@@ -1520,6 +1520,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
     scope.drawCorrelationSummary = function (topSpectrum = true) {
       var options = scope.getOptions(),
+        scoreGeneral = scope.score.sa,
+        correlationGeneral = scope.score.corr,
         score = topSpectrum ? scope.scoretop.sa : scope.scorebottom.sa,
         correlation = topSpectrum ? scope.scoretop.corr : scope.scorebottom.corr, 
         stat_width = topSpectrum ?  options.statistics.width : options.statisticsBottom.width,
@@ -1532,8 +1534,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         ;
 
       var statisticsData = [];
-      statisticsData.push({ title: "SA: ", data: score + " (" + score + ")" });
-      statisticsData.push({ title: "PC: ", data: correlation + " (" + correlation + ")"});
+      statisticsData.push({ title: "SA: ", data: scoreGeneral + " (" + score + ")" });
+      statisticsData.push({ title: "PC: ", data: correlationGeneral + " (" + correlation + ")"});
       if(topSpectrum){
         dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
         dataset.enter().append("text").attr("class", "precursorstatscategory");
@@ -2465,7 +2467,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
         // bind plotData to the chart to be rendered into circles by D3
         circleDataset = scope.massErrorContainer.selectAll(".masserror").data(plotData);
-        console.log(plotData);
         circleDataset.enter().append("circle").attr("class", "masserror");
 
         // actually render the circles and transition them in

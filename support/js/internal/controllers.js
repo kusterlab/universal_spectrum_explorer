@@ -167,7 +167,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.set.plotDataBottom.percentBasePeak = [ ];
     $scope.set.plotDataBottom.TIC = 0;
 
-    console.log(returnedData.peaks);
     returnedData.peaks.forEach(function(data, i) {
       $scope.set.plotDataBottom.x.push(data.mz);
       $scope.set.plotDataBottom.y.push(data.intensity);
@@ -466,17 +465,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
-    console.log($scope.usiOriginTop);
-    console.log($scope.peptide.usiOriginTop);
     var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
     var abc = $http.get(aUrls["jpost"] + "mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3");
     var def = $http.get(aUrls["peptideatlas"] + "mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2");
     usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
 
-  //  console.log(abc);
     reference.resolved = $http.get(url)
       .then( function(response) {
-        console.log(response.data);
         usi.parseData(response.data);
         var mzs = usi.aMz;
         var ints = usi.aInt;
@@ -581,13 +576,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.mergeSpectra = function(sp1,sp2) {
 
     var binarySpectrum_1 = binary_search_spectrum(sp1, sp2);
-    console.log(binarySpectrum_1);
     var binarySpectrum_2 = binary_search_spectrum(sp2, sp1);
     binarySpectrum_1 = selectMostIntensePeak(binarySpectrum_1);
-    console.log(binarySpectrum_1);
     binarySpectrum_2 = selectMostIntensePeak(binarySpectrum_2);
     result = full_merge(binarySpectrum_1, binarySpectrum_2);
-    console.log(result);
     return result;
   }
 
@@ -615,24 +607,25 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.getScores = function(spec1, spec2){
+    comparator = new Comparator(spec1, spec2);
+    scoresO = comparator.calculate_scores();
+    console.log(comparator.calculate_scores());
 
-    $scope.scoreBottom($scope.calculateScores(spec1, spec2, true));
+    $scope.scoreBottom(scoresO.spec2);
+    $scope.scoreTop(scoresO.spec1);
+
+    $scope.score(scoresO.full);
+    /*$scope.scoreBottom($scope.calculateScores(spec1, spec2, true));
     $scope.scoreTop($scope.calculateScores(spec2, spec1, true));
 
     $scope.score($scope.calculateScores(spec1, spec2, false));
+    */
 
   }
 
   $scope.getPromise1 = function(ina){
     // should return a promise
     return $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
-  }
-  $scope.getA = function(a){
-    return $http.get("/")
-      .then(function(res){
-        return(3);
-      })
-      .catch();
   }
 
   $scope.processData = function() {
@@ -666,13 +659,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             .then( function(responseBottom) {
 
               $scope.annotatedResultsBottom = responseBottom.data;
-              console.log(responseBottom.data);
-              console.log($scope.submittedDataBottom.data);
               const annotation = new Annotation($scope.submittedDataBottom.data);
-              console.log(annotation);
+            console.log(annotation.fakeAPI());
               $scope.annotatedResultsBottom = annotation.fakeAPI();
 
-              console.log($scope.annotatedResultsBottom);
               check = function(spectrum){
               if (typeof spectrum == 'undefined') {
                 return [{"mz":"", "intensity":"", "percentBasePeak": 0, "sn": null, "matchedFeatures": []}]
@@ -684,9 +674,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               responseBottom.data.peaks = check(responseBottom.data.peaks);
               // linear regression
               var mergedForRegression = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
-              console.log(mergedForRegression); // TODO MAP IDs
               var originalData = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
-              console.log(originalData);
 
               // remove non matches for linear fit
               mergedForRegression = mergedForRegression.filter((x) =>{return x.mz_1 !==-1 && x.mz_2!== -1});
@@ -715,8 +703,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               })
               var intensityerrorx = originalData.map((x) =>{if(x.mz_1 <0){return x.mz_2}else if(x.mz_2 <0){return x.mz_1}return (x.mz_1 + x.mz_2) / 2});
               // size of bubble
-              console.log(int2Scaling);
-              console.log(originalData);
               var intensityDifference = originalData.map((x) => {
                 if(x.mz_1 === -1){
                   return Math.abs(x.intensity_2 / int2Scaling);
@@ -727,7 +713,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               // return(Math.abs( beta_hat * (x.intensity_1/int1Scaling) - x.intensity_2/int2Scaling) *100)
               return Math.abs(beta_hat * (x.intensity_1/int1Scaling) - (x.intensity_2/int2Scaling))
               });
-              console.log(intensityDifference);
 
               $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference,
                 originalData.map(x => {return x.id_1}),
@@ -1077,7 +1062,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   let abc2 = Promise.all([$scope.promiseTop.resolved, $scope.promiseBottom.resolved])
     .then( (values) => {
       if(d3.sum(values) === 2) {
-        console.log("Generating plots");
         $scope.processData();
       }
     } , function(response2) {

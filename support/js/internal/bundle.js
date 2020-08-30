@@ -55,21 +55,15 @@ Annotation = class Annotation {
 				"intensity": el["intensity"],
 			}
 		});
-    var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
-    let max_peak_intensity = max_peak.intensity;
-    console.log(max_peak);
-    this.peakData = this.peakData.map((el) => {
-      let bac_intensity = el["intensity"];
-      el["intensity"] = el["intensity"] / max_peak_intensity;
-      if (el["intensity"] > 1){
-        console.log("why");
-        console.log(bac_intensity);
-        console.log(bac_intensity / max_peak.intensity);
-        console.log(el);
-      }
-      return(el);
-    })
+		var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
+		let max_peak_intensity = max_peak.intensity;
+		this.peakData = this.peakData.map((el) => {
+			let bac_intensity = el["intensity"];
+			el["intensity"] = el["intensity"] / max_peak_intensity;
+			return(el);
+		})
 		this.response = {};
+		this.cutoff = request.cutoff;
 		this.mods = request.mods===undefined? []: request.mods;
 		this.aminoAcids = this.generateAminoAcids(
 			request["sequence"], this.mods);
@@ -87,12 +81,11 @@ Annotation = class Annotation {
 		this.allMassOffset = this.calculateAllMassOffset(
 			this.mods);
 		this.response["modifications"] =this.mods;
-		this.peaks = this.annotatePeaks();
 		this.tolerance = request["tolerance"];
+		this.peaks = this.annotatePeaks();
 		this.sequence = request["sequence"];
 		this.isPPM =  request.toleranceType === 'ppm';
 		this.fragmentTypes = request.fragmentTypes;
-		this.cutoff = request.cutoff;
 		this.modifications = [];// this.generateModifications();
 		this.modifications = new Array(this.sequence.length + 2).fill(undefined).map((e, i) =>{
 			return {
@@ -103,11 +96,11 @@ Annotation = class Annotation {
 		});
 	}
 	generateModifications(){
-			let n_term = this.modification.filter(e => {return e.index ==-1});
-			let c_term = this.modification.filter(e => {return e.index ==this.sequence.length + 1});
+		let n_term = this.modification.filter(e => {return e.index ==-1});
+		let c_term = this.modification.filter(e => {return e.index ==this.sequence.length + 1});
 		return n_term.concat(c_term);
 
-/*
+		/*
 			return(
 				{"mass": this.AminoAcids[e],
 					"modification": {
@@ -118,12 +111,13 @@ Annotation = class Annotation {
 					"name": e
 				});
 				*/
-//		var n_term = this.modification.filter((e) =>{e.index ===-1});
-		console.log(this.modification);
+		//		var n_term = this.modification.filter((e) =>{e.index ===-1});
 		var seq_part = this.aminoAcids.map((el) =>{return el.modification}) ;
 		return this.allMassOffset.concat(seq_part);
 
 	}
+	
+
 	fakeAPI(){
 		return{
 			tolerance: this.tolerance,
@@ -153,33 +147,39 @@ Annotation = class Annotation {
 		return json.toleranceType === 'ppm';
 	}
 	annotatePeaks(){
-      var spectrum_1 = this.peakData; // we search through experimental data
-      spectrum_1.map((el) =>{
-	      el["matchedFeatures"] = [];
-	      el["percentBasePeak"] = el["intensity"] *100;
-	      el["sn"] = null;
-	      return(el);
-      })
-      // var spectrum_1 = answer; // we search in the calculated values
-      const sorter_asc_mz = binary.my_sorter('mz', 'asc');
-      var compare_ppmF = binary.compare_ppm_FACTORY('mz');
-      var spectrum_1 = spectrum_1.sort(sorter_asc_mz);
-	  const bla = this.response["fragments"].map((el) =>{ // el are calculated frags
-	      const a = binary.getClosestValues_spec2(spectrum_1, el.mz); //peak in exp // is a reference
-	      var is_inside = compare_ppmF(a, el, 20); // TODO correct here?
+		var spectrum_1 = this.peakData; // we search through experimental data
+		spectrum_1.map((el) =>{
+			el["matchedFeatures"] = [];
+			el["percentBasePeak"] = el["intensity"] *100;
+			el["sn"] = null;
+			return(el);
+		})
+		// var spectrum_1 = answer; // we search in the calculated values
+		const sorter_asc_mz = binary.my_sorter('mz', 'asc');
+		var compare_ppmF = binary.compare_ppm_FACTORY('mz');
+		var spectrum_1 = spectrum_1.sort(sorter_asc_mz);
+		const bla = this.response["fragments"].map((el) =>{ // el are calculated frags
+			const a = binary.getClosestValues_spec2(spectrum_1, el.mz); //peak in exp // is a reference
+			var is_inside = compare_ppmF(a, el, this.tolerance); // TODO correct here?
 
-		  if(is_inside){
-			  a["matchedFeatures"].push({
-				 "feature": el,
-				 "massError": (a["mz"] -el["mz"]) / el["mz"] * Math.pow(10, 6) // https://github.com/coongroup/IPSA/blob/0b5125a8923d1a1897b61c53390164e7e7c5d356/support/php/NegativeModeAnnotateEntireFile.php#L898
+			if(is_inside){
+				a["matchedFeatures"].push({
+					"feature": el,
+					"massError": (a["mz"] -el["mz"]) / el["mz"] * Math.pow(10, 6) // https://github.com/coongroup/IPSA/blob/0b5125a8923d1a1897b61c53390164e7e7c5d356/support/php/NegativeModeAnnotateEntireFile.php#L898
 
-			  });
-			return(a)
-		  }
+				});
+				return(a)
+			}
 
 
-	  }).filter((el) =>{return el !== undefined});
-	return(spectrum_1);
+		}).filter((el) =>{return el !== undefined});
+		spectrum_1 = spectrum_1.map((el) => {
+			if (el["percentBasePeak"] <= this.cutoff){
+				el["matchedFeatures"] = [];
+			}
+			return el;
+		});
+		return(spectrum_1);
 
 	}
 	generateAminoAcids(sequence, mods){
@@ -325,7 +325,53 @@ Annotation = class Annotation {
 
 exports.Annotation = Annotation;
 
-},{"./binary":3}],2:[function(require,module,exports){
+},{"./binary":4}],2:[function(require,module,exports){
+
+const binary = require('./binary');
+const measures = require('./measures');
+Comparator = class Comparator {
+	constructor(spectrum_1, spectrum_2, matching_tolerance = 10){
+		this.spectrum_1 = spectrum_1;
+		this.spectrum_2 = spectrum_2;
+		this.matching_tolerance = matching_tolerance;
+		let binarySpectrum_1 = binary.binary_search_spectrum(this.spectrum_1, this.spectrum_2); 
+		let binarySpectrum_2 = binary.binary_search_spectrum(this.spectrum_2, this.spectrum_1);  
+		 binarySpectrum_1 = binary.selectMostIntensePeak(binarySpectrum_1);
+		    binarySpectrum_2 = binary.selectMostIntensePeak(binarySpectrum_2);
+		this.merged_spectrum = binary.full_merge(binarySpectrum_1, binarySpectrum_2); 
+
+	}
+	calculate_scores1(merged_data){
+		let binarySpectrum = {};
+		    binarySpectrum["intensity_1"] = merged_data.map(function(x){
+			          return x.intensity_1
+			        });
+		    binarySpectrum["intensity_2"] = merged_data.map(function(x){
+			          return x.intensity_2
+			        });
+		var result = {};
+		var spectral_angle = measures.ipsa_helper["comparison"]["spectral_angle"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+		var pearson_correlation = measures.ipsa_helper["comparison"]["pearson_correlation"](binarySpectrum["intensity_1"], binarySpectrum["intensity_2"]);
+		result["sa"] = Math.round(spectral_angle * 100) / 100;
+		result["corr"] = Math.round(pearson_correlation * 100) / 100;
+		return result;
+	}
+	calculate_scores(){
+		let result = {};
+		result["full"] = this.calculate_scores1(this.merged_spectrum);
+		let sided_merge = this.merged_spectrum.filter((e) =>{return e.id_1 !==-1});
+		result["spec1"] = this.calculate_scores1(sided_merge);
+		 sided_merge = this.merged_spectrum.filter((e) =>{return e.id_2 !==-1});
+		result["spec2"] = this.calculate_scores1(sided_merge);
+
+
+		return result;
+
+	}
+
+}
+
+},{"./binary":4,"./measures":5}],3:[function(require,module,exports){
 UsiResponse = class UsiResponse {
   constructor(type) {
     this.type = type;
@@ -369,7 +415,7 @@ UsiResponse = class UsiResponse {
         this.precursorCharge = response.charge;
         this.aMz = JSON.parse(response.ms2peaks).map((a) => (a[0]));
         this.aInt = JSON.parse(response.ms2peaks).map((a) => (a[0]));
-	break;
+        break;
       default:
         //
         break;
@@ -380,7 +426,7 @@ UsiResponse = class UsiResponse {
 // exports.UsiResponse = UsiResponse;
 module.exports = { UsiResponse };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 const _ = require('lodash');
 // EXAMPLE BINNED SPECTRA
 //
@@ -446,7 +492,6 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
   }));
   const non_duplicated_merged_spectrum = _.uniqBy(mergedSpectrum, 'id');
 
-
   let splice_non_matched = non_duplicated_merged_spectrum.filter((x) => (x.id_1 === -1) || (x.id_2 === -1));
   const splice_matched = non_duplicated_merged_spectrum.filter((x) => (x.id_1 !== -1) && (x.id_2 !== -1));
 
@@ -455,7 +500,7 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
     intensity_1: peakObj.intensity_1,
     mz_1: peakObj.mz_1,
     id_2: -1,
-    intensity_2: -1,
+    intensity_2: 0,
     mz_2: -1,
 
   })), 'id_1');
@@ -464,7 +509,7 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
     intensity_2: peakObj.intensity_2,
     mz_2: peakObj.mz_2,
     id_1: -1,
-    intensity_1: -1,
+    intensity_1: 0,
     mz_1: -1,
 
   })), 'id_2');
@@ -472,10 +517,8 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
     .concat(spliced_matched_add2)
     .concat(splice_non_matched);
 
-
   // remove the -1 stuff for external
   const non_duplicated_merged_spectrum_without_non_matching = splice_matched;
-
 
   let grp1 = groupBy(non_duplicated_merged_spectrum_without_non_matching, 'id_1');
   // with entries -> every entry is a array
@@ -483,9 +526,7 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
   let grp2 = groupBy(grp1, 'id_2');
   grp2 = Object.values(grp2).map((objPeak) => objPeak.reduce((prev, current) => (prev.intensity_1 + prev.intensity_2 > current.intensity_1 + current.intensity_2 ? prev : current), {}));
 
-
   grp2 = grp2.concat(splice_non_matched);
-
 
   grp1 = groupBy(grp2, 'id_1');
   // return grp1["5"];
@@ -580,13 +621,12 @@ const getClosestValues_spec2_FACTORY = function (selection) {
   };
 };
 
-
 const selectMostIntensePeak = function (mergedSpectrum) {
   return mergedSpectrum.map((peakObj) => {
     if (peakObj.id_1.length === 0) {
       var mostIntense	= {
         mz: -1,
-        intensity: -1,
+        intensity: 0,
         id: -1,
       };
     } else {
@@ -638,7 +678,6 @@ const my_sorter = function (attribute, type) {
   };
 };
 
-
 /*
  *peak 1 is always reference (we assume the bottom/predicted one
  * checking for smaller or greater not equal case
@@ -684,7 +723,6 @@ const extract_mzs = function (prev, peak) {
   return (prev);
 };
 
-
 /**
  * solves question of specrum_2 is how much part of 1
  */
@@ -713,7 +751,6 @@ const binary_search_spectrum = function (spectrum_1, spectrum_2) {
   return (spectrum_2);
 };
 
-
 const binary_full_merge = function (spectrum_1, spectrum_2) {
   merge1 = binary_search_spectrum(spectrum_1, spectrum_2);
   merge2 = binary_search_spectrum(spectrum_2, spectrum_1);
@@ -738,7 +775,412 @@ exports.selectMostIntensePeak = selectMostIntensePeak;
 exports.groupBy = groupBy;
 exports.full_merge = full_merge;
 
-},{"lodash":4}],4:[function(require,module,exports){
+},{"lodash":6}],5:[function(require,module,exports){
+// https://github.com/OpenMS/OpenMS/blob/5a70018d9e03ce32e64fcbb1c985b7a1256efc7a/src/tests/class_tests/openms/data/PILISSequenceDB_DFPIANGER_1.dta
+
+const _ = require('lodash');
+
+spectrum = [{ mz: 1019.74, intensity: 1 },
+  { mz: 326.1, intensity: 122095.0 },
+  //	{"mz":339.9, "intensity": 111771.0},
+  { mz: 326.1, intensity: 111771.0 },
+  { mz: 351.1, intensity: 60817.0 },
+  { mz: 354.1, intensity: 94638.0 },
+  { mz: 358.3, intensity: 69098.0 },
+  { mz: 361.3, intensity: 96982.0 },
+  { mz: 368.0, intensity: 80302.0 },
+  { mz: 382.3, intensity: 50097.0 },
+  { mz: 395.9, intensity: 92585.0 },
+  { mz: 414.5, intensity: 53422.0 },
+  { mz: 419.8, intensity: 31275.0 },
+  { mz: 436.2, intensity: 72376.0 },
+  { mz: 440.3, intensity: 105213.0 },
+  { mz: 442.3, intensity: 65712.0 },
+  { mz: 447.4, intensity: 50161.0 },
+  { mz: 453.1, intensity: 45756.0 },
+  { mz: 457.0, intensity: 35569.0 },
+  { mz: 458.4, intensity: 301294.0 },
+  { mz: 459.2, intensity: 55526.0 },
+  { mz: 465.2, intensity: 66318.0 },
+  { mz: 467.1, intensity: 139167.0 },
+  { mz: 473.3, intensity: 110864.0 },
+  { mz: 475.5, intensity: 172539.0 },
+  { mz: 477.3, intensity: 27454.0 },
+  { mz: 486.2, intensity: 43478.0 },
+  { mz: 491.7, intensity: 19983.0 },
+  { mz: 493.5, intensity: 73178.0 },
+  { mz: 494.1, intensity: 56540.0 },
+  { mz: 499.0, intensity: 64971.0 },
+  { mz: 506.1, intensity: 45588.0 },
+  { mz: 510.2, intensity: 54341.0 },
+  { mz: 512.0, intensity: 76225.0 },
+  { mz: 515.1, intensity: 27438.0 },
+  { mz: 520.4, intensity: 53385.0 },
+  { mz: 522.2, intensity: 51700.0 },
+  { mz: 529.4, intensity: 60836.0 },
+  { mz: 531.0, intensity: 24524.0 },
+  { mz: 540.1, intensity: 44815.0 },
+  { mz: 544.1, intensity: 43420.0 },
+  { mz: 546.4, intensity: 215804.0 },
+  { mz: 548.2, intensity: 51372.0 },
+  { mz: 554.0, intensity: 143092.0 },
+  { mz: 555.2, intensity: 60423.0 },
+  { mz: 556.5, intensity: 38914.0 },
+  { mz: 557.3, intensity: 81474.0 },
+  { mz: 564.2, intensity: 173913.0 },
+  { mz: 564.3, intensity: 79074.0 },
+  { mz: 565.4, intensity: 88793.0 },
+  { mz: 566.3, intensity: 147328.0 },
+  { mz: 567.1, intensity: 30076.0 },
+  { mz: 582.1, intensity: 125159.0 },
+  { mz: 582.7, intensity: 109298.0 },
+  { mz: 583.4, intensity: 38742.0 },
+  { mz: 599.1, intensity: 63273.0 },
+  { mz: 605.5, intensity: 41375.0 },
+  { mz: 613.2, intensity: 73690.0 },
+  { mz: 617.5, intensity: 45434.0 },
+  { mz: 623.1, intensity: 35836.0 },
+  { mz: 625.9, intensity: 56543.0 },
+  { mz: 634.4, intensity: 74273.0 },
+  { mz: 642.2, intensity: 77360.0 },
+  { mz: 646.3, intensity: 58459.0 },
+  { mz: 659.2, intensity: 76760.0 },
+  { mz: 661.9, intensity: 47952.0 },
+  { mz: 679.9, intensity: 67439.0 },
+  { mz: 684.9, intensity: 85950.0 },
+  { mz: 688.5, intensity: 79347.0 },
+  { mz: 694.2, intensity: 50504.0 },
+  { mz: 696.4, intensity: 367308.0 },
+  { mz: 697.6, intensity: 111032.0 },
+  { mz: 705.5, intensity: 104236.0 },
+  { mz: 712.2, intensity: 58222.0 },
+  { mz: 714.2, intensity: 73175.0 },
+  { mz: 722.5, intensity: 232657.0 },
+  { mz: 729.9, intensity: 135740.0 },
+  { mz: 739.3, intensity: 326151.0 },
+  { mz: 746.5, intensity: 66717.0 },
+  { mz: 756.5, intensity: 981763.0 },
+  { mz: 757.5, intensity: 410536.0 },
+  { mz: 758.5, intensity: 23965.0 },
+  { mz: 763.0, intensity: 46178.0 },
+  { mz: 775.3, intensity: 30680.0 },
+  { mz: 781.6, intensity: 69481.0 },
+  { mz: 794.6, intensity: 68750.0 },
+  { mz: 799.4, intensity: 88883.0 },
+  { mz: 814.2, intensity: 39893.0 },
+  { mz: 819.7, intensity: 25447.0 },
+  { mz: 823.3, intensity: 47790.0 },
+  { mz: 826.0, intensity: 28343.0 },
+  { mz: 827.3, intensity: 116169.0 },
+  { mz: 834.3, intensity: 39037.0 },
+  { mz: 843.5, intensity: 112391.0 },
+  { mz: 844.6, intensity: 136926.0 },
+  { mz: 858.7, intensity: 79794.0 },
+  { mz: 862.6, intensity: 29511.0 },
+  { mz: 867.5, intensity: 31673.0 },
+  { mz: 869.3, intensity: 35571.0 },
+  { mz: 872.2, intensity: 63264.0 },
+  { mz: 879.7, intensity: 55058.0 },
+  { mz: 885.8, intensity: 1078052.0 },
+  { mz: 887.5, intensity: 495926.0 },
+  { mz: 895.5, intensity: 83799.0 },
+  { mz: 902.7, intensity: 95492.0 },
+  { mz: 902.8, intensity: 206175.0 },
+  { mz: 903.5, intensity: 30389248.0 },
+  { mz: 903.6, intensity: 28900096.0 },
+  { mz: 904.5, intensity: 11919616.0 },
+  { mz: 904.6, intensity: 10542080.0 },
+  { mz: 905.5, intensity: 4662656.0 },
+  { mz: 915.3, intensity: 46839.0 },
+  { mz: 954.6, intensity: 55270.0 },
+  { mz: 956.0, intensity: 45890.0 },
+  { mz: 956.8, intensity: 96771.0 },
+  { mz: 957.2, intensity: 196543.0 },
+  { mz: 958.3, intensity: 34320.0 },
+  { mz: 958.4, intensity: 67905.0 },
+  { mz: 960.0, intensity: 88021.0 },
+  { mz: 960.7, intensity: 139949.0 },
+  { mz: 964.9, intensity: 81616.0 },
+  { mz: 967.2, intensity: 38213.0 },
+  { mz: 973.2, intensity: 36065.0 },
+  { mz: 974.4, intensity: 34597.0 },
+  { mz: 975.8, intensity: 264639.0 },
+  { mz: 976.6, intensity: 51444.0 },
+  { mz: 977.4, intensity: 132478.0 },
+  { mz: 983.7, intensity: 49895.0 },
+  { mz: 984.4, intensity: 501645.0 }];
+
+// bin distiance of openMS
+// we expect already binned data (avging summed intensity for same m/z bin)
+spectrum_1 = spectrum;
+// spectrum_1 = spectrum_1.filter((x, i) => i < 10)
+// spectrum_2 =spectrum.copy()
+spectrum_2 = Object.assign([], spectrum_1);
+
+x = spectrum_2.pop();
+// spectrum_2 = spectrum_2.filter((x, i) => i < 10)
+// spectrum_2.push({"mz": 1002, "intensity": 1})
+
+extract_mz = function (prev, next) {
+  // maps [{"mz":v1, "intensity": v2}, ...]
+  // to {"v1" : v2, ....}
+  prev[next.mz] = next.intensity;
+  return (prev);
+};
+
+// let spectra_zipped = arr1.map((x, i) => [x, arr2[i]]);
+
+z = function (intensity_bin) {
+  return {
+    intensity_1: intensity_bin in spectrum_1_simple ? spectrum_1_simple[intensity_bin] : 0,
+    intensity_2: intensity_bin in spectrum_2_simple ? spectrum_2_simple[intensity_bin] : 0,
+  };
+};
+
+f2 = function (obj) {
+  obj['1_m_1'] = obj.intensity_1 * obj.intensity_1;
+  obj['2_m_2'] = obj.intensity_2 * obj.intensity_2;
+  obj['1_m_2'] = obj.intensity_1 * obj.intensity_2;
+  return (obj);
+};
+
+reducer = function (prev, next) {
+  prev.sum_1_m_1 += next['1_m_1'];
+  prev.sum_2_m_2 += next['2_m_2'];
+  prev.sum_1_m_2 += next['1_m_2'];
+  return (prev);
+};
+
+// if you have two unit vectors, the dot product is the cosine of the angle between them
+
+// /////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO
+// calculate binning
+// sum up
+//
+
+spectrum = [{ mz: 1019.74, intensity: 1 },
+  { mz: 326.1234, intensity: 122095.0 },
+  { mz: 326.1345, intensity: 111771.0 },
+  { mz: 326.1232, intensity: 60817.0 }];
+
+f_rounding = function (digits) {
+  return function (mz) {
+    return (Math.round(Math.pow(10, digits) * mz) / Math.pow(10, digits));
+  };
+};
+
+f_rounding_2 = f_rounding(2);
+f_rounding_3 = f_rounding(3);
+
+add_rounding = function (obj) {
+  obj.mz_round = f_rounding_3(obj.mz);
+  return (obj);
+};
+
+// EXAMPLE BINNED SPECTRA
+//
+const groupBy = function (data, key) { // `data` is an array of objects, `key` is the key (or property accessor) to group by
+  // reduce runs this anonymous function on each element of `data` (the `item` parameter,
+  //   // returning the `storage` parameter at the end
+  return data.reduce((storage, item) => {
+    //         // get the first instance of the key by which we're grouping
+    const group = item[key];
+    //
+    //                     // set `storage` for this instance of group to the outer scope (if not empty) or initialize it
+    storage[group] = storage[group] || [];
+    //
+    //                                 // add this item to its group within `storage`
+    storage[group].push(item);
+    //
+    //                                             // return the updated storage to the reduce function, which will then loop through the next
+    return storage;
+  }, {}); // {} is the initial value of the storage
+};
+
+grouped_spectrum = groupBy(spectrum.map(add_rounding), 'mz_round');
+
+test = [{ mz: 326.1234, intensity: 122095, mz_round: 326.123 },
+  { mz: 326.1232, intensity: 60817, mz_round: 326.123 }];
+
+sum_group = function (prev, next) {
+  prev.intensity += next.intensity;
+  return (prev);
+};
+
+// console.log(test.reduce(sum_group, container_summing))
+
+grouping_f = function (list_o) {
+  // / [ '326.123',
+  //  [ { mz: 326.1234, intensity: 122095, mz_round: 326.123 },
+  //      { mz: 326.1232, intensity: 60817, mz_round: 326.123 } ] ]
+  //
+  o_peak = list_o[1].reduce(sum_group, { intensity: 0 });
+  o_peak.mz = parseFloat(list_o[0]);
+  return (o_peak);
+};
+// second element of ever elment is the list of objects. first element just the grouping key
+
+reduce_aligned_spectrum_to_comparison_in = function (prev, next) {
+  prev.intensity_1.push(next.intensity_1);
+  prev.intensity_2.push(next.intensity_2);
+  return (prev);
+  // in: [{"intensity_1": 1, "intensity_2": 2}, .....]
+};
+
+const ipsa_helper = {
+  binning:
+	f = function (spectrum) {
+	  // summed spectrum by rounding and grouping
+	  // returns
+	  // [{"mz": v1, "intensity": v2}, ...]
+	  grouped_spectrum = groupBy(spectrum.map(add_rounding), 'mz_round');
+	  s = Object.entries(grouped_spectrum).map(grouping_f);
+	  return (s);
+	},
+  aligning(spectrum_1, spectrum_2) {
+    // aligns two spectra by exptracting "mz"
+    // creating unique set of mz ("exact case)
+
+    spectrum_1_simple = spectrum_1.reduce(extract_mz, {});
+    spectrum_2_simple = spectrum_2.reduce(extract_mz, {});
+    mz_value1 = spectrum_1.map((x) => x.mz);
+    mz_value2 = spectrum_2.map((x) => x.mz);
+    mz_set = [...new Set(mz_value1.concat(mz_value2))];
+    mz_set = mz_value2; // TODO explain why this is not the exact case
+
+    aligned_spectrum = mz_set.map(z); // fill with 0
+    aligned_spectrum2 = aligned_spectrum.reduce(reduce_aligned_spectrum_to_comparison_in, { intensity_1: [], intensity_2: [] });
+    return (aligned_spectrum2);
+    //		necessary_dot = aligned_spectrum.map(f2 ).reduce(reducer,{"sum_1_m_1" : 0, "sum_2_m_2": 0, "sum_1_m_2" : 0}
+  },
+  comparison: {
+    // https://brenocon.com/blog/2012/03/cosine-similarity-pearson-correlation-and-ols-coefficients/
+    // All functions in here must comply to
+    // spectrum_1_intensity = [....]
+    // spectrum_2_intensity = [....]
+    dot_product(spectrum_1, spectrum_2) {
+      let dot_help = 0;
+      let a = 0;
+      let norm_a = 0;
+      let b = 0;
+      let norm_b = 0;
+      // norm_2 (x)	sqrt (sum |xi|2 )
+      for (n = 0; n < spectrum_1.length; n++) {
+        a += Math.pow(spectrum_1[n], 2);
+        b += Math.pow(spectrum_2[n], 2);
+      }
+      norm_a = Math.sqrt(a);
+      norm_b = Math.sqrt(b);
+      for (n = 0; n < spectrum_1.length; n++) {
+        // we normalize the vector in here elementwise
+        dot_help += (spectrum_1[n] / norm_a) * (spectrum_2[n] / norm_b);
+      }
+      return (dot_help);
+    },
+    spectral_angle(spectrum_1, spectrum_2) {
+      let dot_help = 0;
+      let a = 0;
+      let norm_a = 0;
+      let b = 0;
+      let norm_b = 0;
+      // norm_2 (x)	sqrt (sum |xi|2 )
+      for (n = 0; n < spectrum_1.length; n++) {
+        a += Math.pow(spectrum_1[n], 2);
+        b += Math.pow(spectrum_2[n], 2);
+      }
+      norm_a = Math.sqrt(a);
+      norm_b = Math.sqrt(b);
+      for (n = 0; n < spectrum_1.length; n++) {
+        // we normalize the vector in here elementwise
+        dot_help += (spectrum_1[n] / norm_a) * (spectrum_2[n] / norm_b);
+      }
+      if (isNaN(dot_help)) {
+        return (0);
+      }
+      return (1 - 2 * Math.acos(dot_help) / Math.PI);
+    },
+    euclidean_distance(spectrum_1, spectrum_2) {
+      let rangesum = 0;
+      let sum = 0;
+      let n;
+      for (n = 0; n < spectrum_1.length; n++) {
+        sum += Math.pow(spectrum_1[n] - spectrum_2[n], 2);
+        const values = [spectrum_1[n], spectrum_2[n]];
+        rangesum += Math.pow(Math.max(...values), 2);
+      }
+      return (1 - Math.sqrt(sum / rangesum));
+    },
+    bray_curtis_distance(spectrum_1, spectrum_2) {
+      let difference = 0;
+      let sum = 0;
+      let n;
+      for (n = 0; n < spectrum_1.length; n++) {
+        difference += Math.abs(spectrum_1[n] - spectrum_2[n]);
+        sum += Math.abs(spectrum_1[n] + spectrum_2[n]);
+      }
+      return (1 - (difference / sum));
+    },
+    pearson_correlation(spectrum_1, spectrum_2) {
+      let a = 0;
+      let norm_a = 0;
+      let b = 0;
+      let norm_b = 0;
+      
+      // norm_2 (x)	sqrt (sum |xi|2 )
+      for (let n = 0; n < spectrum_1.length; n++) {
+        a += Math.pow(spectrum_1[n], 2);
+        b += Math.pow(spectrum_2[n], 2);
+      }
+      norm_a = Math.sqrt(a);
+      norm_b = Math.sqrt(b);
+
+      for (let n = 0; n < spectrum_1.length; n++) {
+        	spectrum_1[n] = spectrum_1[n] / norm_a;
+        	spectrum_2[n] = spectrum_2[n] / norm_a;
+      }
+
+      let xsum = 0;
+      const xavg = spectrum_1.reduce((a, b) => a + b, 0) / spectrum_1.length;
+      let ysum = 0;
+      const yavg = spectrum_2.reduce((a, b) => a + b, 0) / spectrum_2.length;
+      let sum = 0;
+      let n;
+      for (n = 0; n < spectrum_1.length; n++) {
+        sum += (spectrum_1[n] - xavg) * (spectrum_2[n] - yavg);
+        xsum += Math.pow((spectrum_1[n] - xavg), 2);
+        ysum += Math.pow((spectrum_2[n] - yavg), 2);
+      }
+      // return (sum / Math.sqrt(xsum * ysum));
+      let result =  (0.5 *( 1 + (sum / Math.sqrt(xsum * ysum))));
+
+      return isNaN(result)? 1 : result;
+
+    },
+  },
+
+};
+// will return function f(ary1) => ary2
+const regressionThroughZero = function (ary1, ary2) {
+  const maxAry1 = ary1.reduce((prev, current) => ((prev > current) ? prev : current)); // returns object
+  const maxAry2 = ary2.reduce((prev, current) => ((prev > current) ? prev : current)); // returns object
+
+  nominator = _.zip(ary1, ary2)
+    .map((x) => x[0] / maxAry1 * x[1] / maxAry2)
+    .reduce((prev, current) => prev + current, 0);
+
+  const denominator = ary1
+    .map((x) => x / maxAry1 * x / maxAry1)
+    .reduce((prev, current) => prev + current, 0);
+
+  return nominator / denominator;
+};
+
+exports.ipsa_helper = ipsa_helper;
+exports.regressionThroughZero = regressionThroughZero;
+
+},{"lodash":6}],6:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -17903,4 +18345,4 @@ exports.full_merge = full_merge;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[2,1]);
+},{}]},{},[3,1,2]);
