@@ -466,9 +466,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
-    var abc = $http.get(aUrls["jpost"] + "mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3");
-    var def = $http.get(aUrls["peptideatlas"] + "mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2");
-    usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
+    var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
 
     reference.resolved = $http.get(url)
       .then( function(response) {
@@ -489,7 +487,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         } else {
           $scope.peptideBottom.sequence = seq;
           $scope.peptideBottom.precursorCharge = charge;
-          $scope.peptideBottom.charge = charge - 1;
+          $scope.peptideBottom.charge = charge;
           $scope.dbBottom.items = mzs.map(
             (x,i) => {
               return {mZ: x, intensity: ints[i]};
@@ -609,7 +607,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.getScores = function(spec1, spec2){
     comparator = new Comparator(spec1, spec2);
     scoresO = comparator.calculate_scores();
-    console.log(comparator.calculate_scores());
 
     $scope.scoreBottom(scoresO.spec2);
     $scope.scoreTop(scoresO.spec1);
@@ -652,7 +649,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
           $scope.annotatedResults = response.data;
           const annotation1 = new Annotation($scope.submittedDataTop.data);
-          console.log(annotation1.fakeAPI());
           $scope.annotatedResults = annotation1.fakeAPI();
 
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
@@ -660,7 +656,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
               $scope.annotatedResultsBottom = responseBottom.data;
               const annotation = new Annotation($scope.submittedDataBottom.data);
-            console.log(annotation.fakeAPI());
               $scope.annotatedResultsBottom = annotation.fakeAPI();
 
               check = function(spectrum){
@@ -1030,7 +1025,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   
 
   switch(USIsInitialCount) {
-    case "top":
+    case "top": 
       $scope.processUSI(true,true, true);
       $scope.peptideBottom.api = 'Prosit';
       $scope.peptideBottom.hideCE=false;
@@ -1051,8 +1046,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       setTimeout( function () {$scope.processReference(true, true)},3000);
       break;
     case "both":
-      $scope.processUSI(true,false,true);
-      $scope.processUSI(false,false,true);
+      $scope.processUSI(false,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
+      $scope.processUSI(true,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
+  //    setTimeout( function () {$scope.processUSI(false, false, false)},3000); //topSpectrum, auto
+//      setTimeout( function () {$scope.processReference(false, true)},1000); //topSpectrum, auto
+   //   setTimeout( function () {$scope.processReference(true, true)},2000);
       break;
     default:
       break;

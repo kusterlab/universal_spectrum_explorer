@@ -23,7 +23,6 @@
     <script src="support/js/internal/controllers.js"></script>
     <script src="support/js/internal/IPSA.js"></script>
     <script src="support/js/internal/bundle.js"></script>
-    <script src="support/js/internal/bundle123.js"></script>
     <script src="support/js/external/d3-tip.js"></script>
     <script src="support/js/internal/EuBIC2020/api.js"></script>
     <script src="support/js/internal/EuBIC2020/measures.js"></script>
@@ -47,7 +46,13 @@
       </div>
       <ul class="nav navbar-nav">
         <li class="divider-vertical"></li>
-        <li class="active"><a href="https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2">Example for comparison between exp. and predicted spectra</a></li>
+        <li class="active"><a href="https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usi_origin=pride">Example (Pride)</a></li>
+        <li class="divider-vertical"></li>
+        <li class><a href="https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3&usi_origin=jpost">Example (jPOST)</a></li>
+        <li class="divider-vertical"></li>
+        <li class><a href="https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas">Example (PeptideAtlas)</a></li>
+        <li class="divider-vertical"></li>
+        <li class><a href="https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas&usibottom=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usibottom_origin=pride">Example (Comparison)</a></li>
        <!-- <li class="divider-vertical"></li>
         <li>
             <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
@@ -64,8 +69,8 @@
       <div id = "gray-overlay">
         <div ng-controller="MasterCtrl">
           <div class="row">
-            <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
-            <a class="github-button" href="https://github.com/kusterlab/ipsa/issues" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue kusterlab/ipsa on GitHub">Issue</a>
+            <a class="github-button" href="https://github.com/kusterlab/universal_spectrum_explorer" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/universal_spectrum_explorer on GitHub">Star</a>
+            <a class="github-button" href="https://github.com/kusterlab/universal_spectrum_explorer/issues" data-icon="octicon-issue-opened" aria-label="Issue kusterlab/universal_spectrum_explorer on GitHub">Issue</a>
           </div>
           <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
             <span class="progress" >

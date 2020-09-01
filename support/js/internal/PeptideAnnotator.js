@@ -34,11 +34,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     fragmentMin: 1,
     fragmentMax: 1,
     usi: $scope.getUrlVars().usi,
+    usi_origin: $scope.getUrlVars().usi_origin,
     ce: 30,
     api: '',
     hideUSI: true,
     hideCE: true ,
-    usiOriginTop : 'pride'
+    usiOriginTop: $scope.getUrlVars().usi_origin
   };
 
   $scope.peptideBottom = {
@@ -52,7 +53,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     api: '',
     hideUSI: true,
     hideCE: true,
-    usiOriginBottom: 'pride'
+    usiOriginBottom: $scope.getUrlVars().usibottom_origin
   };
 
 
