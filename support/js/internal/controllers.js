@@ -932,29 +932,27 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
       var label = aPlotData.label[i];
 
-      if (label) {
-        var type = $scope.getFragmentType(label);
-        var number = $scope.getFragmentNumber(label);
-        var mods = $scope.getFragmentModifications(type, number, topSpectrum);
-        mods = $scope.formatReturnedModsForDownload(mods, topSpectrum);
-        var neutralLoss = aPlotData.neutralLosses[i];
+        var type = label?  $scope.getFragmentType(label) : "";
+        var number = label? $scope.getFragmentNumber(label) : "";
+        var mods = label?  $scope.getFragmentModifications(type, number, topSpectrum) :"";
+        mods = label?  $scope.formatReturnedModsForDownload(mods, topSpectrum) :"";
+        var neutralLoss = label?  aPlotData.neutralLosses[i] :"";
         var mz = aPlotData.x[i];
         var charge = "";
         if (sSettings == "+") {
-          charge = aPlotData.labelCharge[i];
+          charge = label?  aPlotData.labelCharge[i] :"";
         } else if (sSettings == "-") {
-          charge = "-" + aPlotData.labelCharge[i];
+          charge = label?  "-" + aPlotData.labelCharge[i] :"";
         }
         var intensity = aPlotData.y[i];
-        var theoMz =  aPlotData.theoMz[i];
-        var error = aPlotData.massError[i];
+        var theoMz =  label?  aPlotData.theoMz[i] :"";
+        var error = label?  aPlotData.massError[i] :"";
         var percentBasePeak = aPlotData.percentBasePeak[i];
         var percentTIC = intensity / aPlotData.TIC;
 
         row += type + "," + number + "," + mods + ", " + neutralLoss + "," + charge + "," + intensity + "," +  d3.format("0.4f")(mz) + "," +  d3.format("0.4f")(theoMz) + "," +
           d3.format("0.4f")(error) + "," + d3.format("0.2f")(percentBasePeak) + "%," + d3.format("0.2%")(percentTIC);
         fragmentRows.push(row);
-      }
     };
 
     return fragmentRows;
