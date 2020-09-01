@@ -332,7 +332,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
    */
   var tip = d3.tip()
     .attr('class', 'd3-tip')
-    .offset([-20, 0]);
+    .offset([0, 0]);
 
   /**
    * @description Set ionization mode to positive by default
@@ -2072,6 +2072,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           });
 
           // show the tooltip
+          tip.direction("n");
           tip.show();
         });
 
@@ -2098,6 +2099,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           });
 
           // show the tooltip
+          tip.direction("s");
           tip.show();
         });
 
@@ -2536,10 +2538,14 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               + "<strong>Theoretical</strong><strong style='font-style:italic;'> m/z:</strong> <span style='color:red'>" + d3.format(",.4f")(d.theoMz) + " </span><br>";
           });
           // show the tooltip
+          tip.direction("e");
+          tip.offset([0,0]);
           tip.show();
 
           // highlight all related fragment information on other plots
           var labelObj = scope.plotContainer.selectAll(".barlabel").filter(function (e, j) { 
+            //TODO correct id highlighting
+
             return i === j;
           });
           // make the label a little bigger
