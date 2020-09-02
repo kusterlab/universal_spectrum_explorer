@@ -605,7 +605,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.getScores = function(spec1, spec2){
-    comparator = new Comparator(spec1, spec2);
+	  console.log($scope.cutoffs);
+    comparator = new Comparator(spec1, spec2, $scope.cutoffs.compToleranceType, $scope.cutoffs.compTolerance);
     scoresO = comparator.calculate_scores();
 
     $scope.scoreBottom(scoresO.spec2);
