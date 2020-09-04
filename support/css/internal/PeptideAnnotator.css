@@ -202,6 +202,17 @@ body {
   font-weight: 400;
   font-size: 17px;
 }
+.precursorstatscategoryBottom {
+  font-family: Montserrat, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.precursorstatsdataBottom {
+  font-family: Montserrat, sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+}
 
 .zeroline {
   stroke-dasharray: 10, 5;
