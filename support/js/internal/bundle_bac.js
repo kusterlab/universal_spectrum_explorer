@@ -23,14 +23,11 @@ Annotation = class Annotation {
 	this.C_TERMINUS = this.ChemistryConstants.O + this.ChemistryConstants.H;
 this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 	this.A_ION_TERMINUS = this.B_ION_TERMINUS - this.ChemistryConstants.C - this.ChemistryConstants.O; // wiki
-	this.C_ION_TERMINUS = (2+1) * this.ChemistryConstants.H + this.ChemistryConstants.N - this.ChemistryConstants.Proton; 
+	this.C_ION_TERMINUS = 4 * this.ChemistryConstants.H + this.ChemistryConstants.N - this.ChemistryConstants.Proton; 
 
 	this.Y_ION_TERMINUS = this.ChemistryConstants.Proton + 2* this.ChemistryConstants.H + this.ChemistryConstants.O;
 	this.X_ION_TERMINUS = this.ChemistryConstants.Proton + 2* this.ChemistryConstants.H + this.ChemistryConstants.O;
 	this.Y_ION_TERMINUS = this.ChemistryConstants.Proton + 2* this.ChemistryConstants.H + this.ChemistryConstants.O;
-	this.NH3 = this.ChemistryConstants.H * 3 + this.ChemistryConstants.N;
-	this.H2O = this.ChemistryConstants.H * 2 + this.ChemistryConstants.O;
-	this.CO2 = this.ChemistryConstants.O * 2 + this.ChemistryConstants.C;
 
 	this.AminoAcids = {
 		A: 71.037114,
@@ -62,21 +59,17 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		});
 		var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
 		let max_peak_intensity = max_peak.intensity;
-		this.base_peak = max_peak;
 		this.peakData = this.peakData.map((el) => {
 			let bac_intensity = el["intensity"];
-			el["intensity"] = el["intensity"] / max_peak_intensity * 100;
+			el["intensity"] = el["intensity"] / max_peak_intensity;
 			return(el);
 		})
 		this.response = {};
-		this.tolerance = request["tolerance"];
-		this.isPPM =  request.toleranceType === 'ppm';
-		this.fragmentTypes = request.fragmentTypes;
 		this.cutoff = request.cutoff;
 		this.mods = request.mods===undefined? []: request.mods;
 		this.aminoAcids = this.generateAminoAcids(
 			request["sequence"], this.mods);
-		this.precursorCharge = parseInt(request.precursorCharge);
+		this.precursorCharge = request.precursorCharge;
 		this.matchType = request.matchingType;
 		this.modification = request["mods"];
 		this.precursorMz = this.calculatePrecursorMZ(request.sequence, request.precursorCharge, this.mods);
@@ -90,7 +83,9 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		this.allMassOffset = this.calculateAllMassOffset(
 			this.mods);
 		this.response["modifications"] =this.mods;
+		this.tolerance = request["tolerance"];
 		this.sequence = request["sequence"];
+		this.isPPM =  request.toleranceType === 'ppm';
 		this.fragmentTypes = request.fragmentTypes;
 		this.peaks = this.annotatePeaks();
 		this.modifications = [];// this.generateModifications();
@@ -142,8 +137,8 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 			checkVar: null,
 			charge: this.precursorCharge,
 			basePeak: {
-				"mZ": this.base_peak.mz,
-				"intensity": 100
+				"mZ": 948.478501167,
+				"intensity": 1
 			},
 			annotationTime: null,
 			aminoAcids: this.aminoAcids
@@ -157,21 +152,18 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		var spectrum_1 = this.peakData; // we search through experimental data
 		spectrum_1.map((el) =>{
 			el["matchedFeatures"] = [];
-			el["percentBasePeak"] = el["intensity"] ;
+			el["percentBasePeak"] = el["intensity"] *100;
 			el["sn"] = null;
 			return(el);
 		})
 		// var spectrum_1 = answer; // we search in the calculated values
-		var sorter_asc_mz = binary.my_sorter('mz', 'asc');
-		var compare_F = binary.compare_FACTORY('mz', this.isPPM? "ppm" : "Da", 100);
-		spectrum_1.sort(sorter_asc_mz);
-
-
-		var bla = this.response["fragments"].map((el) =>{ // el are calculated frags
-			var a = binary.getClosestValues_spec2(spectrum_1, el.mz); //peak in exp // is a reference
-
-
+		const sorter_asc_mz = binary.my_sorter('mz', 'asc');
+		var compare_F = binary.compare_FACTORY('mz', this.isPPM? "ppm" : "Da", this.tolerance);
+		var spectrum_1 = spectrum_1.sort(sorter_asc_mz);
+		const bla = this.response["fragments"].map((el) =>{ // el are calculated frags
+			const a = binary.getClosestValues_spec2(spectrum_1, el.mz); //peak in exp // is a reference
 			var is_inside = compare_F(a, el); // TODO correct here?
+
 			if(is_inside){
 				a["matchedFeatures"].push({
 					"feature": el,
@@ -264,138 +256,68 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		const re = /[RKQN]/g;
 		return ((str || '').match(re) || []).length;
 	};
-
-	get_losses(){
-		let returnV = [];
-		if(this.fragmentTypes.NH3.selected){
-			returnV.push({
-				"mass": this.NH3,
-				"name": "-NH3"
-			});
-		};
-		if(this.fragmentTypes.H2O.selected){
-			returnV.push({
-				"mass": this.H2O,
-				"name": "-H2O"
-			});
-		};
-		if(this.fragmentTypes.CO2.selected){
-			returnV.push({
-				"mass": this.CO2,
-				"name": "-CO2"
-			});
-		};
-		return returnV;
-	}
-	get_fragmentTypes(){
-		// according to http://www.matrixscience.com/help/fragmentation_help.html
-		// [N] is the molecular mass of the neutral N-terminal group, [C] is the molecular mass of the neutral C-terminal group, [M] [M] is molecular mass of the neutral amino acid residues
-		var returnV = [];
-		if(this.fragmentTypes.x.selected){
-			returnV.push({
-				"reverse": true,
-				"type": "x",
-				"offset": this.C_TERMINUS + this.ChemistryConstants.O + this.ChemistryConstants.C - this.ChemistryConstants.H //  [C]+[M]+CO-H
-			});
-		};
-		if(this.fragmentTypes.y.selected){
-			returnV.push({
-				"reverse": true,
-				"type": "y",
-				"offset": this.C_TERMINUS + this.ChemistryConstants.H  // [C]+[M]+H
-			});
-		};
-		if(this.fragmentTypes.z.selected){
-			returnV.push({
-				"reverse": true,
-				"type": "z",
-				"offset": this.C_TERMINUS - 1*this.ChemistryConstants.H - this.ChemistryConstants.N // [C]+[M]-NH2 // changed this
-			});
-		};
-		if(this.fragmentTypes.a.selected){
-			returnV.push({
-				"reverse": false,
-				"type": "a",
-				"offset": this.N_TERMINUS - this.ChemistryConstants.C - this.ChemistryConstants.H - this.ChemistryConstants.O // [N]+[M]-CHO
-			});
-		};
-		if(this.fragmentTypes.b.selected){
-			returnV.push({
-				"reverse": false,
-				"type" : "b",
-				"offset": this.N_TERMINUS - this.ChemistryConstants.H // [N]+[M]-H
-			});
-		};
-		if(this.fragmentTypes.c.selected){
-			returnV.push({
-				"reverse": false,
-				"type": "c",
-				"offset": this.N_TERMINUS + this.ChemistryConstants.N + 2*this.ChemistryConstants.H // [N]+[M]+NH2
-			});
-		};
-		return returnV;
-	}
 	calculateFragments(sequence, precursorCharge, mods, fragmentTypes) {
 		/*
 		 * position starts at 1
 		 */
+		const ENABLE_x = fragmentTypes.x.selected;
+		const ENABLE_y = fragmentTypes.y.selected;
+		const ENABLE_z = fragmentTypes.z.selected;
+		const ENABLE_Z = fragmentTypes.Z.selected;
 
-
-		const fragTypes = this.get_fragmentTypes();
-		const losses = this.get_losses();
+		const ENABLE_a = fragmentTypes.a.selected;
+		const ENABLE_b = fragmentTypes.b.selected;
+		const ENABLE_c = fragmentTypes.c.selected;
+		const ENABLE_C = fragmentTypes.C.selected;
 
 
 		const lengthPeptide = sequence.length;
 
 		var fragments = [];
-		for (var c = 1; c <= precursorCharge; c++){
-			for (var i = 0; i < lengthPeptide - 1; i++) {
-				for (var frag of fragTypes){ // gives an int
-					let subPeptide = frag.reverse? sequence.slice(lengthPeptide -i-1, lengthPeptide): sequence.slice(0, i+ 1);
-					let subPeptideMass = this.calculateAminoSequenceMass(subPeptide);
-					let element = {};
+		for (let c = 1; c <= precursorCharge; c++){
+			for (let i = 0; i < lengthPeptide - 1; i++) {
+				if(ENABLE_b){
+					const subPeptide = sequence.slice(0, i + 1);
+					const subPeptideMass = this.calculateAminoSequenceMass(subPeptide);
+					var element = {};
 					element["sequence"] = subPeptide;
 					element["number"] = i + 1;
 					element["charge"] = c;
-					let allowedMods = frag.reverse? mods.filter((m) => { return m.index >= i + 1; }) : mods.filter((m) => {return m.index <= i+1;});
+					const allowedMods = mods.filter((m) => { return m.index <= i + 1; });
 					const modMass = this.calculateAllMassOffset(allowedMods);
 					element["mz"] = (subPeptideMass + 
 						modMass + 
-						frag.offset + 
-						(c) *this.ChemistryConstants.Proton ) /
+						this.B_ION_TERMINUS +  // already charged
+						(c-1) *this.ChemistryConstants.Proton ) /
 						c ;
-					var e = this.generateAminoAcids(subPeptide, allowedMods);
-					if (frag.reverse){
-						e = e.map((el) =>{
-							el.modification.site += lengthPeptide - i - 1;
-							return el;
-						});
-					}
-					element["subPeptide"] = e;
-					element["type"] = frag.type;
+					element["subPeptide"] = this.generateAminoAcids(subPeptide, allowedMods);
+					element["type"] = 'b';
 					element["neutralLoss"] = null;
 					fragments.push(element);
-
-					for (var loss of losses){ // gives an int
-						if(loss.name == "-NH3" && this.countNH3(subPeptide) > 0){
-						let more = {...element};
-						more["mz"] -= loss.mass / c;
-						more["neutralLoss"] = loss.name;
-						fragments.push(more);
-						}else if(loss.name == "-H2O" && this.countH20(subPeptide) > 0 ){
-						let more = {...element};
-						more["mz"] -= loss.mass / c;
-						more["neutralLoss"] = loss.name;
-						fragments.push(more);
-						}
-						else { // co2 always
-						let more = {...element};
-						more["mz"] -= loss.mass / c;
-						more["neutralLoss"] = loss.name;
-						fragments.push(more);
-						}
-					}
-
+				}
+				if(ENABLE_y){
+					const subPeptide = sequence.slice(lengthPeptide-i-1, lengthPeptide);
+					const subPeptideMass = this.calculateAminoSequenceMass(subPeptide);
+					var element = {};
+					element["sequence"] = subPeptide;
+					element["number"] = i + 1;
+					element["charge"] = c;
+					const allowedMods = mods.filter((m) => { return m.index >= i + 1; });
+					const modMass = this.calculateAllMassOffset(allowedMods);
+					element["mz"] = (subPeptideMass + 
+						modMass + 
+						this.Y_ION_TERMINUS +  // already charged
+						(c-1) *this.ChemistryConstants.Proton ) /
+						c ;
+					var e = this.generateAminoAcids(subPeptide, allowedMods);
+					e = e.map((el) =>{
+						el.modification.site += lengthPeptide - i - 1;
+						return el;
+					})
+					element["subPeptide"] = e;
+					element["type"] = 'y';
+					element["neutralLoss"] = null;
+					fragments.push(element);
 				}
 			}
 		}
@@ -781,11 +703,10 @@ compare_FACTORY = function (property, type="ppm", value=10) {
 		    break;
            default:
 		    error = 1;
-		    throw "Error";
 
 
     }
-    return (peak2.mz <= (peak1[property] + error) && peak2.mz >= (peak1[property] - error));
+    return (peak2.mz < peak1[property] + error && peak2.mz > peak1[property] - error);
   };
 };
 

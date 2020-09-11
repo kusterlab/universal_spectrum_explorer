@@ -543,13 +543,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     var charge = 0;
     if(topSpectrum){
       if ($scope.peptide.precursorCharge > 0) {
-        charge = $scope.peptide.charge + 1;
+        charge = parseInt($scope.peptide.charge) ;
       } else {
         charge = $scope.peptide.charge;
       }
     } else {
       if ($scope.peptideBottom.precursorCharge > 0) {
-        charge = $scope.peptideBottom.charge + 1;
+        charge = parseInt($scope.peptideBottom.charge) ;
       } else {
         charge = $scope.peptideBottom.charge;
       }
@@ -558,7 +558,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     // bind all data in froms to data
     var data = {
       "sequence" : topSpectrum ? $scope.peptide.sequence : $scope.peptideBottom.sequence,
-      "precursorCharge": topSpectrum ? $scope.peptide.precursorCharge : $scope.peptideBottom.precursorCharge,
+      "precursorCharge": topSpectrum ? parseInt($scope.peptide.precursorCharge) : parseInt($scope.peptideBottom.precursorCharge),
       "charge" : charge,
       "fragmentTypes" : $scope.checkModel,
       "peakData" : submitData,
@@ -1064,5 +1064,5 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     } , function(response2) {
     } 
     );
-  }, 3000);
+  }, 9000);
 }]);

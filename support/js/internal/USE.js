@@ -2364,12 +2364,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.zoomX.call(zoomX);
         scope.zoomY.call(zoomY);
         scope.zoomX2.call(zoomX);
+        scope.zoomY2.call(zoomY);
+
 
         // also pass zooming behavior onto the actual axis elements (ticks, axis labels ect.). Prevents unexpected page scrolling. 
         scope.container.selectAll("g.xAnnotation").call(zoomX);
         scope.container2.selectAll("g.xAnnotation").call(zoomX);
         scope.fragmentContainer.selectAll("g.xAnnotation").call(zoomX);
         scope.container.selectAll("g.yAnnotation").call(zoomY);
+        scope.container.selectAll("g.yAnnotation_2").call(zoomY);
 
         // append line objects to everything in plot data. these will later be generated when labels are dragged.
         // logic to draw annotation lines if elements are dragged

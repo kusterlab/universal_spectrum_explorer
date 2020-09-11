@@ -617,6 +617,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   }
 
   $scope.swapMatchingType = function() {
+    $scope.cutoffs.matchingType = "% Base Peak";/*
     if ($scope.cutoffs.matchingType === "Intensity") {
       $scope.cutoffs.matchingType = "% Base Peak";
       $scope.cutoffs.matchingCutoff = 0;
@@ -626,7 +627,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     } else {
       $scope.cutoffs.matchingType = "Intensity";
       $scope.cutoffs.matchingCutoff = 0;
-    }
+    }*/
   }
 
   $scope.swapCE = function() {
