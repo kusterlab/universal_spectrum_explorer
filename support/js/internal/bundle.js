@@ -163,7 +163,7 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		})
 		// var spectrum_1 = answer; // we search in the calculated values
 		var sorter_asc_mz = binary.my_sorter('mz', 'asc');
-		var compare_F = binary.compare_FACTORY('mz', this.isPPM? "ppm" : "Da", 100);
+		var compare_F = binary.compare_FACTORY('mz', this.isPPM? "ppm" : "Da", this.tolerance);
 		spectrum_1.sort(sorter_asc_mz);
 
 
@@ -1252,10 +1252,10 @@ const ipsa_helper = {
         xsum += Math.pow((spectrum_1[n] - xavg), 2);
         ysum += Math.pow((spectrum_2[n] - yavg), 2);
       }
-      // return (sum / Math.sqrt(xsum * ysum));
-      const result = (0.5 * (1 + (sum / Math.sqrt(xsum * ysum))));
+      const result =  (sum / Math.sqrt(xsum * ysum));
+      // const result = (0.5 * (1 + (sum / Math.sqrt(xsum * ysum))));
 
-      return isNaN(result) ? 1 : result;
+      return isNaN(result) ? 0 : result;
     },
   },
 

@@ -2452,6 +2452,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             error: yValues[i] * shiftFactor,
             color: yValues[i] ===0? "grey": "black",
             radius: 1.5 + intensityErrorScale(intensityError[i]) * 3,
+            intensityDifference: intensityError[i],
             topId: topId[i],
             bottomId: bottomId[i]
           });
@@ -2533,12 +2534,32 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           var formattedLabel = formatLabel(label, neutralLoss, charge, ionizationMode);
 
+          let fitting_top_peak = scope.plotContainer.selectAll(".bar")
+            .filter(function(e,j){
+              // return e.id == d.bottom_id;
+              return e.id == d.top_id;
+
+            });
+          let fitting_bottom_peak = scope.plotContainer2.selectAll(".bar")
+            .filter(function(e,j){
+               return e.id == d.bottom_id;
+
+            });
+              var bottom_mz =  (fitting_bottom_peak.data()[0]===undefined) ? "-" : d3.format(",.4f")(fitting_bottom_peak.data()[0].mz);
+              var top_mz =  (fitting_top_peak.data()[0]===undefined) ? "-" : d3.format(",.4f")(fitting_top_peak.data()[0].mz);
+              var intensity_diff =  ((fitting_top_peak.data()[0]===undefined) || ( fitting_bottom_peak.data()[0]===undefined)) ? "-" : Math.abs(d3.format(",.4f")((fitting_top_peak.data()[0].percentBasePeak - fitting_bottom_peak.data()[0].percentBasePeak) ));
+
+
+          fitting_top_peak.style("stroke", "black").style("width", 6);
+          fitting_bottom_peak.style("stroke", "black").style("width", 6);
+          console.log(d);
           // build the internal tooltip html
           tip.html(function () {
-            return "<strong>Fragment:</strong> <span style='color:red'>" + formattedLabel + " </span><br><br>"
-              + "<strong>Mass Error:</strong> <span style='color:red'>" + d3.format(".4f")(d.error) + "</span><br><br>"
-              + "<strong>Observed</strong><strong style='font-style:italic;'> m/z:</strong> <span style='color:red'>" + d3.format(",.4f")(d.mz) + " </span><br><br>"
-              + "<strong>Theoretical</strong><strong style='font-style:italic;'> m/z:</strong> <span style='color:red'>" + d3.format(",.4f")(d.theoMz) + " </span><br>";
+            return ""
+              + "<strong>Mass Error(ppm):</strong> <span style='color:red'>" + d3.format(".4f")(d.error) + "</span><br><br>"
+              + "<strong>Top</strong><strong style='font-style:italic;'> m/z:</strong> <span style='color:red'>" + top_mz + " </span><br><br>"
+              + "<strong>Bottom</strong><strong style='font-style:italic;'> m/z:</strong> <span style='color:red'>" + bottom_mz + " </span><br><br>"
+              + "<strong>Intensity difference(%)</strong>:</strong> <span style='color:red'>" + intensity_diff + " </span><br>";
           });
           // show the tooltip
           tip.direction("e");
@@ -2615,6 +2636,20 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           // turn all text elements back to black
           scope.titleContainer.selectAll("text").data(sequence).style("fill", "black").style("stroke", "none");
           scope.titleContainerBottom.selectAll("text").data(sequenceBottom).style("fill", "black").style("stroke", "none");
+          let fitting_top_peak = scope.plotContainer.selectAll(".bar")
+            .filter(function(e,j){
+              // return e.id == d.bottom_id;
+              return e.id == d.top_id;
+
+            });
+          let fitting_bottom_peak = scope.plotContainer2.selectAll(".bar")
+            .filter(function(e,j){
+               return e.id == d.bottom_id;
+
+            });
+
+          fitting_top_peak.style("stroke", "none").style("width", (d)=>{return d.width});
+          fitting_bottom_peak.style("stroke", "none").style("width", (d)=>{return d.width});
 
           // return the barlabel back to 0
           var labelObj = scope.plotContainer.selectAll(".barlabel").filter(function (e, j) { 

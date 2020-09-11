@@ -388,7 +388,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       case 'Prosit':
         query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString]};
         url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
-        reference.resolved = $http.post(url, query)
+        return $http.post(url, query)
           .then( function(response2) {
             let rv = response2.data[0]
             let maxFragmentIonCharge = iCh;
@@ -420,7 +420,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         break;
       case 'ProteomeTools':
         url = "https://www.proteomicsdb.org/logic/api/getReferenceSpectrum.xsjs?sequence=" + sSeq + "&charge=" + iPreCh + "&mods=" + modString;
-        reference.resolved = $http.get(url, "")
+        return $http.get(url, "")
           .then( function(response2) {
             var res2 = response2.data;
             var spec = getClosestCESpectrum(res2, parseInt(iCE, 10));
@@ -468,7 +468,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
     var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
 
-    reference.resolved = $http.get(url)
+    return $http.get(url)
       .then( function(response) {
         usi.parseData(response.data);
         var mzs = usi.aMz;
@@ -1025,44 +1025,49 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
   switch(USIsInitialCount) {
     case "top": 
-      $scope.processUSI(true,true, true);
+      var promise0 = $scope.processUSI(true,true, true);
       $scope.peptideBottom.api = 'Prosit';
       $scope.peptideBottom.hideCE=false;
 
-      $scope.abc = Promise.all([$scope.promiseTop.resolved])
+      var promise2 = Promise.all([promise0])
         .then((values) => {
           if ( values[0] ){
-            $scope.processReference(false, true);
+            return $scope.processReference(false, true);
           }
         });
       break;
     case "bottom":
-      $scope.processUSI(false,true);
-      setTimeout(function(){
+      var promise0 = $scope.processUSI(false,true);
         $scope.peptide.api = 'Prosit';
         $scope.peptide.hideCE=false;
-      },2000);
-      setTimeout( function () {$scope.processReference(true, true)},3000);
+      var promise2 = Promise.all([promise0])
+        .then((values) => {
+          if ( values[0] ){
+            return $scope.processReference(false, true);
+          }
+        });
       break;
     case "both":
-      $scope.processUSI(false,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
-      $scope.processUSI(true,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
+      var promise0 = $scope.processUSI(false,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
+      var promise1 = $scope.processUSI(true,false,true); //1st argument: topspectrum 2nd argument: fillBothSequences 3rd argument: auto
+      var promise2 = Promise.all([promise0, promise1]);
   //    setTimeout( function () {$scope.processUSI(false, false, false)},3000); //topSpectrum, auto
 //      setTimeout( function () {$scope.processReference(false, true)},1000); //topSpectrum, auto
    //   setTimeout( function () {$scope.processReference(true, true)},2000);
       break;
     default:
+      $scope.busy.isProcessing = false;
       break;
   }
   
-  setTimeout((xxxx) => {
-  let abc2 = Promise.all([$scope.promiseTop.resolved, $scope.promiseBottom.resolved])
+  Promise.all([promise2])
     .then( (values) => {
-      if(d3.sum(values) === 2) {
+      if(values[0] !== undefined){
+        $scope.busy.isProcessing = true;
         $scope.processData();
       }
     } , function(response2) {
+      console.log("why");
     } 
     );
-  }, 9000);
 }]);
