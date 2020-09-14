@@ -605,7 +605,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.getScores = function(spec1, spec2){
-	  console.log($scope.cutoffs);
     comparator = new Comparator(spec1, spec2, $scope.cutoffs.compToleranceType, $scope.cutoffs.compTolerance);
     scoresO = comparator.calculate_scores();
 
@@ -1067,7 +1066,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         $scope.processData();
       }
     } , function(response2) {
-      console.log("why");
     } 
     );
 }]);

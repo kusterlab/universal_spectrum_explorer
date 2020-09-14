@@ -416,7 +416,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.modObjectBottom = {};
 
   $scope.renderTable = function (topSpectrum = true) {
-    console.log('Renderiiiiiiing');
     if(topSpectrum) {
       //setTimeout(function(x) {$scope.handsonTableInstance.render(); console.log("Render Top")}, 100);
     } else {
@@ -808,7 +807,6 @@ myApp.controller('PeptideCtrl', function ($scope) {
 
 myApp.controller('HotCtrlTop', function ($scope) {
       $scope.afterInit = function() {
-        console.log('AfterInitTop');
         $scope.handsonTableInstance = this;
       };
 
@@ -825,7 +823,6 @@ myApp.controller('HotCtrlBottom', function ($scope) {
 
 
       $scope.afterInitBottom = function() {
-        console.log('AfterInitBottom');
         setTimeout(function(x){$scope.handsonTableInstanceBottom = this;}, 1000);
       };
 
@@ -845,8 +842,6 @@ myApp.directive("handsontabletest", function() {
     controller: function($scope, $element, $attrs, $transclude, $log) {
 
       $scope.afterInit = function() {
-        console.log('AfterInitTop');
-        console.log(this);
         $scope.handsonTableInstance = this;
       };
 

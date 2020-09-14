@@ -1087,7 +1087,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       // draws the elements contained in the annotated mass spectrum
       scope.drawAnnotation();
       // draws the elements contained in the mass error scatterplot. 
-      scope.drawMassError();
+      var intensityError = scope.getIntensityError();
+      if (intensityError !== undefined){
+        scope.drawMassError();
+      }
     };
 
     /**
@@ -2055,7 +2058,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           .scaleExtent([1, 1000])
           .y(y2)
           .on("zoom", function() {
-            console.log("called");
             // define translation object to move svg elements from original to zoomed position on the svg
             
             var t = zoomY2.translate(); 
@@ -2440,7 +2442,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         yValues = scope.getMassError(), colors = scope.getColors(), settings = scope.getSettings(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges()
       sequence = scope.getSequence(), theoMz = scope.getTheoreticalMz(), neutralLosses = scope.getNeutralLosses(), sequenceBottom = scope.getSequenceBottom();
       var intensityError = scope.getIntensityError();
-      console.log(intensityError);
       var intensityErrorScale= d3.scale.linear().domain([d3.min(intensityError),d3.max(intensityError)]).range([0,1]);
       var bottomId = scope.getMassErrorBottomId();
       var topId = scope.getMassErrorTopId();
@@ -2603,7 +2604,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           fitting_top_peak.style("stroke", "black").style("width", 6);
           fitting_bottom_peak.style("stroke", "black").style("width", 6);
-          console.log(d);
           // build the internal tooltip html
           tip.html(function () {
             return ""
