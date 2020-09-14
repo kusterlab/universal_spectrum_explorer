@@ -542,7 +542,7 @@ var binarySearch = function (arr, target) {
   }
 };
 
-const full_merge = function (spec1_spec2, spec2_spec1) {
+full_merge = function (spec1_spec2, spec2_spec1) {
   // first swap labels
   spec2_spec1 = spec2_spec1.map((peakObj) => ({
     id_1: peakObj.id_2,
@@ -636,7 +636,7 @@ const full_merge = function (spec1_spec2, spec2_spec1) {
   // TODO: simplify to oneliner
 };
 
-const getClosestValues = function (a, x) {
+getClosestValues = function (a, x) {
   let lo = -1; let
     hi = a.length;
   while (hi - lo > 1) {
@@ -651,7 +651,7 @@ const getClosestValues = function (a, x) {
   return [a[lo], a[hi]];
 };
 
-const getClosestValues_specF = function (property) {
+getClosestValues_specF = function (property) {
   return function (a, x) {
     let lo = -1; let
       hi = a.length;
@@ -695,7 +695,7 @@ const getClosestValues_spec2_FACTORY = function (selection) {
   };
 };
 
-const selectMostIntensePeak = function (mergedSpectrum) {
+selectMostIntensePeak = function (mergedSpectrum) {
   return mergedSpectrum.map((peakObj) => {
     if (peakObj.id_1.length === 0) {
       var mostIntense	= {
@@ -826,7 +826,7 @@ const extract_mzs = function (prev, peak) {
 /**
  * solves question of specrum_2 is how much part of 1
  */
-const binary_search_spectrum = function (spectrum_1, spectrum_2, type="ppm", value=10) {
+binary_search_spectrum = function (spectrum_1, spectrum_2, type="ppm", value=10) {
   const sorter_asc_mz = my_sorter('mz', 'asc');
   spectrum_2 = spectrum_2.sort(sorter_asc_mz);
   spectrum_2 = spectrum_2.map((peak, i) => ({
@@ -851,7 +851,7 @@ const binary_search_spectrum = function (spectrum_1, spectrum_2, type="ppm", val
   return (spectrum_2);
 };
 
-const binary_full_merge = function (spectrum_1, spectrum_2) {
+binary_full_merge = function (spectrum_1, spectrum_2) {
   merge1 = binary_search_spectrum(spectrum_1, spectrum_2);
   merge2 = binary_search_spectrum(spectrum_2, spectrum_1);
   to_add_1 = merge2.intensity_1.filter((x, i) => x === 0);
@@ -18444,4 +18444,4 @@ exports.regressionThroughZero = regressionThroughZero;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[3,1,2]);
+},{}]},{},[3,1,5,4,2]);

@@ -573,8 +573,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
   $scope.mergeSpectra = function(sp1,sp2) {
 
-    var binarySpectrum_1 = binary_search_spectrum(sp1, sp2);
-    var binarySpectrum_2 = binary_search_spectrum(sp2, sp1);
+    var binarySpectrum_1 = binary_search_spectrum(sp1, sp2, $scope.cutoffs.toleranceType, $scope.cutoffs.tolerance);
+    var binarySpectrum_2 = binary_search_spectrum(sp2, sp1, $scope.cutoffs.toleranceType, $scope.cutoffs.tolerance);
     binarySpectrum_1 = selectMostIntensePeak(binarySpectrum_1);
     binarySpectrum_2 = selectMostIntensePeak(binarySpectrum_2);
     result = full_merge(binarySpectrum_1, binarySpectrum_2);
