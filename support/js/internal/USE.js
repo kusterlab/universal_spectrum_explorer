@@ -729,12 +729,14 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           width: 700,
           zoomFactor: 1.1,
           height: 180,
+          heightBottom: 40,
           margin: {
             top: 110,
             right: 15,
             bottom: 37,
             left: 60,
             zoomXHeight: 62,
+            zoomXHeightBottom: 40,
             yAxisLabelPadding: 70,
             xAxisLabelPadding: 20,
           },
@@ -920,10 +922,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("id", "xZoom2")
         .attr("fill", "none")
         .attr("x", "0")
-        .attr("y", options.annotation.height)
+        .attr("y", -options.annotation.margin.zoomXHeightBottom)
         .attr("pointer-events", "all")
         .attr('width', options.annotation.width)
-        .attr('height', options.annotation.margin.zoomXHeight);
+        .attr('height', options.annotation.heightBottom);
 
       // container to hold annotated spectrum
       scope.plotContainer = scope.container.append("g").attr("id", "annotationContainer");
@@ -2048,6 +2050,54 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               scope.drawLine(x, y, d);
             });
           });
+        // define zoom functionality on the y-axis
+        var zoomY2 = d3.behavior.zoom()
+          .scaleExtent([1, 1000])
+          .y(y2)
+          .on("zoom", function() {
+            console.log("called");
+            // define translation object to move svg elements from original to zoomed position on the svg
+            
+            var t = zoomY2.translate(); 
+            var maxY = d3.max(y2.range());
+
+            var ty = Math.max(Math.min(0, t[1]), options.annotation.height - maxY * zoomY2.scale());
+
+            // update translation to new coordinates.
+            zoomY2.translate([ t[0], ty ]);
+
+            // make sure y domain keeps min at 0;
+            y2.domain([y2.domain()[0], 0]);
+
+            // calling the y axis here seems to be necessary to get them to scale correctly. 
+            scope.container2.selectAll("g.yAnnotation").call(yAxis2);
+            //scope.container2.selectAll("g.yAnnotation").call(yAxis2);
+
+            // using the new scale, update the spectral peak rectangle heights
+            barDataset2.attr("y", function(d) {
+              // return y(d.percentBasePeak) ;
+              return y2(0);
+            }).attr("height", function(d) {
+              var height = -y2(d.percentBasePeak);
+              //var height = options.annotation.height - y2(d.percentBasePeak);
+              if (height < 0) {
+                height = 0;
+              }
+              return height;
+            });
+
+            // using the new scale, update the annotation label positions
+            labelDataset2.attr("y", function(d) {
+              // return (y(0) - 170 + options.annotation.height - y(d.percentBasePeak))  ;
+              //
+              return y2(0) -y2(d.percentBasePeak + yMax * 0.005) + 12;
+            });
+
+            // using the new scale, redraw the lines connecting the spectral peaks to annotation labels.
+            lineDataset2.forEach(function(d) {
+              scope.drawLine(x, y, d);
+            });
+          });
 
         // bind a mouseenter event to the rendered spectral peak to highlight the spectral feature and show a tooltip. 
         barDataset.on("mouseenter", function(d) {
@@ -2364,7 +2414,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.zoomX.call(zoomX);
         scope.zoomY.call(zoomY);
         scope.zoomX2.call(zoomX);
-        scope.zoomY2.call(zoomY);
+        scope.zoomY2.call(zoomY2);
 
 
         // also pass zooming behavior onto the actual axis elements (ticks, axis labels ect.). Prevents unexpected page scrolling. 
@@ -2372,7 +2422,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         scope.container2.selectAll("g.xAnnotation").call(zoomX);
         scope.fragmentContainer.selectAll("g.xAnnotation").call(zoomX);
         scope.container.selectAll("g.yAnnotation").call(zoomY);
-        scope.container.selectAll("g.yAnnotation_2").call(zoomY);
+        scope.container2.selectAll("g.yAnnotation").call(zoomY2);
 
         // append line objects to everything in plot data. these will later be generated when labels are dragged.
         // logic to draw annotation lines if elements are dragged
@@ -2548,6 +2598,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
               var bottom_mz =  (fitting_bottom_peak.data()[0]===undefined) ? "-" : d3.format(",.4f")(fitting_bottom_peak.data()[0].mz);
               var top_mz =  (fitting_top_peak.data()[0]===undefined) ? "-" : d3.format(",.4f")(fitting_top_peak.data()[0].mz);
               var intensity_diff =  ((fitting_top_peak.data()[0]===undefined) || ( fitting_bottom_peak.data()[0]===undefined)) ? "-" : Math.abs(d3.format(",.4f")((fitting_top_peak.data()[0].percentBasePeak - fitting_bottom_peak.data()[0].percentBasePeak) ));
+              var intensity_diff =  ((fitting_top_peak.data()[0]===undefined) || ( fitting_bottom_peak.data()[0]===undefined)) ? (fitting_top_peak.data()[0]===undefined ? d3.format(",.4f")(fitting_bottom_peak.data()[0].percentBasePeak) : d3.format(",.4f")(fitting_top_peak.data()[0].percentBasePeak)) : Math.abs(d3.format(",.4f")((fitting_top_peak.data()[0].percentBasePeak - fitting_bottom_peak.data()[0].percentBasePeak) ));
 
 
           fitting_top_peak.style("stroke", "black").style("width", 6);

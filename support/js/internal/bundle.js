@@ -1261,7 +1261,7 @@ const ipsa_helper = {
 
 };
 // will return function f(ary1) => ary2
-const regressionThroughZero = function (ary1, ary2) {
+regressionThroughZero = function (ary1, ary2) {
   const maxAry1 = ary1.reduce((prev, current) => ((prev > current) ? prev : current)); // returns object
   const maxAry2 = ary2.reduce((prev, current) => ((prev > current) ? prev : current)); // returns object
 
