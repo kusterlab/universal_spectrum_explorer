@@ -537,6 +537,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   };
 
   $scope.searchUSI = function(topSpectrum = true) {
+m1
     $scope.processUSI(topSpectrum);
   }
 

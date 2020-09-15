@@ -64,7 +64,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       usi: '',
       precursorMz: 609.77229,
       precursorCharge: $scope.peptideBottom.precursorCharge,
-      mods: populateMods()
+      mods: populateMods(),
+      origin: 'manual input'
     },
     peptide:
     {
@@ -74,6 +75,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       precursorCharge: $scope.peptide.precursorCharge,
       mods: populateMods(),
       usiOriginTop: 'pride',
+      origin: 'manual input'
     },
     settingsBottom:
     {
@@ -105,6 +107,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.min = 0;
 
   $scope.max = 100;
+
+  $scope.setOriginString = function(topSpectrum, sMessage){
+    if(topSpectrum){
+      $scope.peptide.origin = sMessage;
+    }else{
+      $scope.peptideBottom.origin = sMessage;
+    };
+  }
 
   $scope.randomize = function() {
     _.times(150, function(n) {
@@ -139,7 +149,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         sequence: returnedData.sequence,
         precursorMz: returnedData.precursorMz,
         precursorCharge: $scope.peptideBottom.precursorCharge,
-        mods: returnedData.modifications
+        mods: returnedData.modifications,
+        origin: $scope.peptideBottom.origin,
       };
 
     $scope.set.settingsBottom =
@@ -232,7 +243,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         sequence: returnedData.sequence,
         precursorMz: returnedData.precursorMz,
         precursorCharge: $scope.peptide.precursorCharge,
-        mods: returnedData.modifications
+        mods: returnedData.modifications,
+        origin: $scope.peptide.origin
+
       };
 
     $scope.set.settings =
@@ -410,6 +423,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               $scope.openModalConfirmation('The predicted Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
             $scope.busy.isProcessing = false;
+            $scope.setOriginString(topSpectrum, sApi + " CE: " + iCE);
             return (true);
           }, function(response2) {
             // if errors exist, alert user
@@ -443,6 +457,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
             $scope.busy.isProcessing = false;
+            $scope.setOriginString(topSpectrum, "ProteomeTools");
             return(true);
           }, function(response2) {
             // if errors exist, alert user
@@ -466,6 +481,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
+   
+    $scope.setOriginString(topSpectrum, sUsi);
     var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
 
     return $http.get(url)

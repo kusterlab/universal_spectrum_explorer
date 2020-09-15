@@ -628,6 +628,14 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       return scope.peptide.mods;
     };
 
+    scope.getModifications2 = function(topSpectrum) {
+      if(topSpectrum){
+      return scope.peptide.origin;
+      }else{
+        return scope.peptidebottom.origin;
+      }
+    };
+
     /**
      * @description The object defined in this method specifies the dimensions of the generated SVG. These can be edited to resize parts of the SVG. However, the perspective is forced into a 
      * 		viewbox so zooming on the page doesn't mess with rendering.
@@ -643,7 +651,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         svg: 
         {
           width: 700,
-          height: 725,
+          height: 750,
           margin: 
           {
             top: 10,
@@ -675,7 +683,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           width: 700,
           height: 50,
           margin: {
-            top: 725,
+            top: 745,
             right: 15,
             bottom: 0,
             left: 60,
@@ -716,11 +724,13 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             categoryPadding_3: 320,
             categoryPadding_4: 65,
             categoryPadding_5: 35,
+            categoryPadding_6: 15,
             dataPadding_1: -140,
             dataPadding_2: -40,
             dataPadding_3: 185,
             dataPadding_4: 40,
-            dataPadding_5: 40
+            dataPadding_5: 40,
+            dataPadding_6: 40
           },
           padding: .05
         },
@@ -731,7 +741,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           height: 180,
           heightBottom: 40,
           margin: {
-            top: 110,
+            top: 130,
             right: 15,
             bottom: 37,
             left: 60,
@@ -758,8 +768,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         },
         offsets:
         {
-          middleOffset: 350,
-          bottomOffset: 350
+          middleOffset: 375,
+          bottomOffset: 375
         }
 
       }, scope.options || { });
@@ -878,6 +888,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       // svg element to show correlation info about peptide
       scope.statisticsContainer = scope.svg.append("g").attr("id", "statisticsContainer");
       scope.statisticsContainerBottom = scope.svg.append("g").attr("id", "statisticsContainerBottom");
+
+      // svg element to show origin of spectrum
+      scope.originContainer = scope.svg.append("g").attr("id", "originContainer");
+      scope.originContainerBottom = scope.svg.append("g").attr("id", "originContainerBottom");
 
       // main svg container to hold spectrum annotations
       scope.container = scope.svg.append("g").attr("id", "topSpectrumContainer");
@@ -1048,6 +1062,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       scope.statisticsContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
       scope.statisticsContainerBottom.attr("transform", "translate(" + (options.statisticsBottom.margin.left + options.statisticsBottom.width / 2) + ", " + options.statisticsBottom.margin.top + ")");
 
+      scope.originContainer.attr("transform", "translate(" + (options.statistics.margin.left + options.statistics.width / 2) + ", " + options.statistics.margin.top + ")");
+      scope.originContainerBottom.attr("transform", "translate(" + (options.statisticsBottom.margin.left + options.statisticsBottom.width / 2) + ", " + options.statisticsBottom.margin.top + ")");
+
       // bind the clip path to the mass error chart
       scope.massErrorContainer.attr("clip-path", "url(#clippy2)");
 
@@ -1084,6 +1101,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       scope.drawPrecursorSummary();
       scope.drawCorrelationSummary();
       scope.drawCorrelationSummary(false);
+      scope.drawOriginSummary();
+      scope.drawOriginSummary(false);
       // draws the elements contained in the annotated mass spectrum
       scope.drawAnnotation();
       // draws the elements contained in the mass error scatterplot. 
@@ -1541,6 +1560,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       var statisticsData = [];
       statisticsData.push({ title: "SA: ", data: scoreGeneral + " (" + score + ")" });
       statisticsData.push({ title: "PCC: ", data: correlationGeneral + " (" + correlation + ")"});
+
+      
       if(topSpectrum){
         dataset = scope.statisticsContainer.selectAll(".precursorstatscategory").data(statisticsData);
         dataset.enter().append("text").attr("class", "precursorstatscategory");
@@ -1593,6 +1614,84 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       dataset.exit().remove();
     }
 
+    scope.drawOriginSummary = function (topSpectrum = true) {
+      console.log(scope.getModifications2());
+      var options = scope.getOptions(),
+        scoreGeneral = scope.score.sa,
+        score = topSpectrum ? scope.scoretop.sa : scope.scorebottom.sa,
+        stat_width = topSpectrum ?  options.statistics.width : options.statisticsBottom.width,
+        stat_mar_catpad1 =  topSpectrum ? options.statistics.margin.categoryPadding_1 : options.statisticsBottom.margin.categoryPadding_1,
+        stat_mar_catpad2 =  topSpectrum ? options.statistics.margin.categoryPadding_2 : options.statisticsBottom.margin.categoryPadding_2,
+        stat_mar_datpad1 =  topSpectrum ? options.statistics.margin.dataPadding_1 : options.statisticsBottom.margin.dataPadding_1,
+        stat_mar_datpad2 =  topSpectrum ? options.statistics.margin.dataPadding_2 : options.statisticsBottom.margin.dataPadding_2;
+
+      var statisticsData = [];
+      statisticsData.push({ title: "Origin: ", data: scope.getModifications2(topSpectrum)});
+
+      
+      if(topSpectrum){
+        dataset = scope.originContainer.selectAll(".origincategory").data(statisticsData);
+        dataset.enter().append("text").attr("class", "origincategory");
+      } else {
+        dataset = scope.originContainerBottom.selectAll(".origincategoryBottom").data(statisticsData);
+        dataset.enter().append("text").attr("class", "origincategoryBottom");
+      }
+/*
+      dataset.text(function (d) { return (d.title); })
+        .attr("opacity", 0)
+        .attr("transform", function (d, i) {
+          if (i == 0) {
+            return "translate(-" + (stat_width / 2 - 120) + ",50)";
+          } else if (i == 1) {
+            return "translate(-" + (stat_mar_catpad2 - 70)  + ",50)"
+          } else {
+            return "translate(" + (stat_width / 2 - stat_mar_catpad3) + ",50)";
+          }
+        }).attr("text-anchor", "start").transition().delay(function (d, i) {
+          return i * 450;
+        }).duration(1500).attr("opacity", 1);
+      //.style("font-size", "13px");
+
+      dataset.exit().remove();
+*/
+      // From line 1067 to 1086 we write the actual numerical data
+      if (topSpectrum) {
+        dataset = scope.originContainer.selectAll(".origindata").data(statisticsData);
+        dataset.enter().append("text").attr("class", "origindata origin");
+      } else {
+        dataset = scope.originContainerBottom.selectAll(".origindataBottom").data(statisticsData);
+        dataset.enter().append("text").attr("class", "origindataBottom origin");
+      }
+
+      dataset.text(function (d) { return (d.data); })
+        .attr("opacity", 0)
+        .attr("transform", function (d, i) {
+            return "translate(-" + 0 + ",40)";
+            return "translate(-" + (stat_width / 2 + stat_mar_datpad1 - 140) + ",50)";
+            // return "translate(-" + (stat_width / 2 + stat_mar_datpad1 -70) + ",50)";
+        }).attr("text-anchor", "middle").transition().delay(function (d, i) {
+          return i * 450;
+        }).duration(1500).attr("opacity", 1);
+/*
+      dataset.text(function (d) { return (d.data); })
+        .attr("opacity", 0)
+        .attr("transform", function (d, i) {
+          if (i == 0) {
+            return "translate(-" + (stat_width / 2 + stat_mar_datpad1 -70) + ",50)";
+          } else if (i == 1) {
+            //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
+            return "translate(" + (stat_mar_datpad2 +50) + ",50)";
+          } else {
+            return "translate(" + (stat_width / 2 - stat_mar_catpad3 + stat_mar_datpad3) + ",50)";
+          }
+        }).attr("text-anchor", "start").transition().delay(function (d, i) {
+          return i * 450;
+        }).duration(1500).attr("opacity", 1);
+*/
+
+      dataset.exit().remove();
+    }
+
     /**
      * @description Draws the text and statistics below the peptide sequence. Retrieves precursor mz, charge, and # fragmented bonds and displays it.
      */
@@ -1639,8 +1738,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",0)";
           } else if (i ==3) {
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4) + ",0)";
-          } else {
+          } else if (i==4){
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5) + ",0)";
+          } else {
+            return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_6) + ",0)";
           }
         }).attr("text-anchor", "start").transition().delay(function(d, i) {
           return i * 450;
@@ -1658,8 +1759,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_3) + ",0)";
           } else if (i ==3) {
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_4) + ",0)";
-          } else {
+          } else if (i == 4){
             return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_5) + ",0)";
+          } else {
+            return "translate(" + (options.statistics.width / 2 - options.statistics.margin.categoryPadding_6) + ",0)";
           }
         }).attr("text-anchor", "start").transition().delay(function(d, i) {
           return i * 450;
