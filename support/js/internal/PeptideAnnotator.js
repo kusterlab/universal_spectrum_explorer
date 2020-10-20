@@ -576,7 +576,7 @@ m1
       }
     }
   }
-
+  
   $scope.validateSequence = function(topSpectrum = true) {
     var regex = new RegExp("[AC-IK-NP-TVWY]", "i");
     var sSequence = topSpectrum ? $scope.peptide.sequence : $scope.peptideBottom.sequence;
@@ -586,14 +586,15 @@ m1
 
       if (!regex.exec(character)) {
         i--;
+          sSequence = sSequence.replace(character, "");
+        alert(character + " aaa is not a valid amino acid. Only the 20 canonical amino acids are supported.");
+      }
+    }
         if (topSpectrum) {
           $scope.peptide.sequence = sSequence.replace(character, "");
         } else {
           $scope.peptideBottom.sequence = sSequence.replace(character, "");
         }
-        alert(character + " is not a valid amino acid. Only the 20 canonical amino acids are supported.");
-      }
-    }
   }
 
   $scope.swapCompToleranceType = function() {
