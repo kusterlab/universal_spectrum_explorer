@@ -665,6 +665,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           delete response.data.fragments;
 
           $scope.annotatedResults = response.data;
+          console.log($scope.submittedDataTop.data);
+          if($scope.submittedDataTop.data.peakData.length ==0){
+            $scope.busy.isProcessing = false;
+            return;
+          }
           const annotation1 = new Annotation($scope.submittedDataTop.data);
           $scope.annotatedResults = annotation1.fakeAPI();
 
@@ -672,6 +677,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             .then( function(responseBottom) {
 
               $scope.annotatedResultsBottom = responseBottom.data;
+              if($scope.submittedDataBottom.data.peakData.length ==0){
+                $scope.busy.isProcessing = false;
+                return;
+              }
               const annotation = new Annotation($scope.submittedDataBottom.data);
               $scope.annotatedResultsBottom = annotation.fakeAPI();
 
