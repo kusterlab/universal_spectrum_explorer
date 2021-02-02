@@ -2148,7 +2148,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
             // using the new scale, update the annotation label positions
             labelDataset.attr("y", function(d) {
-              return y(d.y + yMax * .005);
+              return y(d.y + yMax * .005) - 5;
             });
 
             // using the new scale, redraw the lines connecting the spectral peaks to annotation labels.
@@ -2281,11 +2281,11 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         }).text(function(d) {
           return (d.label);
         }).attr("y", function(d) {
-          return y(yMax + yMax * options.annotation.padding);
+          return y(yMax + yMax * options.annotation.padding) ;
         }).attr('opacity', 0.0)
           .transition().delay(function(d, i) {return duration * i + 250}).duration(1000).ease("bounce")
           .attr("y", function(d) {
-            return y(d.percentBasePeak + yMax * .005);
+            return y(d.percentBasePeak + yMax * .005) - 5;
           }).attr('opacity', 1);
         // add the annotation labels and center them over annotated spectral peaks
         labelDataset2.attr("x", function(d) {
