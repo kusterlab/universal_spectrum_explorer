@@ -587,14 +587,15 @@ m1
       if (!regex.exec(character)) {
         i--;
           sSequence = sSequence.replace(character, "");
+        if (topSpectrum) {
+          $scope.peptide.sequence = sSequence;
+        } else {
+          $scope.peptideBottom.sequence = sSequence;
+        }
         alert(character + " aaa is not a valid amino acid. Only the 20 canonical amino acids are supported.");
       }
+        
     }
-        if (topSpectrum) {
-          $scope.peptide.sequence = sSequence.replace(character, "");
-        } else {
-          $scope.peptideBottom.sequence = sSequence.replace(character, "");
-        }
   }
 
   $scope.swapCompToleranceType = function() {

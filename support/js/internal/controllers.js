@@ -437,6 +437,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         return $http.get(url, "")
           .then( function(response2) {
             var res2 = response2.data;
+            console.log(res2);
             var spec = getClosestCESpectrum(res2, parseInt(iCE, 10));
             if (topSpectrum) {
               $scope.peptide.ce = spec.collissionEnergy;
@@ -691,11 +692,13 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 return spectrum;
               }
               }
-              response.data.peaks = check(response.data.peaks);
-              responseBottom.data.peaks = check(responseBottom.data.peaks);
+              //response.data.peaks = check(response.data.peaks);
+              //responseBottom.data.peaks = check(responseBottom.data.peaks);
+              let top = check($scope.annotatedResults.peaks);
+              let bottom = check($scope.annotatedResultsBottom.peaks);
               // linear regression
-              var mergedForRegression = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
-              var originalData = $scope.mergeSpectra(response.data.peaks, responseBottom.data.peaks);
+              var mergedForRegression = $scope.mergeSpectra(top, bottom);
+              var originalData = $scope.mergeSpectra(top, bottom);
 
               // remove non matches for linear fit
               mergedForRegression = mergedForRegression.filter((x) =>{return x.mz_1 !==-1 && x.mz_2!== -1});

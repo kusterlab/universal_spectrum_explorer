@@ -414,11 +414,12 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
     scope.getId = function() {
       
-      return scope.plotdata.id;
+       return scope.plotdata.id;
     };
 
     scope.getIdMirror = function() {
-      return scope.mirrorplotdata.id;
+      // return scope.mirrorplotdata.id;
+      return scope.plotdata.intensityErrorIdsBottom; 
     };
 
     /**
@@ -2607,8 +2608,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             color: yValues[i] ===0? "grey": "black",
             radius: 1.5 + intensityErrorScale(intensityError[i]) * 3,
             intensityDifference: intensityError[i],
-            topId: topId[i],
-            bottomId: bottomId[i]
+            topId: scope.getIntensityErrorIdsTop()[i], // no clue
+            bottomId: scope.getIntensityErrorIdsBottom()[i] // no clue
+            // topId: topId[i],
+            // bottomId: bottomId[i]
           });
         }
 
