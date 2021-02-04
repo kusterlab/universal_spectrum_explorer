@@ -1199,6 +1199,7 @@ const ipsa_helper = {
       if (isNaN(dot_help)) {
         return (0);
       }
+      dot_help = dot_help > 1 ? 1 : dot_help;
       return (1 - 2 * Math.acos(dot_help) / Math.PI);
     },
     euclidean_distance(spectrum_1, spectrum_2) {
@@ -1238,7 +1239,7 @@ const ipsa_helper = {
 
       for (let n = 0; n < spectrum_1.length; n++) {
         	spectrum_1[n] = spectrum_1[n] / norm_a;
-        	spectrum_2[n] = spectrum_2[n] / norm_a;
+        	spectrum_2[n] = spectrum_2[n] / norm_b;
       }
 
       let xsum = 0;
