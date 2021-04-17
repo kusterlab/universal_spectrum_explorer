@@ -184,7 +184,7 @@ body {
 .barlabel {
   font-family: Open Sans, sans-serif;
   text-anchor: middle;
-  font-size: 16px;
+  font-size: 12px;
 }
 
 .aminoacid {
@@ -194,34 +194,32 @@ body {
   dominant-baseline: central;
 }
 
-.precursorstatscategory {
+.precursorstatscategory,
+.origincategory,
+.origincategoryBottom {
   font-family: Montserrat, sans-serif;
   font-weight: 500;
-  font-size: 18px;
+  font-size: 12px;
 }
 
-.precursorstatsdata {
+.precursorstatsdata,
+.origindata.origin,
+.origindataBottom.origin
+{
   font-family: Montserrat, sans-serif;
   font-weight: 400;
-  font-size: 17px;
+  font-size: 12px;
 }
 .precursorstatscategoryBottom {
   font-family: Montserrat, sans-serif;
   font-weight: 500;
-  font-size: 18px;
-}
-
-.origin {
-  font-family: Montserrat, sans-serif;
-  font-weight: 500;
-  font-size: 10px;
-  text-anchor: middle;
+  font-size: 12px;
 }
 
 .precursorstatsdataBottom {
   font-family: Montserrat, sans-serif;
   font-weight: 400;
-  font-size: 17px;
+  font-size: 12px;
 }
 
 .zeroline {
@@ -245,9 +243,15 @@ body {
 .yLodLabel,
 .yAlleleLabel {
   font-family: Montserrat, sans-serif;
-  font-weight: 900;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 10px;
   text-anchor: middle;
+}
+
+.xAnnotation,
+.yAnnotation{
+  font-family: Montserrat, sans-serif;
+  font-size: 10px;
 }
 
 .xAnnotationLabel {
