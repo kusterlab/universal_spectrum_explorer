@@ -472,6 +472,15 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
+    console.log("hello");
+
+    f = function(x){
+    console.log("hello again");
+      p1 = $http.get("http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi=mzspec%3APXD000561%3AAdult_Frontalcortex_bRP_Elite_85_f09%3Ascan%3A17555%3AVLHPLEGAVVIIFK%2F2").then(function(response){
+        console.log(response);
+      });
+    }
+    f();
 
     var aUrls = {
       pride: 'https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=',
@@ -481,10 +490,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
-    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usiOriginBottom]) + sUsi;
+    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usibottom_origin]) + sUsi;
    
     $scope.setOriginString(topSpectrum, sUsi);
-    var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usiOriginBottom);
+    var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usibottom_origin);
 
     return $http.get(url)
       .then( function(response) {
@@ -659,6 +668,15 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
       $scope.submittedDataTop = $scope.prepareDataToProcess();
       $scope.submittedDataBottom = $scope.prepareDataToProcess(false);
+
+      urlObj = {};
+      urlObj["usi"] = $scope.peptide.usi;
+      urlObj["usi_origin"] = $scope.peptide.usi_origin;
+      urlObj["usibottom"] = $scope.peptideBottom.usi;
+      urlObj["usibottom_origin"] = $scope.peptideBottom.usibottom_origin;
+
+      $scope.setUrlVars(urlObj);
+
 
       // httpRequest to submit data to processing script.
       $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)

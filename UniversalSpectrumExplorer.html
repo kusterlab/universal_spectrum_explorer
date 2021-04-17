@@ -330,9 +330,9 @@
                                       <div class="col-md-12">
                                         <label>USI origin</label>
                                         <div class="btn-group">
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'pride'">PRIDE</label>
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usiOriginBottom" uib-btn-radio="'jpost'">jPOST</label>
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'pride'">PRIDE</label>
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
+                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'jpost'">jPOST</label>
                                         </div>
                                       </div>
                                     </div>
@@ -572,6 +572,7 @@
                                        scoretop="set.scoreTop" 
                                        scorebottom="set.scoreBottom" 
                                        score="set.score" 
+                                       height="550"
                                        class="content"></div>
                       <form role="form" ng-init="randomize()"></form>
                 </div> 

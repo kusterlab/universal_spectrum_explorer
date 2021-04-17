@@ -24,7 +24,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       settings: '=?',
       score: '=?',
       scoretop: '=?',
-      scorebottom: '=?'
+      scorebottom: '=?',
+      height: '=?'
     }
   };
 
@@ -652,10 +653,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         svg: 
         {
           width: 700,
-          height: 750,
+          height: scope.height,
           margin: 
           {
-            top: 10,
+            top: 0,
             right: 15,
             bottom: 35,
             left: 60
@@ -670,7 +671,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         interactiveTitle: 
         {
           width: 700,
-          height: 50,
+          height: scope.height * 6 / 100,
           margin: {
             top: 5,
             right: 15,
@@ -682,9 +683,9 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         interactiveTitleBottom: 
         {
           width: 700,
-          height: 50,
+          height: scope.height * 6 / 100,
           margin: {
-            top: 745,
+            top: scope.height - (scope.height * 6 / 100),
             right: 15,
             bottom: 0,
             left: 60,
@@ -694,19 +695,19 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         statistics: 
         {
           width: 700,
-          height: 30,
+          height: scope.height * 4 / 100,
           margin: {
-            top: 75,
+            top: scope.height * 10 / 100,
             right: 15,
-            bottom: 35,
+            bottom: 0,
             left: 60,
-            categoryPadding_2: 110,
-            categoryPadding_3: 320,
+            categoryPadding_2: 80,
+            categoryPadding_3: 220,
             categoryPadding_4: 65,
             categoryPadding_5: 35,
-            dataPadding_1: -140,
-            dataPadding_2: -40,
-            dataPadding_3: 185,
+            dataPadding_1: -100,
+            dataPadding_2: -20,
+            dataPadding_3: 125,
             dataPadding_4: 40,
             dataPadding_5: 40
           },
@@ -715,19 +716,19 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         statisticsBottom: 
         {
           width: 700,
-          height: 30,
+          height: scope.height * 4 / 100,
           margin: {
-            top: 695,
+            top: scope.height - (scope.height * 16 / 100),
             right: 15,
             bottom: 35,
             left: 60,
-            categoryPadding_2: 110,
+            categoryPadding_2: 80,
             categoryPadding_3: 320,
             categoryPadding_4: 65,
             categoryPadding_5: 35,
             categoryPadding_6: 15,
-            dataPadding_1: -140,
-            dataPadding_2: -40,
+            dataPadding_1: -100,
+            dataPadding_2: -20,
             dataPadding_3: 185,
             dataPadding_4: 40,
             dataPadding_5: 40,
@@ -739,15 +740,15 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         {
           width: 700,
           zoomFactor: 1.1,
-          height: 180,
-          heightBottom: 40,
+          height: scope.height * 18 / 100,
+          heightBottom: scope.height * 18 / 100,
           margin: {
-            top: 130,
+            top: scope.height * 20 / 100,
             right: 15,
-            bottom: 37,
+            bottom: 26,
             left: 60,
-            zoomXHeight: 62,
-            zoomXHeightBottom: 40,
+            zoomXHeight: 45,
+            zoomXHeightBottom: 30,
             yAxisLabelPadding: 70,
             xAxisLabelPadding: 20,
           },
@@ -756,7 +757,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         fragments:
         {
           width: 700,
-          height: 70,
+          height: scope.height * 9 /100,
           margin: {
             top: 552,
             right: 15,
@@ -769,8 +770,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         },
         offsets:
         {
-          middleOffset: 375,
-          bottomOffset: 375
+          middleOffset: scope.height * 47 / 100,
+          bottomOffset: scope.height * 42 / 100
         }
 
       }, scope.options || { });
@@ -910,7 +911,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", "0")
         .attr("pointer-events", "all")
         .attr('width', options.annotation.margin.left)
-        .attr('height', options.annotation.height);
+        .attr('height', options.annotation.height)
+        .style("cursor", "row-resize");
 
       // invisible rectangle on X axis used to catch zoom events
       scope.zoomX = scope.container.append("rect")
@@ -920,7 +922,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", options.annotation.height)
         .attr("pointer-events", "all")
         .attr('width', options.annotation.width)
-        .attr('height', options.annotation.margin.zoomXHeight);
+        .attr('height', options.annotation.margin.zoomXHeight)
+        .style("cursor", "col-resize");
 
       // invisible rectangle on Y axis used to catch zoom events
       scope.zoomY2 = scope.container2.append("rect")
@@ -930,7 +933,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", "0")
         .attr("pointer-events", "all")
         .attr('width', options.annotation.margin.left)
-        .attr('height', options.annotation.height);
+        .attr('height', options.annotation.height)
+        .style("cursor", "row-resize");
 
       // invisible rectangle on X axis used to catch zoom events
       scope.zoomX2 = scope.container2.append("rect")
@@ -940,7 +944,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", -options.annotation.margin.zoomXHeightBottom)
         .attr("pointer-events", "all")
         .attr('width', options.annotation.width)
-        .attr('height', options.annotation.heightBottom);
+        .attr('height', options.annotation.heightBottom)
+        .style("cursor", "col-resize");
 
       // container to hold annotated spectrum
       scope.plotContainer = scope.container.append("g").attr("id", "annotationContainer");
@@ -967,8 +972,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", 0 - options.annotation.margin.left)
         .attr("x", 0 - (options.annotation.height / 2))
         .attr("dy", "1em")
-        .text("Relative Abundance (%)")
-        .style("font-size", '13px');
+        .text("Relative Abundance (%)");
+//        .style("font-size", '13px');
 
       // place a clip mask over the annotated spectrum container to prevent svg elements from displaying out of the SVG when zooming. 
       scope.plotContainer.append("clipPath")
@@ -994,8 +999,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("y", 0 - options.annotation.margin.left)
         .attr("x", 0 - (options.annotation.height / 2 ))
         .attr("dy", "1em")
-        .text("Relative Abundance (%)")
-        .style("font-size", '13px');
+        .text("Relative Abundance (%)");
+      //  .style("font-size", '13px');
 
       //TODO check later
       // place a clip mask over the annotated spectrum container to prevent svg elements from displaying out of the SVG when zooming. 
@@ -1157,7 +1162,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
       // at a font size of 30, we can fit about 22 amino acids on the chart. This is a nice size for a peptide
       if (sequence.length < 22) {
-        fontSize = 30;
+        fontSize = 20;
 
         // this spacing factor was determined from trial and error using a font size of 30.
         spacingFactor = 0.041;
@@ -1368,7 +1373,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
       // at a font size of 30, we can fit about 22 amino acids on the chart. This is a nice size for a peptide
       if (sequence.length < 22) {
-        fontSize = 30;
+        fontSize = 20;
 
         // this spacing factor was determined from trial and error using a font size of 30.
         spacingFactor = 0.041;
@@ -1601,7 +1606,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("opacity", 0)
         .attr("transform", function (d, i) {
           if (i == 0) {
-            return "translate(-" + (stat_width / 2 + stat_mar_datpad1 -70) + ",25)";
+            return "translate(-" + (stat_width / 2 + stat_mar_datpad1 -100) + ",25)";
           } else if (i == 1) {
             //return "translate(-" + (options.statistics.margin.categoryPadding_2 + options.statistics.margin.dataPadding_2) + ",0)";
             return "translate(" + (stat_mar_datpad2 +50) + ",25)";
@@ -2047,7 +2052,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           }).attr("height", function(d) {
             return options.annotation.height - y(d.percentBasePeak);
           }).attr("y", function(d) {
-            return y(0) -180;
+            return y(0) -100 + 1;
           }).attr("fill", function(d) {
             return d.color;
           }).attr('opacity', 1).attr("align","right");
@@ -2617,7 +2622,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
 
         // give the y-axis a label based on the mass error unit
-        var massErrorLabel = scope.fragmentContainer.selectAll(".yAnnotationLabel").text("Error (" + massErrorLabel + ")").style('font-size', '13px');
+        var massErrorLabel = scope.fragmentContainer.selectAll(".yAnnotationLabel").text("Error (" + massErrorLabel + ")");
 
         // base transition delay on the number of elements visualized
         var delay = 1250/ plotData.length;

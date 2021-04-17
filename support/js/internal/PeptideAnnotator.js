@@ -20,6 +20,37 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     return vars;
   };
 
+  $scope.setUrlVars = function(mappedProperties) {
+    // schema
+    // https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3&usi_origin=jpost
+    // or
+    //
+    // usi 
+    // usi_origin
+    // usibottom
+    // usibottom_origin
+    // https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas&usibottom=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usibottom_origin=pride
+    string = "?";
+    console.log(mappedProperties);
+    firstKey = true;
+    for (let key in mappedProperties) {
+      if (["usi", "usi_origin", "usibottom", "usibottom_origin"].includes(key)){
+        if(typeof mappedProperties[key] != "undefined"){
+      if (!firstKey){
+        string+="&";
+      }
+      string+=key;
+      string+="=";
+      string+=mappedProperties[key];
+      string+="&";
+      firstKey = false;
+      }}
+    }
+    window.history.replaceState(null, null, string);
+    console.log("called");
+
+  };
+
   $scope.busy = {
     progress : 100,
     type : "progress-striped active",
@@ -53,7 +84,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     api: '',
     hideUSI: true,
     hideCE: true,
-    usiOriginBottom: $scope.getUrlVars().usibottom_origin
+    usibottom_origin: $scope.getUrlVars().usibottom_origin
   };
 
 
