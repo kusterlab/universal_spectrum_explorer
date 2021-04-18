@@ -34,7 +34,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     console.log(mappedProperties);
     firstKey = true;
     for (let key in mappedProperties) {
-      if (["usi", "usi_origin", "usibottom", "usibottom_origin"].includes(key)){
+      if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit"].includes(key)){
         if(typeof mappedProperties[key] != "undefined"){
       if (!firstKey){
         string+="&";
@@ -42,7 +42,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       string+=key;
       string+="=";
       string+=mappedProperties[key];
-      string+="&";
       firstKey = false;
       }}
     }
@@ -61,9 +60,9 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.peptide = {
     sequence: "TESTPEPTIDE",
     precursorCharge: 2,
-    charge: 1,
+    charge: 2,
     fragmentMin: 1,
-    fragmentMax: 1,
+    fragmentMax: 2,
     usi: $scope.getUrlVars().usi,
     usi_origin: $scope.getUrlVars().usi_origin,
     ce: 30,
@@ -76,9 +75,9 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.peptideBottom = {
     sequence: "TESTPEPTIDE",
     precursorCharge: 2,
-    charge: 1,
+    charge: 2,
     fragmentMin: 1,
-    fragmentMax: 1,
+    fragmentMax: 2,
     usi: $scope.getUrlVars().usibottom,
     ce: 30,
     api: '',
@@ -561,10 +560,10 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   $scope.cutoffs = {
     matchingCutoff: 0,
     matchingType: "% Base Peak",
-    toleranceType: "ppm",
-    tolerance: 10,
-    compToleranceType: "ppm",
-    compTolerance: 10
+    toleranceType: ["ppm", "Da"].includes($scope.getUrlVars().fragment_tol_unit) ? $scope.getUrlVars().fragment_tol_unit : "ppm",
+    tolerance: parseInt($scope.getUrlVars().fragment_tol) || 10,
+    compToleranceType:["ppm", "Da"].includes($scope.getUrlVars().matching_tol_unit) ? $scope.getUrlVars().matching_tol_unit : "ppm",
+    compTolerance: parseInt($scope.getUrlVars().matching_tol) || 10
   };
 
   $scope.searchUSI = function(topSpectrum = true) {

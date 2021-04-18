@@ -594,7 +594,19 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       "tolerance" : $scope.cutoffs.tolerance,
       "matchingType": $scope.cutoffs.matchingType,
       "cutoff": $scope.cutoffs.matchingCutoff
+/*
+      urlObj["usi"] = $scope.peptide.usi;
+      urlObj["usi_origin"] = $scope.peptide.usi_origin;
+      urlObj["usibottom"] = $scope.peptideBottom.usi;
+      urlObj["usibottom_origin"] = $scope.peptideBottom.usibottom_origin;
+      urlObj["fragment_tol"] = $scope.cutoffs.tolerance;
+      urlObj["fragment_tol_unit"] = $scope.cutoffs.toleranceType;
+      urlObj["matching_tol"] = $scope.cutoffs.compTolerance;
+      urlObj["matching_tol_unit"] = $scope.cutoffs.compToleranceType;
+      */
     };
+
+    console.log(data.mods);
     return {url: url, data: data};
   }
 
@@ -669,13 +681,20 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       $scope.submittedDataTop = $scope.prepareDataToProcess();
       $scope.submittedDataBottom = $scope.prepareDataToProcess(false);
 
+
       urlObj = {};
       urlObj["usi"] = $scope.peptide.usi;
       urlObj["usi_origin"] = $scope.peptide.usi_origin;
       urlObj["usibottom"] = $scope.peptideBottom.usi;
       urlObj["usibottom_origin"] = $scope.peptideBottom.usibottom_origin;
+      urlObj["fragment_tol"] = $scope.cutoffs.tolerance;
+      urlObj["fragment_tol_unit"] = $scope.cutoffs.toleranceType;
+      urlObj["matching_tol"] = $scope.cutoffs.compTolerance;
+      urlObj["matching_tol_unit"] = $scope.cutoffs.compToleranceType;
 
       $scope.setUrlVars(urlObj);
+      console.log($scope.cutoffs.tolerance);
+
 
 
       // httpRequest to submit data to processing script.
@@ -689,8 +708,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             $scope.busy.isProcessing = false;
             return;
           }
+          console.log($scope.submittedDataTop.data);
           const annotation1 = new Annotation($scope.submittedDataTop.data);
           $scope.annotatedResults = annotation1.fakeAPI();
+          console.log($scope.annotatedResults);
 
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
             .then( function(responseBottom) {
@@ -710,7 +731,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 return spectrum;
               }
               }
-              //response.data.peaks = check(response.data.peaks);
               //responseBottom.data.peaks = check(responseBottom.data.peaks);
               let top = check($scope.annotatedResults.peaks);
               let bottom = check($scope.annotatedResultsBottom.peaks);
@@ -762,7 +782,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 );
               $scope.plotDataBottom($scope.annotatedResultsBottom);
 
-              $scope.getScores(response.data.peaks, responseBottom.data.peaks);
+              $scope.getScores($scope.annotatedResults.peaks, $scope.annotatedResultsBottom.peaks);
               $scope.busy.isProcessing = false;
             }, function (response) {
               // if errors exist, alert user

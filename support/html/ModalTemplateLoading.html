@@ -1,0 +1,23 @@
+<div class="modal-header">
+  <h3 class="modal-title">Please wait!</h3>
+</div>
+
+<div class="modal-body">
+  <div class="row">
+		<div class="col-md-12">
+      <label>Data is being loaded. This message will disappear automatically.</label>
+
+      <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
+        <span class="progress" >
+          <uib-progressbar class="{{busy.type}}" value="busy.progress" type="success" max="100">
+            {{"Please wait... Loading"}}
+          </uib-progressbar>
+        </span>
+        {{busy.loaded}}
+      </div>
+		</div>
+  </div>
+</div>
+
+<div class="modal-footer">
+</div>

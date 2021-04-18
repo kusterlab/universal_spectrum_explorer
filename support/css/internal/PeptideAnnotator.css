@@ -6,6 +6,12 @@ img {
   padding-right: 40px;
 }
 
+.info_figure img{
+  max-height: 100px;
+      max-width: 90%;
+      max-height: 90%;
+}
+
 .navbar-default {
   background-color: #231d49;
   border-color: #534e72;
@@ -338,17 +344,24 @@ div.valid-data i {
 /* unvisited link */
 a:link {
   color: #1c9cbc;
+
 }
 
 /* visited link */
 a:visited {
   color: white;
+
 }
 
 /* mouse over link */
 a:hover {
   color: white;
 }
+
+.intro a{
+  text-decoration: underline;
+  color: black;
+  }
 
 .pull-right {
   float: right !important;

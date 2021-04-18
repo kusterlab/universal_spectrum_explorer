@@ -55,11 +55,28 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		Y: 163.06333,
 	};
 
-		this.peakData = request["peakData"].map((el, i) =>{
+		this.peakData = request["peakData"].sort(function(a,b){
+			return a.mZ < b.mZ
+		}).reduce((p,n) => {
+			if (p.length === 0) {
+				return(p.concat(n));
+			}
+
+			if (p[p.length - 1].mZ === n.mZ) {
+				var pp = p;
+				pp[pp.length - 1].intensity = pp[pp.length - 1].intensity + n.intensity;
+				return(pp);
+			} else {
+				return(p.concat(n));
+			}
+		}, []);
+
+		this.peakData = this.peakData.map((el, i) =>{
 			return {"mz": el["mZ"],
 				"intensity": el["intensity"],
 			}
 		});
+		this.fragmentTypes = request.fragmentTypes;
 		var max_peak = this.peakData.reduce((e,i)=>{ return e.intensity > i.intensity ? e : i});
 		let max_peak_intensity = max_peak.intensity;
 		this.base_peak = max_peak;
@@ -71,7 +88,6 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		this.response = {};
 		this.tolerance = request["tolerance"];
 		this.isPPM =  request.toleranceType === 'ppm';
-		this.fragmentTypes = request.fragmentTypes;
 		this.cutoff = request.cutoff;
 		this.mods = request.mods===undefined? []: request.mods;
 		this.aminoAcids = this.generateAminoAcids(
@@ -91,7 +107,6 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 			this.mods);
 		this.response["modifications"] =this.mods;
 		this.sequence = request["sequence"];
-		this.fragmentTypes = request.fragmentTypes;
 		this.peaks = this.annotatePeaks();
 		this.modifications = [];// this.generateModifications();
 		this.modifications = new Array(this.sequence.length + 2).fill(undefined).map((e, i) =>{
@@ -101,27 +116,6 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 				deltaMass: 0
 			}
 		});
-	}
-	generateModifications(){
-		let n_term = this.modification.filter(e => {return e.index ==-1});
-		let c_term = this.modification.filter(e => {return e.index ==this.sequence.length + 1});
-		return n_term.concat(c_term);
-
-		/*
-			return(
-				{"mass": this.AminoAcids[e],
-					"modification": {
-						"deltaElement": null,
-						"deltaMass": 0 + m,
-						"site": i 
-					},
-					"name": e
-				});
-				*/
-		//		var n_term = this.modification.filter((e) =>{e.index ===-1});
-		var seq_part = this.aminoAcids.map((el) =>{return el.modification}) ;
-		return this.allMassOffset.concat(seq_part);
-
 	}
 	
 
@@ -295,7 +289,7 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 			returnV.push({
 				"reverse": true,
 				"type": "x",
-				"offset": this.C_TERMINUS + this.ChemistryConstants.O + this.ChemistryConstants.C - this.ChemistryConstants.H //  [C]+[M]+CO-H
+				"offset": this.C_TERMINUS + this.ChemistryConstants.O + this.ChemistryConstants.C - this.ChemistryConstants.H * 0 //  [C]+[M]+CO-H
 			});
 		};
 		if(this.fragmentTypes.y.selected){
@@ -348,23 +342,23 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		const lengthPeptide = sequence.length;
 
 		var fragments = [];
-		for (var c = 1; c <= precursorCharge; c++){
+		for (var c = 1; c <= precursorCharge-1; c++){
 			for (var i = 0; i < lengthPeptide - 1; i++) {
 				for (var frag of fragTypes){ // gives an int
-					let subPeptide = frag.reverse? sequence.slice(lengthPeptide -i-1, lengthPeptide): sequence.slice(0, i+ 1);
-					let subPeptideMass = this.calculateAminoSequenceMass(subPeptide);
-					let element = {};
-					element["sequence"] = subPeptide;
+					var subPeptideSub = frag.reverse? sequence.slice(lengthPeptide -i-1, lengthPeptide): sequence.slice(0, i+ 1);
+					var subPeptideMass = this.calculateAminoSequenceMass(subPeptideSub);
+					var element = {};
+					element["sequence"] = subPeptideSub;
 					element["number"] = i + 1;
 					element["charge"] = c;
-					let allowedMods = frag.reverse? mods.filter((m) => { return m.index >= i + 1; }) : mods.filter((m) => {return m.index <= i+1;});
+					var allowedMods = frag.reverse? mods.filter((m) => { return m.index >= lengthPeptide -i -1; }) : mods.filter((m) => {return m.index < i+1;});
 					const modMass = this.calculateAllMassOffset(allowedMods);
 					element["mz"] = (subPeptideMass + 
 						modMass + 
 						frag.offset + 
 						(c) *this.ChemistryConstants.Proton ) /
 						c ;
-					var e = this.generateAminoAcids(subPeptide, allowedMods);
+					var e = this.generateAminoAcids(subPeptideSub, allowedMods);
 					if (frag.reverse){
 						e = e.map((el) =>{
 							el.modification.site += lengthPeptide - i - 1;
@@ -377,18 +371,18 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 					fragments.push(element);
 
 					for (var loss of losses){ // gives an int
-						if(loss.name == "-NH3" && this.countNH3(subPeptide) > 0){
+						if(loss.name == "-NH3" && this.countNH3(subPeptideSub) > 0){
 						let more = {...element};
 						more["mz"] -= loss.mass / c;
 						more["neutralLoss"] = loss.name;
 						fragments.push(more);
-						}else if(loss.name == "-H2O" && this.countH20(subPeptide) > 0 ){
+						}else if(loss.name == "-H2O" && this.countH20(subPeptideSub) > 0 ){
 						let more = {...element};
 						more["mz"] -= loss.mass / c;
 						more["neutralLoss"] = loss.name;
 						fragments.push(more);
 						}
-						else { // co2 always
+						else if(loss.name =="-CO2"){ // co2 always
 						let more = {...element};
 						more["mz"] -= loss.mass / c;
 						more["neutralLoss"] = loss.name;
@@ -398,6 +392,17 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 
 				}
 			}
+
+		}
+		for (var c = 1; c <= precursorCharge; c++){
+			var element = {};
+			element["charge"] = c;
+			element["isPrecursor"] = true;
+			element["type"] = "M";
+			element["mz"] = ( this.response["precursorMass"] + c * this.ChemistryConstants["Proton"] ) / c;
+			element["number"] = "+" + c + "H";
+			element["neutralLoss"] = "";
+			fragments.push(element);
 		}
 		return fragments;
 	}
@@ -668,7 +673,7 @@ getClosestValues_specF = function (property) {
   };
 };
 // x is a m/z value
-const getClosestValues_spec = function (a, x) {
+getClosestValues_spec = function (a, x) {
   let lo = -1; let
     hi = a.length;
   while (hi - lo > 1) {
@@ -683,7 +688,7 @@ const getClosestValues_spec = function (a, x) {
   return [a[lo], a[hi]];
 };
 
-const getClosestValues_spec2_FACTORY = function (selection) {
+getClosestValues_spec2_FACTORY = function (selection) {
   return function (a, x) {
     /*
 		 * ppm part
@@ -721,7 +726,7 @@ selectMostIntensePeak = function (mergedSpectrum) {
   });
 };
 
-const getClosestValues_spec2 = getClosestValues_spec2_FACTORY('mz');
+getClosestValues_spec2 = getClosestValues_spec2_FACTORY('mz');
 
 var binarySearch_spec = function (arr, target) {
   const midpoint = Math.floor(arr.length / 2);
@@ -740,7 +745,7 @@ var binarySearch_spec = function (arr, target) {
   }
 };
 
-const my_sorter = function (attribute, type) {
+my_sorter = function (attribute, type) {
   return function (peak1, peak2) {
     if (peak1[attribute] > peak2[attribute]) {
       return type === 'asc' ? 1 : -1;
@@ -794,7 +799,7 @@ exports.my_sorter = my_sorter;
 exports.compare_ppm_FACTORY = compare_ppm_FACTORY;
 exports.compare_FACTORY = compare_FACTORY;
 
-const generate_searchF = function (spectrum, type="ppm", value=10) {
+generate_searchF = function (spectrum, type="ppm", value=10) {
   return function (peak) {
     getClosestValues_spec2F = getClosestValues_spec2_FACTORY('mz_2');
     a = getClosestValues_spec2F(spectrum, peak.mz);
@@ -813,11 +818,11 @@ const generate_searchF = function (spectrum, type="ppm", value=10) {
     //	return false;
   };
 };
-const add_exp_flag = function (peak) {
+add_exp_flag = function (peak) {
   peak.intensity_2 = 0;
   return (peak);
 };
-const extract_mzs = function (prev, peak) {
+extract_mzs = function (prev, peak) {
   prev.intensity_1.push(peak.exp_intensity);
   prev.intensity_2.push(peak.intensity);
   return (prev);
@@ -1122,39 +1127,8 @@ grouping_f = function (list_o) {
 };
 // second element of ever elment is the list of objects. first element just the grouping key
 
-reduce_aligned_spectrum_to_comparison_in = function (prev, next) {
-  prev.intensity_1.push(next.intensity_1);
-  prev.intensity_2.push(next.intensity_2);
-  return (prev);
-  // in: [{"intensity_1": 1, "intensity_2": 2}, .....]
-};
 
 const ipsa_helper = {
-  binning:
-	f = function (spectrum) {
-	  // summed spectrum by rounding and grouping
-	  // returns
-	  // [{"mz": v1, "intensity": v2}, ...]
-	  grouped_spectrum = groupBy(spectrum.map(add_rounding), 'mz_round');
-	  s = Object.entries(grouped_spectrum).map(grouping_f);
-	  return (s);
-	},
-  aligning(spectrum_1, spectrum_2) {
-    // aligns two spectra by exptracting "mz"
-    // creating unique set of mz ("exact case)
-
-    spectrum_1_simple = spectrum_1.reduce(extract_mz, {});
-    spectrum_2_simple = spectrum_2.reduce(extract_mz, {});
-    mz_value1 = spectrum_1.map((x) => x.mz);
-    mz_value2 = spectrum_2.map((x) => x.mz);
-    mz_set = [...new Set(mz_value1.concat(mz_value2))];
-    mz_set = mz_value2; // TODO explain why this is not the exact case
-
-    aligned_spectrum = mz_set.map(z); // fill with 0
-    aligned_spectrum2 = aligned_spectrum.reduce(reduce_aligned_spectrum_to_comparison_in, { intensity_1: [], intensity_2: [] });
-    return (aligned_spectrum2);
-    //		necessary_dot = aligned_spectrum.map(f2 ).reduce(reducer,{"sum_1_m_1" : 0, "sum_2_m_2": 0, "sum_1_m_2" : 0}
-  },
   comparison: {
     // https://brenocon.com/blog/2012/03/cosine-similarity-pearson-correlation-and-ols-coefficients/
     // All functions in here must comply to
@@ -1199,29 +1173,8 @@ const ipsa_helper = {
       if (isNaN(dot_help)) {
         return (0);
       }
-      dot_help = dot_help > 1 ? 1 : dot_help;
+      dot_help = dot_help > 1? 1 : dot_help;
       return (1 - 2 * Math.acos(dot_help) / Math.PI);
-    },
-    euclidean_distance(spectrum_1, spectrum_2) {
-      let rangesum = 0;
-      let sum = 0;
-      let n;
-      for (n = 0; n < spectrum_1.length; n++) {
-        sum += Math.pow(spectrum_1[n] - spectrum_2[n], 2);
-        const values = [spectrum_1[n], spectrum_2[n]];
-        rangesum += Math.pow(Math.max(...values), 2);
-      }
-      return (1 - Math.sqrt(sum / rangesum));
-    },
-    bray_curtis_distance(spectrum_1, spectrum_2) {
-      let difference = 0;
-      let sum = 0;
-      let n;
-      for (n = 0; n < spectrum_1.length; n++) {
-        difference += Math.abs(spectrum_1[n] - spectrum_2[n]);
-        sum += Math.abs(spectrum_1[n] + spectrum_2[n]);
-      }
-      return (1 - (difference / sum));
     },
     pearson_correlation(spectrum_1, spectrum_2) {
       let a = 0;
@@ -1253,10 +1206,9 @@ const ipsa_helper = {
         xsum += Math.pow((spectrum_1[n] - xavg), 2);
         ysum += Math.pow((spectrum_2[n] - yavg), 2);
       }
+      // return (sum / Math.sqrt(xsum * ysum));
       const result =  (sum / Math.sqrt(xsum * ysum));
-      // const result = (0.5 * (1 + (sum / Math.sqrt(xsum * ysum))));
-
-      return isNaN(result) ? 0 : result;
+      return result;
     },
   },
 

@@ -54,6 +54,7 @@
         <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas">Example (PeptideAtlas)</a></li>
         <li class="divider-vertical"></li>
         <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas&usibottom=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usibottom_origin=pride">Example (Comparison)</a></li>
+
        <!-- <li class="divider-vertical"></li>
         <li>
             <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
@@ -62,18 +63,14 @@
           </a>
         </li> -->
       </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <ul><a href="https://proteomics.wzw.tum.de/"><img src="https://proteomics.wzw.tum.de/fileadmin/tum/org/tum-logo.png"></a></ul>
-      </ul>
     </nav>
+    <div class="container-fluid intro">
+      The main focus of this tool is to compare two peptide spectra either by manual input and/or by reference via the <a href="https://www.psidev.info/usi">Universal Spectrum Identifier</a>. Alternatively, peptide spectra can be predicted via <a href="https://doi.org/10.1038/s41592-019-0426-7">Prosit</a> or retrieved as synthetic peptide spectra of the <a href="http://www.proteometools.org/">ProteomeTools project</a>. This projects builds on the <a href="http://interactivepeptidespectralannotator.com/">Interactive Peptide Spectral Annotator (IPSA)</a> and is recommended when <b>single</b> spectral visualization is needed.</br>
+      An explanation of the exact spectrum merge process and score calculation can be found <a href="use.html">here</a>.
+    </div>
     <div class="container-fluid">
       <div id = "gray-overlay">
         <div ng-controller="MasterCtrl">
-          <div class="row">
-            <a class="github-button" href="https://github.com/kusterlab/universal_spectrum_explorer" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/universal_spectrum_explorer on GitHub">Star</a>
-            <a class="github-button" href="https://github.com/kusterlab/universal_spectrum_explorer/issues" data-icon="octicon-issue-opened" aria-label="Issue kusterlab/universal_spectrum_explorer on GitHub">Issue</a>
-            <label>Please use a modern browser e.g. FireFox (80+) or Chrome (85+)</label>
-          </div>
           <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
             <span class="progress" >
               <uib-progressbar class="{{busy.type}}" value="busy.progress" type="success" max="100">
