@@ -472,15 +472,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   }
 
   $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
-    console.log("hello");
 
     f = function(x){
-    console.log("hello again");
       p1 = $http.get("http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi=mzspec%3APXD000561%3AAdult_Frontalcortex_bRP_Elite_85_f09%3Ascan%3A17555%3AVLHPLEGAVVIIFK%2F2").then(function(response){
         console.log(response);
       });
     }
-    f();
 
     var aUrls = {
       pride: 'https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=',
@@ -535,6 +532,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       },
       function(response2){
         $scope.busy.isProcessing = false;
+        alert("The provided usi was invalid or no public resource provides the spectrum");
         return(false);
       });
   }
