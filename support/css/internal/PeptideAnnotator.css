@@ -358,6 +358,10 @@ a:hover {
   color: white;
 }
 
+.help  a:hover{
+  color: black;
+}
+
 .intro a{
   text-decoration: underline;
   color: black;
