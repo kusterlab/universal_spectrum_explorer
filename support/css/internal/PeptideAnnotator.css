@@ -1,4 +1,9 @@
 /* navbar */
+
+.app-modal-window .modal-dialog {
+    width: 75%;
+  }
+
 img {
   max-height: 50px;
   padding-top: 5px;
@@ -214,7 +219,7 @@ body {
 {
   font-family: Montserrat, sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 9px;
 }
 .precursorstatscategoryBottom {
   font-family: Montserrat, sans-serif;
@@ -254,10 +259,18 @@ body {
   text-anchor: middle;
 }
 
+
 .xAnnotation,
 .yAnnotation{
   font-family: Montserrat, sans-serif;
   font-size: 10px;
+}
+
+.yAnnotation{
+  cursor: row-resize;
+}
+.xAnnotation{
+  cursor: col-resize;
 }
 
 .xAnnotationLabel {
@@ -360,6 +373,10 @@ a:hover {
 
 .help  a:hover{
   color: black;
+}
+.help  a{
+  color: black;
+  text-decoration: underline;
 }
 
 .intro a{
