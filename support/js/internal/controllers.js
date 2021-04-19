@@ -397,6 +397,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       iCE = topSpectrum ? $scope.peptide.ce : $scope.peptideBottom.ce;
   
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
+    if(sApi===""){
+      alert("Please select an Origin for your peptide of interest");
+    }
+
     switch (sApi) {
       case 'Prosit':
         query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString]};
@@ -419,6 +423,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 }
               );
             } 
+
+            $scope.validateGenerateButton();
+
             if (!auto){
               $scope.openModalConfirmation('The predicted Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
@@ -437,7 +444,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         return $http.get(url, "")
           .then( function(response2) {
             var res2 = response2.data;
-            console.log(res2);
             var spec = getClosestCESpectrum(res2, parseInt(iCE, 10));
             if (topSpectrum) {
               $scope.peptide.ce = spec.collissionEnergy;
@@ -454,6 +460,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 }
               );
             }
+            $scope.validateGenerateButton();
             if (!auto) {
               $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
             }
@@ -471,11 +478,42 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     }
   }
 
+  $scope.validateReferenceButton = function(topSpectrum=true) {
+    if (topSpectrum) {
+      $scope.ctrl.topReferenceButton = $scope.peptide.api == '';
+    } else {
+      $scope.ctrl.bottomReferenceButton = $scope.peptideBottom.api == '';
+    }
+  }
+
+  $scope.validateGenerateButton = function() {
+    let bTopInput = $scope.db.items.map((x) => {
+      if (Object.values(x).length === 0 || (x.mZ === ""))
+        return 1;
+      return 0;
+    }).reduce((p,n) => {
+      return p+n;
+    }, 0) === $scope.db.items.length;
+    
+    let bBottomInput = $scope.dbBottom.items.map((x) => {
+      if (Object.values(x).length === 0 || (x.mZ === ""))
+        return 1;
+      return 0;
+    }).reduce((p,n) => {
+      return p+n;
+    }, 0) === $scope.dbBottom.items.length;
+    
+    if (!bTopInput && !bBottomInput) {
+      $scope.ctrl.disableButton = false;
+    } else {
+      $scope.ctrl.disableButton = true;
+    }
+  }
+
   $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
 
     f = function(x){
       p1 = $http.get("http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi=mzspec%3APXD000561%3AAdult_Frontalcortex_bRP_Elite_85_f09%3Ascan%3A17555%3AVLHPLEGAVVIIFK%2F2").then(function(response){
-        console.log(response);
       });
     }
 
@@ -487,10 +525,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
-    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usibottom_origin]) + sUsi;
+    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usibottom_origin]);
+    url = "https://www.proteomicsdb.org/proxy_ppc/availability?usi=" + sUsi;
    
     $scope.setOriginString(topSpectrum, sUsi);
-    var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usibottom_origin);
+    // var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usibottom_origin);
+    var usi = new UsiResponse("ProteomeCentral");
 
     return $http.get(url)
       .then( function(response) {
@@ -524,6 +564,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           $scope.peptideBottom.sequence = seq;
         }
 
+        $scope.validateGenerateButton();
+        setTimeout(function(){$scope.preselectMods(topSpectrum, usi.modifications)}, 200);
+
         if (!auto) {
           $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
         }
@@ -535,6 +578,37 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         alert("The provided usi was invalid or no public resource provides the spectrum");
         return(false);
       });
+  }
+
+  $scope.preselectMods = function(topSpectrum = true, modifications) {
+    let aModsRest = [];
+        if (topSpectrum){
+          modifications.forEach((mod) => {
+            let o = $scope.mods.filter((m) => { 
+              return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+            });
+            if(o.length > 0) {
+              $scope.modObject.selectedMods.push(o[0]);
+            } else {
+              aModsRest.push(mod.name);
+            }
+          });
+        } else {
+          modifications.forEach((mod) => {
+            let o = $scope.modsBottom.filter((m) => { 
+              return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+            });
+
+            if(o.length > 0){
+              $scope.modObjectBottom.selectedMods.push(o[0]);
+            } else {
+              aModsRest.push(mod.name);
+            }
+          });
+        }
+    if (aModsRest.length > 0)
+      alert("The following modifications could not be auto-selected for the " + (topSpectrum ? "top" : "bottom") + " spectrum: [" + aModsRest.join(";") + "]\n Please select them manually." );
+      
   }
 
   $scope.prepareDataToProcess = function(topSpectrum = true) {
@@ -604,7 +678,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       */
     };
 
-    console.log(data.mods);
     return {url: url, data: data};
   }
 
@@ -691,9 +764,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       urlObj["matching_tol_unit"] = $scope.cutoffs.compToleranceType;
 
       $scope.setUrlVars(urlObj);
-      console.log($scope.cutoffs.tolerance);
-
-
 
       // httpRequest to submit data to processing script.
       $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
@@ -701,15 +771,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           delete response.data.fragments;
 
           $scope.annotatedResults = response.data;
-          console.log($scope.submittedDataTop.data);
           if($scope.submittedDataTop.data.peakData.length ==0){
             $scope.busy.isProcessing = false;
             return;
           }
-          console.log($scope.submittedDataTop.data);
           const annotation1 = new Annotation($scope.submittedDataTop.data);
           $scope.annotatedResults = annotation1.fakeAPI();
-          console.log($scope.annotatedResults);
 
           $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
             .then( function(responseBottom) {
@@ -1074,6 +1141,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   };
   
   $scope.$watch('busy.isProcessing', $scope.toggleBusy, true);
+  $scope.$watch('db.items', $scope.validateGenerateButton, true);
+  $scope.$watch('dbBottom.items', $scope.validateGenerateButton, true);
+  $scope.$watch('peptide.api', $scope.validateReferenceButton(true), true);
+  $scope.$watch('peptideBottom.api', $scope.validateReferenceButton(false), true);
 
   var USIsInitialCount = "none";
 
