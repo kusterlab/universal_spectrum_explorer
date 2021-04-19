@@ -524,6 +524,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
       return scope.plotdata.neutralLosses;
     }
 
+    scope.getMirrorNeutralLosses = function() {
+      return scope.mirrorplotdata.neutralLosses;
+    }
+
     /**
      * @description Retrieves an array containing bar widths. These values are used to scale annotated peak widths differently.
      * @example ["1", "3", "3", ...]
@@ -1873,7 +1877,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         id = scope.getId(),
         id2 = scope.getIdMirror(),
         massError = scope.getMassError(), colors = scope.getColors(), labels = scope.getLabels(), labelCharges = scope.getLabelCharges(), 
-        neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(),widths2 = scope.getMirrorWidths(), sequence = scope.getSequence();
+        neutralLosses = scope.getNeutralLosses(), widths = scope.getWidths(),widths2 = scope.getMirrorWidths(), sequence = scope.getSequence(),
+        neutralLosses2 = scope.getMirrorNeutralLosses();
 
 
 
@@ -1950,9 +1955,10 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         for (let i = 0; i < xValues2.length; i++) {
           var label = labels2[i]; 
           var charge = labelCharges2[i];
+          var neutralLoss = neutralLosses2[i];
 
           // compile labels from the label text, neutral losses, charge, and ionization mode. {"y17", "-H2O", 2, "+"} => [y₁₇-H₂O]⁺²
-          var label = formatLabel(label, "", charge, ionizationMode);
+          var label = formatLabel(label, neutralLoss, charge, ionizationMode);
 
           // sum up all intensities to calculate the total ion current
           TIC2 += yValues2[i];
