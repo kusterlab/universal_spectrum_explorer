@@ -539,8 +539,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         var mzs = usi.aMz;
         var ints = usi.aInt;
 
+        console.log(sUsi);
         usi = new USI(sUsi);
         usi.parse();
+        console.log(usi.proForma);
         proForma = new ProForma(usi.proForma);
         proForma.parse();
 
@@ -601,9 +603,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         if (topSpectrum){
           modifications.forEach((mod) => {
             let o = $scope.mods.filter((m) => { 
-              // return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
               return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
-                ((m.index == mod.index && m.site == mod.site && m.name == mod.unimod)))
+                ((m.index == mod.index && m.site == mod.site && mod.name == m.unimod)))
             });
             if(o.length > 0) {
               $scope.modObject.selectedMods.push(o[0]);
@@ -616,7 +617,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             let o = $scope.modsBottom.filter((m) => { 
             //  return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
               return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
-                ((m.index == mod.index && m.site == mod.site && m.name == mod.unimod)))
+                ((m.index == mod.index && m.site == mod.site && mod.name == m.unimod)))
             });
 
             if(o.length > 0){

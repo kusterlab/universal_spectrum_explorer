@@ -502,12 +502,23 @@ USI = class USI {
    * @return {string} returns the ProForma string
    */
   parse() {
-    const usiSplitPosition = this.baseString.lastIndexOf(':');
-    const proFormaString = this.baseString.slice(usiSplitPosition + 1);
-    if (proFormaString.lastIndexOf('/') === -1) {
+    const usiSplit = this.baseString.split(':');
+    // const proFormaString = this.baseString.slice(usiSplitPosition + 1);
+    // if (proFormaString.lastIndexOf('/') === -1) {
+    if (usiSplit.length <= 5) {
       throw 'missing an interpretation';
     } else {
-      this.proForma = proFormaString;
+      let i = 0;
+      let position = 0;
+      // hard copy
+      let _baseString = this.baseString.slice();
+      while (i < 5) {
+        position = _baseString.indexOf(':');
+        _baseString = _baseString.slice(position + 1);
+        i++;
+      }
+      // this.proForma = ;
+      this.proForma = _baseString;
     }
   }
 };

@@ -232,7 +232,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
             );
             };
           }
-          console.log(tempArray);
           $scope.predeterminedMods = tempArray;
 
           // now that we have predetermined mods, get user mods
@@ -372,7 +371,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: i,
-                  deltaMass: mod.deltaMass
+                  deltaMass: mod.deltaMass,
+                  unimod: mod.unimod
                 };
             } else {
               addMod = 
@@ -380,7 +380,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: i,
-                  elementChange: mod.elementChange
+                  elementChange: mod.elementChange,
+                  unimod: mod.unimod
                 };
             }
 
@@ -445,7 +446,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
         }
       }
     }
-    console.log($scope.mods);
   }
 
   $scope.mods = [];
@@ -503,7 +503,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
   };
 
   $scope.openHelp = function () {
-    console.log("triggered");
     $uibModal.open({
       templateUrl: 'support/html/helpOverlay.html',
       scope: $scope,
