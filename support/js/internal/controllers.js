@@ -786,11 +786,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       $scope.setUrlVars(urlObj);
 
       // httpRequest to submit data to processing script.
-      $http.post($scope.submittedDataTop.url, $scope.submittedDataTop.data)
-        .then( function(response) {
-          delete response.data.fragments;
-
-          $scope.annotatedResults = response.data;
           if($scope.submittedDataTop.data.peakData.length ==0){
             $scope.busy.isProcessing = false;
             return;
@@ -798,10 +793,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           const annotation1 = new Annotation($scope.submittedDataTop.data);
           $scope.annotatedResults = annotation1.fakeAPI();
 
-          $http.post($scope.submittedDataBottom.url, $scope.submittedDataBottom.data)
-            .then( function(responseBottom) {
 
-              $scope.annotatedResultsBottom = responseBottom.data;
               if($scope.submittedDataBottom.data.peakData.length ==0){
                 $scope.busy.isProcessing = false;
                 return;
@@ -869,16 +861,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
               $scope.getScores($scope.annotatedResults.peaks, $scope.annotatedResultsBottom.peaks);
               $scope.busy.isProcessing = false;
-            }, function (response) {
-              // if errors exist, alert user
-              $scope.busy.isProcessing = false;
-              alert(response.data.message);
-            });
-        }, function (response) {
-          // if errors exist, alert user
-          $scope.busy.isProcessing = false;
-          alert(response.data.message);
-        });
     }
   };
 
