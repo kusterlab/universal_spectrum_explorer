@@ -45,15 +45,18 @@
           USE (Universal Spectrum Explorer)
         </a> 
       </div>
-      <ul class="nav navbar-nav">
+      <ul class="nav navbar-nav" ng-controller="MasterCtrl">
         <li class="divider-vertical"></li>
-        <li class=><a href="?usi=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usi_origin=pride">Example (Pride)</a></li>
+        <li class=><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2">Example (Pride)</a></li>
         <li class="divider-vertical"></li>
-        <li class><a href="?usi=mzspec:PXD005175:CRC_iTRAQ_06:scan:11803:VEYTLGEESEAPGQR/3&usi_origin=jpost">Example (jPOST)</a></li>
+        <li class><a href="?usi=mzspec:PXD000966:CPTAC_CompRef_00_iTRAQ_05_2Feb12_Cougar_11-10-09.mzML:scan:12298:[iTRAQ4plex]-LHFFM[Oxidation]PGFAPLTSR/2&usibottom=mzspec:PXD000394:20130504_EXQ3_MiBa_SA_Fib-2:scan:4234:SGVSRKPAPG/2">Example (Modification)</a></li>
         <li class="divider-vertical"></li>
-        <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas">Example (PeptideAtlas)</a></li>
+        <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usibottom=mzspec:PXD000394:20130504_EXQ3_MiBa_SA_Fib-2:scan:4234:SGVSRKPAPG/2">Example (Comparison)</a></li>
         <li class="divider-vertical"></li>
-        <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas&usibottom=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usibottom_origin=pride">Example (Comparison)</a></li>
+        <li class>
+
+                                    <a href ng-click="openHelp()">Help</a>
+        </li>
 
        <!-- <li class="divider-vertical"></li>
         <li>
@@ -64,11 +67,6 @@
         </li> -->
       </ul>
     </nav>
-    <div class="container-fluid intro">
-      The main focus of this tool is to compare two peptide spectra either by manual input and/or by reference via the <a href="https://www.psidev.info/usi">Universal Spectrum Identifier</a>. Alternatively, peptide spectra can be predicted via <a href="https://doi.org/10.1038/s41592-019-0426-7">Prosit</a> or retrieved as synthetic peptide spectra of the <a href="http://www.proteometools.org/">ProteomeTools project</a>. This projects builds on the <a href="http://interactivepeptidespectralannotator.com/">Interactive Peptide Spectral Annotator (IPSA)</a> and is recommended when <b>single</b> spectral visualization is needed.</br>
-      If a user is interested in the comparison of metabolomic spectra, please use the <a href="https://metabolomics-usi.ucsd.edu/">Metabolomics Spectrum Resolver</a>.</br>
-      An explanation of the exact spectrum merge process and score calculation can be found <a href="help.html">here</a>.
-    </div>
     <div class="container-fluid">
       <div id = "gray-overlay">
         <div ng-controller="MasterCtrl">
@@ -155,18 +153,7 @@
                                   <div class="col-md-12">
                                     <label>Search with USI</label>
                                     <div class="input-group">
-                                      <input type="text" class="form-control" placeholder="Enter USI here..." ng-model="peptide.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI()">Search USI</button> </span> 
-                                    </div>
-                                    <br/>
-                                    <div class="row">
-                                      <div class="col-md-12">
-                                        <label>USI origin</label>
-                                        <div class="btn-group" data-toggle="buttons">
-                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'pride' ">PRIDE</label>
-                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
-                                          <label class="btn btn-primary" ng-model="peptide.usiOriginTop" uib-btn-radio="'jpost'">jPOST</label>
-                                        </div>
-                                      </div>
+                                      <input type="text" class="form-control" placeholder="Enter USI here..." ng-model="peptide.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI()">Get spectrum via USI</button> </span> 
                                     </div>
                                   </div>
                                 </div>
@@ -179,7 +166,7 @@
                                 <div ng-controller="DataCtrl">
                                   <div class="row">
                                     <div class="col-md-6 InSilicoSource">
-                                      <label>Mirror Spectrum Origin</label>
+                                      <label>Origin</label>
                                       <div class="input-group">
                                         <label class="btn btn-success active" ng-model="peptide.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted()">Prosit</label>
                                         <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted()">ProteomeTools</label>
@@ -323,17 +310,6 @@
                                     <div class="input-group">
                                       <input type="text" class="form-control" placeholder="Enter USI here..." ng-model="peptideBottom.usi"/> <span class="input-group-btn"> <button class="btn btn-primary" type="button" ng-click="processUSI(false)">Search USI</button> </span> 
                                     </div>
-                                    <br/>
-                                    <div class="row">
-                                      <div class="col-md-12">
-                                        <label>USI origin</label>
-                                        <div class="btn-group">
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'pride'">PRIDE</label>
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'peptideatlas'">PeptideAtlas</label>
-                                          <label class="btn btn-primary" ng-model="peptideBottom.usibottom_origin" uib-btn-radio="'jpost'">jPOST</label>
-                                        </div>
-                                      </div>
-                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -345,7 +321,7 @@
                                 <div ng-controller="DataCtrl">
                                   <div class="row">
                                     <div class="col-md-6 InSilicoSource">
-                                      <label>Mirror Spectrum Origin</label>
+                                      <label>Origin</label>
                                       <div class="input-group">
                                         <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted(false)">Prosit</label>
                                         <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted(false)">ProteomeTools</label>
@@ -550,9 +526,9 @@
                           <br/>
                           <div class="row">
                             <div class="col-md-12">
-                              <button type="submit" class="btn btn-success" ng-click="processData()">Generate Chart</button>
-                              <button class="btn btn-primary" ng-click="downloadData()">Export Data</button>
-                              <button svg-download title="{{peptideBottom.sequence}}" class="btn btn-primary">Download as SVG</button>
+                              <button type="submit" class="btn btn-success" ng-disabled="ctrl.disableButton" ng-click="processData()">Generate Chart</button>
+                              <button class="btn btn-primary" ng-click="downloadData()" ng-disabled="ctrl.disableButton">Export Data</button>
+                              <button svg-download title="{{peptideBottom.sequence}}" class="btn btn-primary" ng-disabled="ctrl.disableButton">Download as SVG</button>
                             </div>
                           </div>
                         </div>

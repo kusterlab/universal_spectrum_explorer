@@ -238,6 +238,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     //$log.log($scope.set);
   };
   $scope.plotData = function(returnedData, returnedError = [], returnedErrorX = [], intensityError=[], intensityErrorIdsTop=[], intensityErrorIdsBottom=[]) {
+    console.log(returnedData);
     $scope.set.peptide =
       {
         sequence: returnedData.sequence,
@@ -537,8 +538,14 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         usi.parseData(response.data);
         var mzs = usi.aMz;
         var ints = usi.aInt;
-        var seq = usi.sequence;
-        var charge = usi.precursorCharge;
+
+        usi = new USI(sUsi);
+        usi.parse();
+        proForma = new ProForma(usi.proForma);
+        proForma.parse();
+
+        var seq = proForma.baseSequence;
+        var charge = proForma.precursorCharge;
         if (topSpectrum) {
           $scope.peptide.sequence = seq;
           $scope.peptide.precursorCharge = charge;
@@ -565,7 +572,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         }
 
         $scope.validateGenerateButton();
-        setTimeout(function(){$scope.preselectMods(topSpectrum, usi.modifications)}, 200);
+
+        
+        setTimeout(function(){$scope.preselectMods(topSpectrum, proForma.modifications)}, 200);
 
         if (!auto) {
           $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
@@ -582,10 +591,19 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
   $scope.preselectMods = function(topSpectrum = true, modifications) {
     let aModsRest = [];
+    //
+    var p = {name: "tobias",
+      deltaMass: 13,
+      index: 12,
+      site: "S"}
+    console.log(modifications);
+    //
         if (topSpectrum){
           modifications.forEach((mod) => {
             let o = $scope.mods.filter((m) => { 
-              return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+              // return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+              return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
+                ((m.index == mod.index && m.site == mod.site && m.name == mod.unimod)))
             });
             if(o.length > 0) {
               $scope.modObject.selectedMods.push(o[0]);
@@ -596,7 +614,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         } else {
           modifications.forEach((mod) => {
             let o = $scope.modsBottom.filter((m) => { 
-              return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+            //  return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
+              return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
+                ((m.index == mod.index && m.site == mod.site && m.name == mod.unimod)))
             });
 
             if(o.length > 0){

@@ -31,7 +31,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     // usibottom_origin
     // https://www.proteomicsdb.org/use_dev/?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usi_origin=peptideatlas&usibottom=mzspec:PXD015890:18May18_Olson_WT2.raw%20(F001551).mzid_18May18_Olson_WT2.raw_(F001551).MGF:index:6913:AEAEAQAEELSFPR/2&usibottom_origin=pride
     string = "?";
-    console.log(mappedProperties);
     firstKey = true;
     for (let key in mappedProperties) {
       if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit"].includes(key)){
@@ -46,7 +45,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       }}
     }
     window.history.replaceState(null, null, string);
-    console.log("called");
 
   };
 
@@ -70,6 +68,12 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     hideUSI: true,
     hideCE: true ,
     usiOriginTop: $scope.getUrlVars().usi_origin
+  };
+
+  $scope.ctrl = {
+    disableButton: true,
+    topReferenceButton: false,
+    bottomReferenceButton: false
   };
 
   $scope.peptideBottom = {
@@ -212,20 +216,23 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       var text = 'Mods not yet loaded.';
       $http.get('support/mods/Modifications.txt') 
         .then(function (data) {
-          text = data.data.split("\r\n");
+          text = data.data.split("\n");
           var tempArray = [];
 
           for (var i = 0; i < text.length; i++) {
             var line = text[i].split(';');
-
+            if(line[0]!==""){
             tempArray.push(
               {
                 name: line[0],
                 site: line[1],
-                elementChange: line[2]
+                elementChange: line[2],
+                unimod: line[3]
               }
             );
+            };
           }
+          console.log(tempArray);
           $scope.predeterminedMods = tempArray;
 
           // now that we have predetermined mods, get user mods
@@ -438,12 +445,17 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
         }
       }
     }
+    console.log($scope.mods);
   }
 
   $scope.mods = [];
 
-  $scope.modObject = {};
-  $scope.modObjectBottom = {};
+  $scope.modObject = {
+    selectedMods: []
+  };
+  $scope.modObjectBottom = {
+    selectedMods: []
+  };
 
   $scope.renderTable = function (topSpectrum = true) {
     if(topSpectrum) {
@@ -489,6 +501,20 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       //Sorry future debugger
     }).result.then(function(){}, function(result){})
   };
+
+  $scope.openHelp = function () {
+    console.log("triggered");
+    $uibModal.open({
+      templateUrl: 'support/html/helpOverlay.html',
+      scope: $scope,
+      controller: function ($scope, $uibModalInstance, $localStorage) {
+        $scope.cancel = function () {
+          $uibModalInstance.dismiss('cancel');
+        };
+      },
+                  windowClass: 'app-modal-window'
+    }).result.then(function(){}, function(result){})
+  }
 
   $scope.openModal = function () {
     $uibModal.open({
@@ -547,6 +573,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
       //Squash unhandled rejection on backdrop click that's thrown
       //TODO
       //Sorry future debugger
+      //YES, be sorry!
     }).result.then(function(){}, function(result){})
   };
 
@@ -849,6 +876,7 @@ myApp.controller('HotCtrlTop', function ($scope) {
 
       $scope.reset = function() {
         $scope.db.items = [];
+        $scope.ctrl.disableButton = true;
       };
 });
 
@@ -864,6 +892,7 @@ myApp.controller('HotCtrlBottom', function ($scope) {
 
       $scope.resetBottom = function() {
         $scope.dbBottom.items = [];
+        $scope.ctrl.disableButton = true;
       };
 });
 

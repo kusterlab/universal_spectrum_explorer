@@ -187,10 +187,11 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 
 	}
 	generateAminoAcids(sequence, mods){
-		var r = sequence.split(""); // 
+		var r = sequence.split(""); //
+		var that = this;
 		r = r.map((e, i) => {
 			let possibleMod = mods.filter(e => {return e.index ==i});
-			let m = this.calculateAllMassOffset(possibleMod) ;
+			let m = that.calculateAllMassOffset(possibleMod) ;
 
 
 			return(
@@ -207,7 +208,15 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		return(r);
 	}
 	calculateAllMassOffset(aMods) {
-		return aMods.map((Mod) => this.calculateMassOfElementChange(Mod.elementChange)).reduce((a, b) => a + b, 0);
+		var that = this;
+		return aMods.map(function (Mod) {
+				if(Mod.hasOwnProperty("elementChange")){
+                        return that.calculateMassOfElementChange(Mod.elementChange);
+                    }else{
+                        return Mod.deltaMass;
+                    }
+			}
+		).reduce((a, b) => a + b, 0);
 	}
 	calculateMassOfElementChange(str) {
 		/*
@@ -410,7 +419,7 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 
 exports.Annotation = Annotation;
 
-},{"./binary":4}],2:[function(require,module,exports){
+},{"./binary":5}],2:[function(require,module,exports){
 const binary = require('./binary');
 const measures = require('./measures');
 
@@ -450,7 +459,230 @@ Comparator = class Comparator {
   }
 };
 
-},{"./binary":4,"./measures":5}],3:[function(require,module,exports){
+},{"./binary":5,"./measures":6}],3:[function(require,module,exports){
+/*
+interpretation```
+https://www.psidev.info/usi
+    ```;
+
+''`
+
+    https://pubs.acs.org/doi/10.1021/acs.jproteome.7b00851
+    ```;
+interpretatio
+Unimod Interim Names
+
+ProForma (Proteoform and Peptidoform Notation)
+
+support subset of the Proforma specification
+Unimod
+name parsing by
+4.2.5 delta mass notation
+
+it does not support the fixed modification
+
+also not
+EMEVEESPEK/2+ELVISLIVER/3
+
+This does not define as Base Level Support
+
+*/
+
+/*
+mzspec:<collection>:<msRun>:<indexType>:<indexNumber>:<optionalInterpretation>
+ */
+USI = class USI {
+  constructor(baseString) {
+    this.baseString = baseString;
+    this.proForma = '';
+    this.parse();
+  }
+
+  /**
+   * @return {string} returns the ProForma string
+   */
+  parse() {
+    const usiSplitPosition = this.baseString.lastIndexOf(':');
+    const proFormaString = this.baseString.slice(usiSplitPosition + 1);
+    if (proFormaString.lastIndexOf('/') === -1) {
+      throw 'missing an interpretation';
+    } else {
+      this.proForma = proFormaString;
+    }
+  }
+};
+
+ProForma = class ProForma {
+  constructor(baseString) {
+    this.baseString = baseString;
+    this.precursorCharge = -1;
+    this.modifications = [];
+    this.baseSequence = '';
+    this.modString = '';
+  }
+
+  parse() {
+    this.modString = this.generateModString();
+    this.baseSequence = this.generateBaseSequence();
+    this.modString = this.removeAdditionalInformation();
+    this.modString = this.removePrefixTag();
+    this.modifications = this.parseModification();
+  }
+
+  generateModString() {
+    const baseStringSplit = this.baseString.split('/');
+    this.precursorCharge = parseInt(baseStringSplit[1]);
+
+    return baseStringSplit[0];
+  }
+
+  // remove Additional information
+  removeAdditionalInformation() {
+    return this.modString.replace(/\[info:.+?\]/g, '');
+  }
+
+  generateBaseSequence() {
+    const modStringWithoutMods = this.modString.replace(/\[.+?\]/g, '');
+    // notation rule 6
+    const modStringWithoutMods6 = modStringWithoutMods.replace(/\+/g, '');
+    // notation rule 7
+    return modStringWithoutMods6.replace(/-/g, '');
+  }
+
+  removePrefixTag() {
+    return this.modString.replace(/^\[.+?\]\+/g, '');
+  }
+
+  parseNterminalModifications(annotation, beforeChar, afterChar) {
+
+  }
+
+  parseModification() {
+    // deepCopy
+    const modifications = [];
+    let modString = this.modString.slice();
+    let skip = 0; // marks jumps
+
+    while (modString.indexOf('[', 0) !== -1) { // if -1 we have modifications
+      const positionBracketOpen = modString.indexOf('[', 0);
+      const positionBracketClose = modString.indexOf(']', 0);
+
+      // N terminus
+      if (positionBracketOpen === 0) {
+        const modification = modString.substring(positionBracketOpen + 1, positionBracketClose);
+        const m = {
+          name: modification,
+          index: -1,
+          site: 'N-terminus',
+        };
+        modifications.push(m);
+        if (modString[positionBracketClose + 1] === '[') {
+          // another n terminal modification
+          skip = 1;
+        } else {
+          skip = 2;
+        }
+      }
+      // inside
+      if (positionBracketOpen !== 0 && modString[positionBracketOpen - 1] !== '-') {
+        const modification = modString.substring(positionBracketOpen + 1, positionBracketClose);
+
+        const m = {
+          name: modification,
+          index: positionBracketOpen - 1,
+          site: modString[positionBracketOpen - 1],
+        };
+        modifications.push(m);
+        skip = 1;
+      }
+      if (positionBracketOpen !== 0 && modString[positionBracketOpen - 1] === '-') {
+        // now parse all the rest
+        let cTerminalModstring = modString.substring(positionBracketOpen);
+
+        while (cTerminalModstring.indexOf('[', 0) !== -1) { // if -1 we have modifications
+          const cTerminalpositionBracketOpen = cTerminalModstring.indexOf('[', 0);
+          const cTerminalpositionBracketClose = cTerminalModstring.indexOf(']', 0);
+          const modification = cTerminalModstring.substring(cTerminalpositionBracketOpen + 1,
+            cTerminalpositionBracketClose);
+
+          const m = {
+            name: modification,
+            index: this.baseSequence.length - 1,
+            site: 'C-terminus',
+          };
+          modifications.push(m);
+          cTerminalModstring = cTerminalModstring.substring(positionBracketClose + skip);
+          skip = 1;
+        }
+      }
+      modString = modString.slice(0, positionBracketOpen)
+          + modString.slice(positionBracketClose + skip);
+    }
+    return modifications;
+  }
+
+  getModifications() {
+    let { modString } = this;
+    let nTerminalModification = false;
+    let cTerminalModification;
+    cTerminalModification = false;
+    let modifications = [];
+    if (modString[0] === '[') {
+      nTerminalModification = true;
+    }
+    let positionTracker = 0;
+    if (nTerminalModification) {
+      const position = modString.indexOf(']', 0); // returns -1 if false
+      const modification = modString.substring(1, position);
+      const m = {
+        name: modification,
+        index: -1,
+        site: 'N-terminus',
+      };
+      modifications.push(m);
+      positionTracker = position + 2; // + 2 to get over ']-'
+    }
+    modString = modString.substring(positionTracker);
+
+    const check = modString.indexOf('-[', 0);
+    if (check !== -1) {
+      const modification = modString.substring(check + 2, modString.length - 1); // +2 to remove '-[' and length -1 for ']'
+      const m = {
+        name: modification,
+        index: this.sequence.length,
+        site: 'C-terminus',
+      };
+      modifications.push(m);
+      modString = modString.substring(0, check);
+    }
+
+    // parse Modifications within peptide
+    while (modString.indexOf('[', 0) !== -1) { // LHFFMPGFAPLTSR
+      const check = modString.indexOf('[', 0);
+      const position = modString.indexOf(']', 0); // returns -1 if false
+      const modification = modString.substring(check + 1, position);
+
+      positionTracker = position + 2; // + 2 to get over ']-'
+      const m = {
+        name: modification,
+        index: check,
+        site: modString[check - 1],
+      };
+      modifications.push(m);
+      modString = modString.substring(0, check)
+                + modString.substring(position + 1);
+    }
+    modifications = modifications.map((el) => {
+      el.index += -1;
+      return el;
+    });
+    return modifications;
+  }
+};
+
+module.exports = { USI, ProForma };
+
+},{}],4:[function(require,module,exports){
 UsiResponse = class UsiResponse {
   constructor(type) {
     this.type = type;
@@ -458,10 +690,94 @@ UsiResponse = class UsiResponse {
     this.precursorCharge = 11588;
     this.aMz = [];
     this.aInt = [];
+    this.spectrum_name = '';
+    this.modifications = [];
+    // name
+    // index
+    // site
+  }
+
+  parseAttributes(response) {
+    this.precursorCharge = parseInt(response.attributes.filter((element) => element.name === 'charge state')[0].value);
+    this.spectrum_name = response.attributes.filter((element) => element.name === 'spectrum name')[0].value;
+    this.sequence = response.attributes.filter((element) => element.accession === 'MS:1000888')[0].value;
+  }
+
+  parseSpectrumName(spectrumNameString) {
+    // [iTRAQ4plex]-LHFFM[Oxidation]PGFAPLTSR/2
+    let arySpectrumName;
+    arySpectrumName = spectrumNameString.split('/');
+    let modString;
+    modString = arySpectrumName[0];
+    let nTerminalModification;
+    nTerminalModification = false;
+    let cTerminalModification;
+    cTerminalModification = false;
+    if (modString[0] === '[') {
+      nTerminalModification = true;
+    }
+    let positionTracker = 0;
+    if (nTerminalModification) {
+      const position = modString.indexOf(']', 0); // returns -1 if false
+      const modification = modString.substring(1, position);
+      const m = {
+        name: modification,
+        index: -1,
+        site: 'N-terminus',
+      };
+      this.modifications.push(m);
+      positionTracker = position + 2; // + 2 to get over ']-'
+    }
+    modString = modString.substring(positionTracker);
+
+    const check = modString.indexOf('-[', 0);
+    if (check !== -1) {
+      const modification = modString.substring(check + 2, modString.length - 1); // +2 to remove '-[' and length -1 for ']'
+      const m = {
+        name: modification,
+        index: this.sequence.length,
+        site: 'C-terminus',
+      };
+      this.modifications.push(m);
+      modString = modString.substring(0, check);
+    }
+
+    // parse Modifications within peptide
+    while (modString.indexOf('[', 0) !== -1) { // LHFFMPGFAPLTSR
+      const check = modString.indexOf('[', 0);
+      const position = modString.indexOf(']', 0); // returns -1 if false
+      const modification = modString.substring(check + 1, position);
+
+      positionTracker = position + 2; // + 2 to get over ']-'
+      const m = {
+        name: modification,
+        index: check,
+        site: modString[check - 1],
+      };
+      this.modifications.push(m);
+      modString = modString.substring(0, check)
+          + modString.substring(position + 1);
+    }
+    this.modifications = this.modifications.map((el) => {
+      el.index += -1;
+      return el;
+    });
   }
 
   parseData(response) {
     switch (this.type) {
+      case 'ProteomeCentral':
+        this.parseAttributes(response);
+        this.parseSpectrumName(this.spectrum_name);
+        this.aMz = response.mzs;
+        this.aInt = response.intensities;
+        break;
+      case 'PeptideAtlas':
+        this.parseAttributes(response);
+        this.parseSpectrumName(this.spectrum_name);
+        this.aMz = response.mzs;
+        this.aInt = response.intensities;
+        break;
       case 'pride': // use data
         this.sequence = response.peptideSequence;
         this.precursorCharge = response.charge;
@@ -505,7 +821,7 @@ UsiResponse = class UsiResponse {
 // exports.UsiResponse = UsiResponse;
 module.exports = { UsiResponse };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 const _ = require('lodash');
 // EXAMPLE BINNED SPECTRA
 //
@@ -880,7 +1196,7 @@ exports.selectMostIntensePeak = selectMostIntensePeak;
 exports.groupBy = groupBy;
 exports.full_merge = full_merge;
 
-},{"lodash":6}],5:[function(require,module,exports){
+},{"lodash":7}],6:[function(require,module,exports){
 // https://github.com/OpenMS/OpenMS/blob/5a70018d9e03ce32e64fcbb1c985b7a1256efc7a/src/tests/class_tests/openms/data/PILISSequenceDB_DFPIANGER_1.dta
 
 const _ = require('lodash');
@@ -1232,7 +1548,7 @@ regressionThroughZero = function (ary1, ary2) {
 exports.ipsa_helper = ipsa_helper;
 exports.regressionThroughZero = regressionThroughZero;
 
-},{"lodash":6}],6:[function(require,module,exports){
+},{"lodash":7}],7:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -18397,4 +18713,4 @@ exports.regressionThroughZero = regressionThroughZero;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[3,1,5,4,2]);
+},{}]},{},[4,1,6,5,2,3]);

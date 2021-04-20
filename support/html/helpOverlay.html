@@ -1,45 +1,33 @@
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <link href="support/css/external/bootstrap.min.css" rel="stylesheet">
-    <link href="support/css/external/bootstrap.min.css" rel="stylesheet">
-    <link href="support/css/external/select.min.css" rel="stylesheet">
-    <link href="support/css/external/handsontable.full.min.css" rel="stylesheet">
-    <link href="support/css/external/jquery.minicolors.min.css" rel="stylesheet">
-    <link href="support/css/external/Montserrat.css" rel="stylesheet">
-    <link href="support/css/external/Open+Sans.css" rel="stylesheet">
-    <link href="support/css/external/Inconsolata.css" rel="stylesheet">
-    <link href="support/css/internal/PeptideAnnotator.css" rel="stylesheet">
-    <link rel="icon"
-          type="image/png"
-          href="support/icon/fav_icon.png">
-  </head>
-  <body>
-    <nav class="navbar navbar-default navbar-static-top" role="navigation">
-      <div class="navbar-header">
-        <a class="navbar-brand">
-          USE (Universal Spectrum Explorer)
-        </a>
-      </div>
-      </ul>
-    </nav>
-    </div>
-    <div class="container-fluid help">
-      <h2>Spectrum merging and scoring</h2>
-      <div class="row">
-        <div class="col-md-6">
-          <div class="info_figure">
-            <img src="support/figures/Figure2.png"> 
-          </div>
-        </div>
+<div class="container-fluid intro">
 
-        <div class="col-md-6 help">
-      <h3>Merging</h3>
-          <p> Spectral similarity between two spectra (top mirror plot) can be used to address three questions: 1) Whether two spectra are identical (bottom middle), using all peaks for similarity calculation, 2) whether the top spectrum is contained in the bottom spectrum (bottom left), discarding unmatched peaks in the bottom spectrum, or 3) whether the bottom spectrum is contained in the top spectrum (bottom right), discarding unmatched peaks in the top spectrum. The spectral angle (SA) is highlighted in red for each of the three cases. Peaks used to calculate the spectra angle are highlighted in red for each case.</p>
-      <h3>Scores</h3>
-      <p>Pearson’s correlation coefficient (PCC) and (normalized) spectral (contrast) angle (SA) are used as similarity measures in the USE. Although both measures correlate well, we(18) and others(32) have previously observed that the spectral angle offers higher sensitivity to differentiate similar spectra, while most users will be more familiar with PCC.</p>
-        </div>
+  <b>Warning</b>: The useage of USIs relies on requests against the PROXI api of the major proteomics resources (jPOST, MassIVE, PeptideAtlas, PRIDE, ProteomeCentral). These APIs have at the time of writing (19.04.2021) <a href="http://proteomecentral.proteomexchange.org/usi/">different response formats</a> and we limit our visualization to USIs that can be served by ProteomeCentral and PeptideAtlas. Those resources provide all information to make the USE workable.</br>
+  </br>
+
+  The main focus of this tool is to compare two peptide spectra either by manual input and/or by reference via the <a href="https://www.psidev.info/usi">Universal Spectrum Identifier</a>. Alternatively, peptide spectra can be predicted via <a href="https://doi.org/10.1038/s41592-019-0426-7">Prosit</a> or retrieved as synthetic peptide spectra of the <a href="http://www.proteometools.org/">ProteomeTools project</a>. This projects builds on the <a href="http://interactivepeptidespectralannotator.com/">Interactive Peptide Spectral Annotator (IPSA)</a> and is recommended when <b>single</b> spectral visualization is needed.</br>
+  If a user is interested in the comparison of metabolomic spectra, please use the <a href="https://metabolomics-usi.ucsd.edu/">Metabolomics Spectrum Resolver</a>.</br>
+</div>
+<div class="container-fluid help">
+  <h2>Spectrum merging and scoring</h2>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="info_figure">
+        <img src="support/figures/Figure2.png"> 
       </div>
+    </div>
+
+    <div class="col-md-6 help">
+      <h3>Merging</h3>
+      <p> Spectral similarity between two spectra (top mirror plot) can be used to address three questions: 1) Whether two spectra are identical (bottom middle), using all peaks for similarity calculation, 2) whether the top spectrum is contained in the bottom spectrum (bottom left), discarding unmatched peaks in the bottom spectrum, or 3) whether the bottom spectrum is contained in the top spectrum (bottom right), discarding unmatched peaks in the top spectrum. The spectral angle (SA) is highlighted in red for each of the three cases. Peaks used to calculate the spectra angle are highlighted in red for each case.</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <h3>Scores</h3>
+      <p>Pearson’s correlation coefficient (PCC) and (normalized) spectral (contrast) angle (SA) are used as similarity measures in the USE. Although both measures correlate well, <a href="https://doi.org/10.1038/s41592-019-0426-7">we</a> have previously observed that the spectral angle offers higher sensitivity to differentiate similar spectra, while most users will be more familiar with PCC.</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
       <h2>Limitations</h2>
       <ul>
         <li>The web tool can not be used completly independently of a service called <a href='https://github.com/kusterlab/use_proxy'>use_proxy</a>. This is due to the fact that not all endpoints of the USI providers (such as JPOST, MassIVE, PeptideAtlas, PRIDE and ProteomeCentral) are served via https.
@@ -51,7 +39,5 @@
       </ul>
 
     </div>
-
-
-
-</html>
+  </div>
+</div>
