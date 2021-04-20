@@ -531,15 +531,16 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
    
     $scope.setOriginString(topSpectrum, sUsi);
     // var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usibottom_origin);
-    var usi = new UsiResponse("ProteomeCentral");
 
     return $http.get(url)
       .then( function(response) {
-        usi.parseData(response.data);
-        var mzs = usi.aMz;
-        var ints = usi.aInt;
+        // we only use mzs and intensities
+        //
+        var mzs = response.data[0].mzs.map((el)=>parseFloat(el));
+        var ints = response.data[0].intensities.map((el)=>parseFloat(el));
+        console.log(mzs);
+        console.log(ints);
 
-        console.log(sUsi);
         usi = new USI(sUsi);
         usi.parse();
         console.log(usi.proForma);
@@ -594,12 +595,37 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.preselectMods = function(topSpectrum = true, modifications) {
     let aModsRest = [];
     //
-    var p = {name: "tobias",
-      deltaMass: 13,
-      index: 12,
-      site: "S"}
-    console.log(modifications);
-    //
+    // take care of mass modifications
+    if(topSpectrum){
+          modifications.forEach((mod, i) => {
+            // if it is parsed as a number
+            if(!Number.isNaN(parseFloat(mod.name))){
+              let addMod = {
+                name: "Undefined modification: "+ i,
+                site: mod.site,
+                index: mod.index,
+                deltaMass: parseFloat(mod.name),
+                unimod: mod.name
+              }
+              $scope.mods.push(addMod);
+            }
+          })
+
+    }else{
+          modifications.forEach((mod, i) => {
+            // if it is parsed as a number
+            if(!Number.isNaN(parseFloat(mod.name))){
+              let addMod = {
+                name: "Undefined modification: "+ i,
+                site: mod.site,
+                index: mod.index,
+                deltaMass: parseFloat(mod.name),
+                unimod: mod.name
+              }
+              $scope.mods.push(addMod);
+            }
+          })
+    }
         if (topSpectrum){
           modifications.forEach((mod) => {
             let o = $scope.mods.filter((m) => { 
