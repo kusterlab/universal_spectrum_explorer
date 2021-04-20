@@ -1973,9 +1973,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           TIC2 += yValues2[i];
 
           // format our processed data in a format which makes it easier to process using D3.
-          console.log(i);
-          console.log(xValues2);
-          console.log(id2);
           mirrorPlotData.push({
             mz: xValues2[i],
             intensity: yValues2[i],

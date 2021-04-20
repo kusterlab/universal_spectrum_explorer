@@ -96,12 +96,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   $scope.n = 150;
 
   $scope.promiseTop = {
-      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3600)})
+      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3)})
   };
 
 
   $scope.promiseBottom = {
-      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3600)})
+      resolved: new Promise((res,rej)=> {setTimeout((x) => {return(false)}, 1000*3)})
   };
 
   $scope.min = 0;
@@ -864,7 +864,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
               // return(Math.abs( beta_hat * (x.intensity_1/int1Scaling) - x.intensity_2/int2Scaling) *100)
               return Math.abs(beta_hat * (x.intensity_1/int1Scaling) - (x.intensity_2/int2Scaling))
               });
-
               $scope.plotData($scope.annotatedResults, intensityerror, intensityerrorx, intensityDifference,
                 originalData.map(x => {return x.id_1}),
                 originalData.map(x => {return x.id_2})
@@ -1214,6 +1213,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       if(values[0] !== undefined){
         $scope.busy.isProcessing = true;
         $scope.processData();
+        setTimeout(()=>{$scope.processUSI(true, true, true)}, 3000); // no good reason for it 
       }
     } , function(response2) {
     } 
