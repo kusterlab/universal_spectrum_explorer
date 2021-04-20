@@ -1625,7 +1625,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
     }
 
     scope.drawOriginSummary = function (topSpectrum = true) {
-      console.log(scope.getModifications2());
       var options = scope.getOptions(),
         scoreGeneral = scope.score.sa,
         score = topSpectrum ? scope.scoretop.sa : scope.scorebottom.sa,
@@ -1951,6 +1950,16 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
             points: []
           });
         }
+
+        if(typeof id2 === 'undefined'){
+          id2 = [];
+        }
+        if (id2.length <= xValues2.length){
+          while(id2.length < xValues2.length){
+            id2.push(-1);
+          }
+          
+        }
         // format all the data recieved from the php script in a way that's easier to plot using D3
         for (let i = 0; i < xValues2.length; i++) {
           var label = labels2[i]; 
@@ -1964,11 +1973,14 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           TIC2 += yValues2[i];
 
           // format our processed data in a format which makes it easier to process using D3.
+          console.log(i);
+          console.log(xValues2);
+          console.log(id2);
           mirrorPlotData.push({
             mz: xValues2[i],
             intensity: yValues2[i],
-            id: id2[i],
             x: xValues2[i],
+            id: id2[i],
             y: percentBasePeak2[i],
             percentBasePeak: percentBasePeak2[i],
             color: colors2[i],

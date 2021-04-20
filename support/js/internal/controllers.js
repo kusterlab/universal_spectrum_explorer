@@ -238,7 +238,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     //$log.log($scope.set);
   };
   $scope.plotData = function(returnedData, returnedError = [], returnedErrorX = [], intensityError=[], intensityErrorIdsTop=[], intensityErrorIdsBottom=[]) {
-    console.log(returnedData);
     $scope.set.peptide =
       {
         sequence: returnedData.sequence,
@@ -513,21 +512,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
   $scope.processUSI = function(topSpectrum = true, fillBothSequences = false, auto = false) {
 
-    f = function(x){
-      p1 = $http.get("http://www.peptideatlas.org/api/proxi/v0.1/spectra?resultType=full&usi=mzspec%3APXD000561%3AAdult_Frontalcortex_bRP_Elite_85_f09%3Ascan%3A17555%3AVLHPLEGAVVIIFK%2F2").then(function(response){
-      });
-    }
-
-    var aUrls = {
-      pride: 'https://www.ebi.ac.uk/pride/ws/archive/v2/spectrum?usi=',
-      peptideatlas: 'https://www.proteomicsdb.org/proxy_ppc/peptideAtlas?usi=',
-      jpost: 'https://www.proteomicsdb.org/proxy_ppc/jPOST?usi=',
-    };
     $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
     var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
-    var url = (topSpectrum ? aUrls[$scope.peptide.usiOriginTop] : aUrls[$scope.peptideBottom.usibottom_origin]);
-    url = "https://www.proteomicsdb.org/proxy_ppc/availability?usi=" + sUsi;
+    var url = "https://www.proteomicsdb.org/proxy_ppc/availability?usi=" + sUsi;
    
     $scope.setOriginString(topSpectrum, sUsi);
     // var usi = new UsiResponse(topSpectrum ? $scope.peptide.usiOriginTop : $scope.peptideBottom.usibottom_origin);
@@ -536,19 +524,16 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       .then( function(response) {
         // we only use mzs and intensities
         //
-        var mzs = response.data[0].mzs.map((el)=>parseFloat(el));
-        var ints = response.data[0].intensities.map((el)=>parseFloat(el));
-        console.log(mzs);
-        console.log(ints);
+        let mzs = response.data[0].mzs.map((el)=>parseFloat(el));
+        let ints = response.data[0].intensities.map((el)=>parseFloat(el));
 
         usi = new USI(sUsi);
         usi.parse();
-        console.log(usi.proForma);
         proForma = new ProForma(usi.proForma);
         proForma.parse();
 
-        var seq = proForma.baseSequence;
-        var charge = proForma.precursorCharge;
+        let seq = proForma.baseSequence;
+        let charge = proForma.precursorCharge;
         if (topSpectrum) {
           $scope.peptide.sequence = seq;
           $scope.peptide.precursorCharge = charge;
@@ -622,7 +607,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
                 deltaMass: parseFloat(mod.name),
                 unimod: mod.name
               }
-              $scope.mods.push(addMod);
+              $scope.modsBottom.push(addMod);
             }
           })
     }
