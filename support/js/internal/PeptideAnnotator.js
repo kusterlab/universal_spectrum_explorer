@@ -33,7 +33,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     string = "?";
     firstKey = true;
     for (let key in mappedProperties) {
-      if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit"].includes(key)){
+      if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit", "ce_top", "ce_bottom"].includes(key)){
         if(typeof mappedProperties[key] != "undefined"){
       if (!firstKey){
         string+="&";
@@ -63,7 +63,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     fragmentMax: 2,
     usi: $scope.getUrlVars().usi,
     usi_origin: $scope.getUrlVars().usi_origin,
-    ce: 30,
+    ce: $scope.getUrlVars().ce_top || 30,
     api: '',
     hideUSI: true,
     hideCE: true ,
@@ -83,7 +83,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     fragmentMin: 1,
     fragmentMax: 2,
     usi: $scope.getUrlVars().usibottom,
-    ce: 30,
+    ce: $scope.getUrlVars().ce_bottom || 30,
     api: '',
     hideUSI: true,
     hideCE: true,
@@ -233,6 +233,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
             };
           }
           $scope.predeterminedMods = tempArray;
+          console.log(tempArray);
 
           // now that we have predetermined mods, get user mods
           $scope.userMods = $localStorage.userMods;
@@ -265,7 +266,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: i,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -273,7 +275,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: i,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
 
@@ -291,7 +294,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: -1,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -299,7 +303,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: -1,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
                 if (!contains(addMod, aMods)) {
@@ -316,7 +321,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: sSeq.length,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -324,7 +330,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: sSeq.length,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
                 if (!contains(addMod, aMods)) {
@@ -399,7 +406,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: -1,
-                  deltaMass: mod.deltaMass
+                  deltaMass: mod.deltaMass,
+                  unimod: mod.unimod
                 };
             } else {
               addMod = 
@@ -407,7 +415,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: -1,
-                  elementChange: mod.elementChange
+                  elementChange: mod.elementChange,
+                  unimod: mod.unimod
                 };
             }
             if (!contains(addMod, aMods)) {
@@ -424,7 +433,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: sSeq.length,
-                  deltaMass: mod.deltaMass
+                  deltaMass: mod.deltaMass,
+                  unimod: mod.unimod
                 };
             } else {
               addMod = 
@@ -432,7 +442,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: sSeq.length,
-                  elementChange: mod.elementChange
+                  elementChange: mod.elementChange,
+                  unimod: mod.unimod
                 };
             }
             if (!contains(addMod, aMods)) {

@@ -358,6 +358,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.busy.isProcessing = true;
     let modString = "";
     if(topSpectrum) {
+      console.log("topSpectrum");
+      console.log($scope.modObject.selectedMods);
+      console.log($scope.modObjectBottom.selectedMods);
       if ($scope.modObject.selectedMods != undefined) {
         $scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
         $scope.modObject.selectedMods.forEach(function(mod) {
@@ -368,6 +371,9 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         });
       }
     } else {
+      console.log("bottomSpectrum");
+      console.log($scope.modObject.selectedMods);
+      console.log($scope.modObjectBottom.selectedMods);
       if ($scope.modObjectBottom.selectedMods != undefined) {
         $scope.modObjectBottom.selectedMods.sort((x,y) => {return x.index > y.index});
         $scope.modObjectBottom.selectedMods.forEach(function(mod) {
@@ -396,7 +402,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       iCh = topSpectrum ? $scope.peptide.charge : $scope.peptideBottom.charge, 
       iCE = topSpectrum ? $scope.peptide.ce : $scope.peptideBottom.ce;
   
-    var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     if(sApi===""){
       alert("Please select an Origin for your peptide of interest");
     }
@@ -514,7 +519,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     $scope.busy.isProcessing = true;
     var sUsi = topSpectrum ? $scope.peptide.usi : $scope.peptideBottom.usi;
-    var reference = topSpectrum ? $scope.promiseTop : $scope.promiseBottom;
     var url = "https://www.proteomicsdb.org/proxy_ppc/availability?usi=" + sUsi;
    
     $scope.setOriginString(topSpectrum, sUsi);
@@ -557,18 +561,33 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         if (fillBothSequences) {
           $scope.peptide.sequence = seq;
           $scope.peptideBottom.sequence = seq;
+          $scope.peptide.charge = charge;
+          $scope.peptideBottom.charge = charge;
+          $scope.peptide.precursorCharge = charge;
+          $scope.peptideBottom.precursorCharge = charge;
         }
 
         $scope.validateGenerateButton();
 
-        
-        setTimeout(function(){$scope.preselectMods(topSpectrum, proForma.modifications)}, 200);
+       
+
 
         if (!auto) {
           $scope.openModalConfirmation('The reference Spectrum was successfully imported into Manual input. Click OK to redirect', topSpectrum);
         }
         $scope.busy.isProcessing = false;
-        return(true);
+        return(new Promise((resolve, reject) =>{
+          setTimeout(function(){$scope.preselectMods(topSpectrum, proForma.modifications, fillBothSequences);
+          }, 200);
+        /*
+         setTimeout(()=>resolve($scope.preselectMods(topSpectrum, proForma.modifications, fillBothSequences)
+         ), 200);
+         */
+
+          setTimeout(()=>resolve(true), 201);
+        // $scope.preselectMods(topSpectrum, proForma.modifications, fillBothSequences);
+        })
+        );
       },
       function(response2){
         $scope.busy.isProcessing = false;
@@ -577,7 +596,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       });
   }
 
-  $scope.preselectMods = function(topSpectrum = true, modifications) {
+  $scope.preselectMods = function(topSpectrum = true, modifications, fillBothSequences = false) {
     let aModsRest = [];
     //
     // take care of mass modifications
@@ -611,7 +630,10 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             }
           })
     }
+    console.log(modifications);
+    console.log($scope.mods);
         if (topSpectrum){
+          $scope.modObject.selectedMods = [];
           modifications.forEach((mod) => {
             let o = $scope.mods.filter((m) => { 
               return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
@@ -625,6 +647,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           });
         } else {
           modifications.forEach((mod) => {
+          $scope.modObjectBottom.selectedMods = [];
             let o = $scope.modsBottom.filter((m) => { 
             //  return(m.index == mod.index && m.site == mod.site && m.name == mod.name)
               return((m.index == mod.index && m.site == mod.site && m.name == mod.name)||
@@ -638,8 +661,21 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             }
           });
         }
+
+    if(fillBothSequences){
+      if(topSpectrum){
+        $scope.modsBottom = $scope.mods.map((el)=> el);
+        $scope.modObjectBottom = Object.assign({}, $scope.modObject);
+      }else{
+        $scope.mods = $scope.modsBottom.map((el)=> el);
+        $scope.modObject = Object.assign({}, $scope.modObjectBottom);
+      }
+
+    }
     if (aModsRest.length > 0)
       alert("The following modifications could not be auto-selected for the " + (topSpectrum ? "top" : "bottom") + " spectrum: [" + aModsRest.join(";") + "]\n Please select them manually." );
+
+    return(true);
       
   }
 
@@ -794,6 +830,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       urlObj["fragment_tol_unit"] = $scope.cutoffs.toleranceType;
       urlObj["matching_tol"] = $scope.cutoffs.compTolerance;
       urlObj["matching_tol_unit"] = $scope.cutoffs.compToleranceType;
+      if($scope.peptide.api !== ''){
+      urlObj["ce_top"] = $scope.peptide.ce;
+      }
+      if($scope.peptideBottom.api !== ''){
+      urlObj["ce_bottom"] = $scope.peptideBottom.ce;
+      }
 
       $scope.setUrlVars(urlObj);
 
@@ -1210,10 +1252,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   
   Promise.all([promise2])
     .then( (values) => {
+      console.log(values);
       if(values[0] !== undefined){
-        $scope.busy.isProcessing = true;
         $scope.processData();
-        setTimeout(()=>{$scope.processUSI(true, true, true)}, 3000); // no good reason for it 
+        $scope.busy.isProcessing = true;
+        setTimeout(()=>{ $scope.processUSI(true, true, true)
+        }, 300); // no good reason for it 
       }
     } , function(response2) {
     } 
