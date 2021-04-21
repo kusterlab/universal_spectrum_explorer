@@ -611,6 +611,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             }
           })
     }
+    console.log(modifications);
+    console.log($scope.mods);
         if (topSpectrum){
           modifications.forEach((mod) => {
             let o = $scope.mods.filter((m) => { 

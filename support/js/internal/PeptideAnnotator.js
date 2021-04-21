@@ -233,6 +233,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
             };
           }
           $scope.predeterminedMods = tempArray;
+          console.log(tempArray);
 
           // now that we have predetermined mods, get user mods
           $scope.userMods = $localStorage.userMods;
@@ -265,7 +266,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: i,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -273,7 +275,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: i,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
 
@@ -291,7 +294,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: -1,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -299,7 +303,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: -1,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
                 if (!contains(addMod, aMods)) {
@@ -316,7 +321,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: sSeq.length,
-                      deltaMass: mod.deltaMass
+                      deltaMass: mod.deltaMass,
+                      unimod: mod.unimod
                     };
                 } else {
                   addMod = 
@@ -324,7 +330,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                       name: mod.name,
                       site: mod.site,
                       index: sSeq.length,
-                      elementChange: mod.elementChange
+                      elementChange: mod.elementChange,
+                      unimod: mod.unimod
                     };
                 }
                 if (!contains(addMod, aMods)) {
@@ -399,7 +406,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: -1,
-                  deltaMass: mod.deltaMass
+                  deltaMass: mod.deltaMass,
+                  unimod: mod.unimod
                 };
             } else {
               addMod = 
@@ -407,7 +415,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: -1,
-                  elementChange: mod.elementChange
+                  elementChange: mod.elementChange,
+                  unimod: mod.unimod
                 };
             }
             if (!contains(addMod, aMods)) {
@@ -424,7 +433,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: sSeq.length,
-                  deltaMass: mod.deltaMass
+                  deltaMass: mod.deltaMass,
+                  unimod: mod.unimod
                 };
             } else {
               addMod = 
@@ -432,7 +442,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
                   name: mod.name,
                   site: mod.site,
                   index: sSeq.length,
-                  elementChange: mod.elementChange
+                  elementChange: mod.elementChange,
+                  unimod: mod.unimod
                 };
             }
             if (!contains(addMod, aMods)) {
