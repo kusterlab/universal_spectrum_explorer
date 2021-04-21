@@ -1676,7 +1676,6 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
         .attr("opacity", 0)
         .attr("transform", function (d, i) {
             return "translate(-" + 0 + ",40)";
-            return "translate(-" + (stat_width / 2 + stat_mar_datpad1 - 140) + ",50)";
             // return "translate(-" + (stat_width / 2 + stat_mar_datpad1 -70) + ",50)";
         }).attr("text-anchor", "middle").transition().delay(function (d, i) {
           return i * 450;

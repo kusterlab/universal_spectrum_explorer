@@ -36,7 +36,7 @@
     <link href="support/css/internal/PeptideAnnotator.css" rel="stylesheet">
     <link rel="icon" 
           type="image/png" 
-                href="support/icon/fav_icon.png">
+          href="support/icon/fav_icon.png">
   </head>
   <body>
     <nav class="navbar navbar-default navbar-static-top" role="navigation">
@@ -47,37 +47,36 @@
       </div>
       <ul class="nav navbar-nav" ng-controller="MasterCtrl">
         <li class="divider-vertical"></li>
-        <li class=><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2">Example (Pride)</a></li>
+        <li class=><a href="?usi=mzspec:PXD010154:01284_E04_P013188_B00_N29_R1.mzML:scan:31291:DQNGTWEM[Oxidation]ESNENFEGYM[Oxidation]K/2&fragment_tol=10&fragment_tol_unit=ppm&matching_tol=10&matching_tol_unit=ppm&ce_bottom=29">Example (USI vs Prosit)</a></li>
         <li class="divider-vertical"></li>
-        <li class><a href="?usi=mzspec:PXD000966:CPTAC_CompRef_00_iTRAQ_05_2Feb12_Cougar_11-10-09.mzML:scan:12298:[iTRAQ4plex]-LHFFM[Oxidation]PGFAPLTSR/2&usibottom=mzspec:PXD000394:20130504_EXQ3_MiBa_SA_Fib-2:scan:4234:SGVSRKPAPG/2">Example (Modification)</a></li>
-        <li class="divider-vertical"></li>
-        <li class><a href="?usi=mzspec:PXD000561:Adult_Frontalcortex_bRP_Elite_85_f09:scan:17555:VLHPLEGAVVIIFK/2&usibottom=mzspec:PXD000394:20130504_EXQ3_MiBa_SA_Fib-2:scan:4234:SGVSRKPAPG/2">Example (Comparison)</a></li>
+        <li class><a href="?usi=mzspec:PXD000966:CPTAC_CompRef_00_iTRAQ_05_2Feb12_Cougar_11-10-09.mzML:scan:12298:[iTRAQ4plex]-LHFFM[Oxidation]PGFAPLTSR/2&usibottom=mzspec:PXD000394:20130504_EXQ3_MiBa_SA_Fib-2:scan:4234:SGVSRKPAPG/2">Example (USI vs USI
+            )</a></li>
         <li class="divider-vertical"></li>
         <li class>
 
-                                    <a href ng-click="openHelp()">Help</a>
+          <a href ng-click="openHelp()">Help</a>
         </li>
 
-       <!-- <li class="divider-vertical"></li>
-        <li>
-            <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
+        <!-- <li class="divider-vertical"></li>
+          <li>
+          <a class="github-button" href="https://github.com/kusterlab/ipsa" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star kusterlab/ipsa on GitHub">Star</a>
           <a>
-            Please be aware that not all features have been implemented yet
+          Please be aware that not all features have been implemented yet
           </a>
-        </li> -->
+          </li> -->
       </ul>
     </nav>
     <div class="container-fluid">
       <div id = "gray-overlay">
         <div ng-controller="MasterCtrl">
-          <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
+            <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
             <span class="progress" >
-              <uib-progressbar class="{{busy.type}}" value="busy.progress" type="success" max="100">
-                {{"Please wait... Loading"}}
-              </uib-progressbar>
+            <uib-progressbar class="{{busy.type}} " value="busy.progress" type="success" max="100">
+            {{"Please wait... Loading"}}
+            </uib-progressbar>
             </span>
             {{busy.loaded}}
-          </div>
+            </div>
           <div class="row">
             <div ng-controller="PeptideCtrl">
               <div ng-controller="GraphCtrl">
@@ -141,7 +140,6 @@
                                     </div>
                                     <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                   </div>
-                                  <br/>
                                 </div>
                               </div>
                             </div>
@@ -214,13 +212,12 @@
                                         </div>
                                         <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                       </div>
-                                      <br/>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col-md-12">
-                                        <button class="btn btn-primary" type="button" ng-click="processReference()">Get Predicted/Reference Spectrum</button> 
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <button class="btn btn-primary" type="button" ng-click="processReference()">Get Predicted/Reference Spectrum</button> 
+                                        </div>
+                                        <br/>
                                       </div>
-                                      <br/>
                                     </div>
                                   </div>
                                 </div>
@@ -296,7 +293,6 @@
                                     </div>
                                     <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                   </div>
-                                  <br/>
                                 </div>
                               </div>
                             </div>
@@ -370,12 +366,12 @@
                                         <button type="button" class="btn btn-primary" ng-click="openModal()">Define Mods</button>
                                       </div>
                                       <br/>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col-md-12">
-                                        <button class="btn btn-primary" type="button" ng-click="processReference(false)">Get Predicted/Reference Spectrum</button> 
+                                      <div class="row">
+                                        <div class="col-md-12">
+                                          <button class="btn btn-primary" type="button" ng-click="processReference(false)">Get Predicted/Reference Spectrum</button> 
+                                        </div>
+                                        <br/>
                                       </div>
-                                      <br/>
                                     </div>
                                   </div>
                                 </div>
@@ -516,7 +512,6 @@
                             </div>
                           </div>
                         </div>
-                        <br/>
 
                       </uib-tab>
                     </uib-tabset>
@@ -537,22 +532,32 @@
                   </div>
                 </div>
                 <div class="col-md-7">
-                      <div annotated-spectrum 
-                                       plotdata="set.plotData" 
-                                       mirrorplotdata="set.plotDataBottom" 
-                                       peptide="set.peptide"
-                                       peptidebottom="set.peptideBottom" 
-                                       settings="set.settings" 
-                                       scoretop="set.scoreTop" 
-                                       scorebottom="set.scoreBottom" 
-                                       score="set.score" 
-                                       height="550"
-                                       class="content"></div>
-                      <form role="form" ng-init="randomize()"></form>
+                  <div annotated-spectrum 
+                     plotdata="set.plotData" 
+                     mirrorplotdata="set.plotDataBottom" 
+                     peptide="set.peptide"
+                     peptidebottom="set.peptideBottom" 
+                     settings="set.settings" 
+                     scoretop="set.scoreTop" 
+                     scorebottom="set.scoreBottom" 
+                     score="set.score" 
+                     height="550"
+                     class="content"></div>
+                  <form role="form" ng-init="randomize()"></form>
                 </div> 
               </div>
             </div>
           </div>
+          <!--
+            <div ng-style="{'visibility': busy.isProcessing ? 'visible' : 'hidden' }">
+            <span class="progress" >
+            <uib-progressbar class="{{busy.type}}" value="busy.progress" type="success" max="100">
+            {{"Please wait... Loading"}}
+            </uib-progressbar>
+            </span>
+            {{busy.loaded}}
+            </div>
+          -->
         </div>
       </div>
     </div>

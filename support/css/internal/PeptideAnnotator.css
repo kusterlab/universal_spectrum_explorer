@@ -1,4 +1,24 @@
 /* navbar */
+.navbar {
+  margin-bottom: 2px;
+}
+
+ .progress,
+ .progress-striped .active .progress,
+ .progress-bar .progress-bar-success {
+   height: 20px;
+   max-height: 20px !important;
+   margin-bottom: 2px;
+   margin-top: 2px;
+}
+.panel-group {
+  margin-bottom: 0px;
+}
+.panel-body {
+      padding: 1px;
+      padding-top: 0px !important;
+      padding-bottom: 10px;
+    }
 
 .app-modal-window .modal-dialog {
     width: 75%;
