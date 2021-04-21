@@ -444,6 +444,11 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
           .then( function(response2) {
             var res2 = response2.data;
             var spec = getClosestCESpectrum(res2, parseInt(iCE, 10));
+            if (typeof spec === 'undefined'){
+              alert("ProteomeTools: no reference spectrum for this settings is available");
+              $scope.busy.isProcessing = false;
+              return(false);
+            }
             if (topSpectrum) {
               $scope.peptide.ce = spec.collissionEnergy;
               $scope.db.items = spec.ions.map(
