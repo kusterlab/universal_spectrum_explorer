@@ -2431,7 +2431,7 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           tip.hide();
           // reset annotated peptide sequence back to normal
           scope.titleContainer.selectAll("text").data(sequence).style("fill", "black").style("stroke", "none");
-          d3.select(this).style("font-size", 16).style("font-weight", "normal");
+          d3.select(this).style("font-size", 12).style("font-weight", "normal");
 
           // set all mass error circles back to normal
           var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
@@ -2481,8 +2481,8 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           // hide tooltip
           tip.hide();
           // reset annotated peptide sequence back to normal
-          //scope.titleContainer.selectAll("text").data(sequence).style("fill", "black").style("stroke", "none");
-          d3.select(this).style("font-size", 16).style("font-weight", "normal");
+          scope.titleContainerBottom.selectAll("text").data(sequenceBottom).style("fill", "black").style("stroke", "none");
+          d3.select(this).style("font-size", 12).style("font-weight", "normal");
 
           // set all mass error circles back to normal
           var massErrorCircles = scope.massErrorContainer.selectAll(".masserror");
@@ -2745,9 +2745,12 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
 
           // highlight all related fragment information on other plots
           var labelObj = scope.plotContainer.selectAll(".barlabel").filter(function (e, j) { 
-            //TODO correct id highlighting
-
-            return i === j;
+              return e.id == d.top_id;
+          });
+          // make the label a little bigger
+          labelObj.style("font-size", 18).style("font-weight", "bold");
+          var labelObj = scope.plotContainer2.selectAll(".barlabel").filter(function (e, j) { 
+              return e.id == d.bottom_id;
           });
           // make the label a little bigger
           labelObj.style("font-size", 18).style("font-weight", "bold");
@@ -2828,11 +2831,16 @@ angular.module("IPSA.directive", []).directive("annotatedSpectrum", function($lo
           fitting_top_peak.style("stroke", "none").style("width", (d)=>{return d.width});
           fitting_bottom_peak.style("stroke", "none").style("width", (d)=>{return d.width});
 
-          // return the barlabel back to 0
+          // highlight all related fragment information on other plots
           var labelObj = scope.plotContainer.selectAll(".barlabel").filter(function (e, j) { 
-            return i === j;
+              return e.id == d.top_id;
           });
-          labelObj.style("font-size", 16).style("font-weight", "normal");
+          // make the label a little bigger
+          labelObj.style("font-size", 12).style("font-weight", "normal");
+          var labelObj = scope.plotContainer2.selectAll(".barlabel").filter(function (e, j) { 
+              return e.id == d.bottom_id;
+          });
+          labelObj.style("font-size", 12).style("font-weight", "normal");
 
           // remove the stroke and resize the circle back to normal
           circleDataset.style("r", function(data) {
