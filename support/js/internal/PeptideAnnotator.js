@@ -63,7 +63,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     fragmentMax: 2,
     usi: $scope.getUrlVars().usi,
     usi_origin: $scope.getUrlVars().usi_origin,
-    ce: $scope.getUrlVars().ce_top || 30,
+    ce: parseInt($scope.getUrlVars().ce_top) || 30,
     api: '',
     hideUSI: true,
     hideCE: true ,
@@ -83,7 +83,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     fragmentMin: 1,
     fragmentMax: 2,
     usi: $scope.getUrlVars().usibottom,
-    ce: $scope.getUrlVars().ce_bottom || 30,
+    ce: parseInt($scope.getUrlVars().ce_bottom) || 30,
     api: '',
     hideUSI: true,
     hideCE: true,
@@ -233,7 +233,6 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
             };
           }
           $scope.predeterminedMods = tempArray;
-          console.log(tempArray);
 
           // now that we have predetermined mods, get user mods
           $scope.userMods = $localStorage.userMods;

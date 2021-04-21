@@ -358,9 +358,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
     $scope.busy.isProcessing = true;
     let modString = "";
     if(topSpectrum) {
-      console.log("topSpectrum");
-      console.log($scope.modObject.selectedMods);
-      console.log($scope.modObjectBottom.selectedMods);
       if ($scope.modObject.selectedMods != undefined) {
         $scope.modObject.selectedMods.sort((x,y) => {return x.index > y.index});
         $scope.modObject.selectedMods.forEach(function(mod) {
@@ -371,9 +368,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
         });
       }
     } else {
-      console.log("bottomSpectrum");
-      console.log($scope.modObject.selectedMods);
-      console.log($scope.modObjectBottom.selectedMods);
       if ($scope.modObjectBottom.selectedMods != undefined) {
         $scope.modObjectBottom.selectedMods.sort((x,y) => {return x.index > y.index});
         $scope.modObjectBottom.selectedMods.forEach(function(mod) {
@@ -630,8 +624,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
             }
           })
     }
-    console.log(modifications);
-    console.log($scope.mods);
         if (topSpectrum){
           $scope.modObject.selectedMods = [];
           modifications.forEach((mod) => {
@@ -1252,7 +1244,6 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
   
   Promise.all([promise2])
     .then( (values) => {
-      console.log(values);
       if(values[0] !== undefined){
         $scope.processData();
         $scope.busy.isProcessing = true;
