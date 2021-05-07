@@ -33,7 +33,7 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     string = "?";
     firstKey = true;
     for (let key in mappedProperties) {
-      if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit", "ce_top", "ce_bottom"].includes(key)){
+      if (["usi", "usi_origin", "usibottom", "usibottom_origin", "fragment_tol", "fragment_tol_unit", "matching_tol", "matching_tol_unit", "ce_top", "ce_bottom", "prositModel_top", "prositModel_bottom"].includes(key)){
         if(typeof mappedProperties[key] != "undefined"){
       if (!firstKey){
         string+="&";
@@ -67,7 +67,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     api: '',
     hideUSI: true,
     hideCE: true ,
-    usiOriginTop: $scope.getUrlVars().usi_origin
+    usiOriginTop: $scope.getUrlVars().usi_origin,
+    prositModel: parseInt($scope.getUrlVars().ce) ?  $scope.getUrlVars().prositModel ? $scope.getUrlVars().prositModel: 'intensity_prosit_publication'  : ''
   };
 
   $scope.ctrl = {
@@ -87,7 +88,8 @@ myApp.controller('MasterCtrl', function($scope, $uibModal, $log, $localStorage, 
     api: '',
     hideUSI: true,
     hideCE: true,
-    usibottom_origin: $scope.getUrlVars().usibottom_origin
+    usibottom_origin: $scope.getUrlVars().usibottom_origin,
+    prositModel: parseInt($scope.getUrlVars().ce_bottom) ?  $scope.getUrlVars().prositModel_bottom ? $scope.getUrlVars().prositModel_bottom : 'intensity_prosit_publication'  : ''
   };
 
 
