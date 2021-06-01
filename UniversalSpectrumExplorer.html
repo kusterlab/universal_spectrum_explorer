@@ -170,6 +170,13 @@
                                         <label class="btn btn-success" ng-model="peptide.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted()">ProteomeTools</label>
                                       </div>
                                     </div>
+                                    <div class="col-md-6 InSilicoSourceModel" ng-style="{'visibility': peptide.api=== 'Prosit' ? 'visible' : 'hidden' }">
+                                      <label>Prosit model</label>
+                                      <div class="input-group">
+                                        <label class="btn btn-success active" ng-model="peptide.prositModel" uib-btn-radio="'intensity_prosit_publication'">Original model (2019)</label>
+                                        <label class="btn btn-success" ng-model="peptide.prositModel" uib-btn-radio="'Prosit_2020_intensity_hcd'">HLA model (2020)</label>
+                                      </div>
+                                    </div>
                                     <div class="col-md-12">
                                       <div class="row">
                                         <div class="col-md-12">
@@ -321,6 +328,13 @@
                                       <div class="input-group">
                                         <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'Prosit'" uncheckable ng-click="processPredicted(false)">Prosit</label>
                                         <label class="btn btn-success" ng-model="peptideBottom.api" uib-btn-radio="'ProteomeTools'" uncheckable ng-click="processPredicted(false)">ProteomeTools</label>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-6 InSilicoSourceModel" ng-style="{'visibility': peptideBottom.api=== 'Prosit' ? 'visible' : 'hidden' }">
+                                      <label>Prosit model</label>
+                                      <div class="input-group">
+                                        <label class="btn btn-success active" ng-model="peptideBottom.prositModel" uib-btn-radio="'intensity_prosit_publication'">Original model (2019)</label>
+                                        <label class="btn btn-success" ng-model="peptideBottom.prositModel" uib-btn-radio="'Prosit_2020_intensity_hcd'">HLA model (2020)</label>
                                       </div>
                                     </div>
                                     <div class="col-md-12">

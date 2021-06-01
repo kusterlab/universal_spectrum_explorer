@@ -394,7 +394,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       sSeq = topSpectrum ? $scope.peptide.sequence : $scope.peptideBottom.sequence,
       iPreCh =  topSpectrum ? $scope.peptide.precursorCharge : $scope.peptideBottom.precursorCharge,
       iCh = topSpectrum ? $scope.peptide.charge : $scope.peptideBottom.charge, 
-      iCE = topSpectrum ? $scope.peptide.ce : $scope.peptideBottom.ce;
+      iCE = topSpectrum ? $scope.peptide.ce : $scope.peptideBottom.ce,
+      sModel = topSpectrum ? $scope.peptide.prositModel : $scope.peptideBottom.prositModel;
   
     if(sApi===""){
       alert("Please select an Origin for your peptide of interest");
@@ -402,7 +403,7 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     switch (sApi) {
       case 'Prosit':
-        query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString]};
+        query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString], "model": sModel};
         url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
         return $http.post(url, query)
           .then( function(response2) {
@@ -832,6 +833,12 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
       }
       if($scope.peptideBottom.api !== ''){
       urlObj["ce_bottom"] = $scope.peptideBottom.ce;
+      }
+      if($scope.peptide.prositModel !== ''){
+      urlObj["prositModel_top"] = $scope.peptide.prositModel;
+      }
+      if($scope.peptideBottom.api !== ''){
+      urlObj["prositModel_bottom"] = $scope.peptideBottom.prositModel;
       }
 
       $scope.setUrlVars(urlObj);
