@@ -21,7 +21,7 @@ Annotation = class Annotation {
 	};
 	this.N_TERMINUS = this.ChemistryConstants.H;
 	this.C_TERMINUS = this.ChemistryConstants.O + this.ChemistryConstants.H;
-this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
+  this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 	this.A_ION_TERMINUS = this.B_ION_TERMINUS - this.ChemistryConstants.C - this.ChemistryConstants.O; // wiki
 	this.C_ION_TERMINUS = (2+1) * this.ChemistryConstants.H + this.ChemistryConstants.N - this.ChemistryConstants.Proton; 
 
@@ -54,6 +54,13 @@ this.B_ION_TERMINUS = this.ChemistryConstants.Proton; // wiki
 		W: 186.07931,
 		Y: 163.06333,
 	};
+	
+	/* TMT6 modifications */
+	this.N_TERMINUS += 229.162932
+	this.A_ION_TERMINUS += 229.162932
+	this.B_ION_TERMINUS += 229.162932
+	this.C_ION_TERMINUS += 229.162932
+	this.AminoAcids["K"] += 229.162932
 
 		this.peakData = request["peakData"].sort(function(a,b){
 			return a.mZ < b.mZ

@@ -403,8 +403,8 @@ angular.module("IPSA.spectrum.controller").controller("GraphCtrl", ["$scope", "$
 
     switch (sApi) {
       case 'Prosit':
-        query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString], "model": sModel};
-        url = "https://www.proteomicsdb.org/logic/api/getFragmentationPrediction.xsjs";
+        query = {"sequence": [sSeq], "charge": [iPreCh], "ce": [iCE], "mods" : [modString], "fragmentation" : ["CID"], "model": sModel};
+        url = "http://tps.proteomicsdb.in.tum.de/logic/api/getFragmentationPrediction.xsjs";
         return $http.post(url, query)
           .then( function(response2) {
             let rv = response2.data[0]
